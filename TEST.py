@@ -24,12 +24,12 @@ class DMM(object):
 
     def config(self, *args):
         if len(args) == 1:
-            str = ""
+            str1 = ""
 
             for item in args:
-                str = str + item
+                str1 = str1 + item
 
-            self.dmm.write("CONF:" + str)
+            self.dmm.write("CONF:" + str1)
 
         elif len(args) == 2:
             str1 = ""
@@ -40,6 +40,20 @@ class DMM(object):
                 str2 = str2 + item
 
             self.dmm.write("CONF:" + str1 + ":" + str2)
+
+        elif len(args) == 3:
+            str1 = ""
+            str2 = ""
+            str3 = ""
+            for item in args[0]:
+                str1 = str1 + item
+            for item in args[1]:
+                str2 = str2 + item
+            for item in args[2]:
+                str3 = str3 + item
+
+            self.dmm.write("CONF:" + str1 + ":" + str2 + ":" + str3)
+            self.dmm.timeout = 1000
 
     def step_measure(self):
         self.dmm.timeout = 7000
@@ -52,7 +66,6 @@ class DMM(object):
         self.list = list
         self.dmm.timeout = 7000
         for i in range(int(self.duration)):
-            self.dmm.timeout = 7000
             list.append(float(self.dmm.query("READ?")))
             time.sleep(self.duration / self.samples)
 
@@ -62,7 +75,6 @@ class DMM(object):
         self.duration = DURATION
         self.list = list
         self.period = period
-        self.dmm.timeout = 7000
 
         if len(args) == 1:
             str = ""
@@ -136,6 +148,129 @@ class DMM(object):
 
         print("Min: " + self.dmm.query("CALC:AVER:MIN?"))
 
+    def Sense(self, *args):
+        if len(args) == 2:
+            str1 = ""
+            str2 = ""
+            for item in args[0]:
+                str1 = str1 + item
+            for item in args[1]:
+                str2 = str2 + item
+
+            print(str1 + " " + str2 + " has been updated.")
+            self.dmm.write("SENS:" + str1 + ":" + str2)
+
+        elif len(args) == 3:
+            str1 = ""
+            str2 = ""
+            str3 = ""
+            for item in args[0]:
+                str1 = str1 + item
+            for item in args[1]:
+                str2 = str2 + item
+            for item in args[2]:
+                str3 = str3 + item
+
+            print(str1 + " " + str2 + " " + str3 + " has been updated.")
+            self.dmm.write("SENS:" + str1 + ":" + str2 + ":" + str3)
+            self.dmm.timeout = 1000
+
+        elif len(args) == 4:
+            str1 = ""
+            str2 = ""
+            str3 = ""
+            str4 = ""
+
+            for item in args[0]:
+                str1 = str1 + item
+            for item in args[1]:
+                str2 = str2 + item
+            for item in args[2]:
+                str3 = str3 + item
+            for item in args[3]:
+                str4 = str4 + item
+
+            print(str1 + " " + str2 + " " + str3 + " " + str4 + " has been updated.")
+            self.dmm.write("SENS:" + str1 + ":" + str2 + ":" + str3 + ":" + str4)
+            self.dmm.timeout = 1000
+
+    def QSense(self, *args):
+        if len(args) == 2:
+            str1 = ""
+            str2 = ""
+            for item in args[0]:
+                str1 = str1 + item
+            for item in args[1]:
+                str2 = str2 + item
+
+            print("\n")
+            print(
+                "Current status of "
+                + str1
+                + " "
+                + str2
+                + ": "
+                + self.dmm.query("SENS:" + str1 + ":" + str2 + "?")
+            )
+            self.dmm.timeout = 1000
+        elif len(args) == 3:
+            str1 = ""
+            str2 = ""
+            str3 = ""
+            for item in args[0]:
+                str1 = str1 + item
+            for item in args[1]:
+                str2 = str2 + item
+            for item in args[2]:
+                str3 = str3 + item
+
+            print("\n")
+            print(
+                "Current status of "
+                + str1
+                + " "
+                + str2
+                + " "
+                + str3
+                + ": "
+                + self.dmm.query("SENS:" + str1 + ":" + str2 + ":" + str3 + "?")
+            )
+
+            self.dmm.timeout = 7000
+
+        elif len(args) == 4:
+            str1 = ""
+            str2 = ""
+            str3 = ""
+            str4 = ""
+
+            for item in args[0]:
+                str1 = str1 + item
+            for item in args[1]:
+                str2 = str2 + item
+            for item in args[2]:
+                str3 = str3 + item
+            for item in args[3]:
+                str4 = str4 + item
+
+            print("\n")
+            print(
+                "Current status of "
+                + str1
+                + " "
+                + str2
+                + " "
+                + str3
+                + " "
+                + str4
+                + ": "
+                + self.dmm.query(
+                    "SENS:" + str1 + ":" + str2 + ":" + str3 + ":" + str4 + "?"
+                )
+            )
+
+            self.dmm.timeout = 1000
+
 
 class plotGraph:
     def plotting(list):
@@ -151,5 +286,6 @@ class plotGraph:
 
 
 A = DMM("USB0::0x2A8D::0x8E01::CN60440004::0::INSTR")
-A.config("Frequency")
-A.measure(5, 1, list, "Voltage", "AC")
+A.config("Primary", "Voltage")
+A.Sense("Primary", "Voltage", "AC", "RES FAST")
+A.QSense("Primary", "Voltage", "Range")
