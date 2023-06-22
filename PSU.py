@@ -19,7 +19,8 @@ class E36731A(object):
         # Resets the instrument configuration and synchronizes it before each R/W
         self.dmm.write("*rst")
         self.dmm.query("*opc?")
-        # self.dmm.write("APPL CH1,MAX,MAX")
+        # self.dmm.write("DISP:TEXT " + '"Reality can be whatever I want"')
+        self.dmm.write("DISP:TEXT:CLE")
 
     def apply(self, CHANNEL, VOLTAGE_SET, CURRENT_SET):
         self.Channel = CHANNEL
@@ -30,6 +31,16 @@ class E36731A(object):
             "APPL " + self.Channel + "," + self.setVoltage + "," + self.setCurrent
         )
 
+    def Emulate(self, Emul):
+        self.emul = Emul
+        self.dmm.write("EMUL " + Emul)
+
+    def Output(self, state):
+        self.dmm.write("OUTPUT " + state)
+
 
 A = E36731A("USB0::0x2A8D::0x5C02::MY62100050::0::INSTR")
-A.apply("CH1", "MAX", "MAX")
+A.apply("CH1", "7", "2")
+A.Output("ON")
+time.sleep(5)
+A.Output("OFF")
