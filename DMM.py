@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 list = []
 
 
-class DMM(object):
+class EDU34450A(object):
     def __init__(self, VISA_ADDRESS):
         self.VISA_ADDRESS = VISA_ADDRESS
         # ResourceManager Setup
@@ -285,7 +285,7 @@ class plotGraph:
         plt.show()
 
 
-A = DMM("USB0::0x2A8D::0x8E01::CN60440004::0::INSTR")
-A.config("Primary", "Voltage")
+A = EDU34450A("USB0::0x2A8D::0x8E01::CN60440004::0::INSTR")
+A.config("Primary", "Frequency")
 A.Sense("Primary", "Voltage", "AC", "RES FAST")
 A.QSense("Primary", "Voltage", "Range")
