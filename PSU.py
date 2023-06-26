@@ -3,7 +3,7 @@ import time
 import matplotlib.pyplot as plt
 import array
 
-dataList = []
+infoList = []
 
 
 class E36731A(object):
@@ -13,7 +13,7 @@ class E36731A(object):
         rm = pyvisa.ResourceManager()
 
         # Visa Address is found under Keysight Connection Expert
-        self.dmm = rm.open_resource(VISA_ADDRESS)
+        self.dmm = rm.open_resource(self.VISA_ADDRESS)
         self.dmm.baud_rate = 9600
         # '*IDN?' is standard GPIB Message for "what are you?"
         self.dmm.timeout = 1000
@@ -24,6 +24,10 @@ class E36731A(object):
         self.dmm.query("*opc?")
         # self.dmm.write("DISP:TEXT " + '"Reality can be whatever I want"')
         self.dmm.write("DISP:TEXT:CLE")
+
+        self.Output("ON")
+        self.testFunc(1, 30, 3, "CH1", 1, infoList)
+        self.Output("OFF")
 
     def apply(self, CHANNEL, VOLTAGE_SET, CURRENT_SET):
         self.Channel = CHANNEL
@@ -46,8 +50,8 @@ class E36731A(object):
     def Output(self, state):
         self.dmm.write("OUTPUT " + state)
 
-    def testFunc(self, minVoltage, maxVoltage, Current, Channel, step_size, dataList):
-        self.dataList = dataList
+    def testFunc(self, minVoltage, maxVoltage, Current, Channel, step_size, infoList):
+        self.infoList = infoList
         self.Channel = Channel
         self.minVoltage = minVoltage
         self.maxVoltage = maxVoltage
@@ -62,15 +66,16 @@ class E36731A(object):
             )
             print("Voltage:  Current:    ")
             print(self.dmm.query("APPL?"))
-            self.dataList.insert(i, [k, self.Current])
-            time.sleep(self.step_size)
+            self.infoList.insert(i, [k, self.Current])
+            time.sleep(2.2)
 
             k += step_size
             i += 1
-        print(self.dataList)
+        # print(self.infoList)
 
 
-A = E36731A("USB0::0x2A8D::0x5C02::MY62100050::0::INSTR")
-A.Output("ON")
-A.testFunc(5, 10, 2, "CH1", 0.5, dataList)
-A.Output("OFF")
+# A = E36731A("USB0::0x2A8D::0x5C02::MY62100050::0::INSTR")
+# A.execute()
+# A.Output("ON")
+# A.testFunc(1, 5, 3, "CH1", 1, infoList)
+# A.Output("OFF")

@@ -2,7 +2,7 @@ import pyvisa
 import time
 import matplotlib.pyplot as plt
 
-list = []
+dataList = []
 
 
 class EDU34450A(object):
@@ -12,7 +12,7 @@ class EDU34450A(object):
         rm = pyvisa.ResourceManager()
 
         # Visa Address is found under Keysight Connection Expert
-        self.dmm = rm.open_resource(VISA_ADDRESS)
+        self.dmm = rm.open_resource(self.VISA_ADDRESS)
         self.dmm.baud_rate = 9600
         # '*IDN?' is standard GPIB Message for "what are you?"
         self.dmm.timeout = 1000
@@ -21,6 +21,9 @@ class EDU34450A(object):
         # Resets the instrument configuration and synchronizes it before each R/W
         self.dmm.write("*rst")
         self.dmm.query("*opc?")
+
+        self.config("Primary", "Voltage")
+        self.measure(30, 1, dataList, "Voltage", "DC")
 
     def config(self, *args):
         if len(args) == 1:
@@ -53,27 +56,26 @@ class EDU34450A(object):
                 str3 = str3 + item
 
             self.dmm.write("CONF:" + str1 + ":" + str2 + ":" + str3)
-            self.dmm.timeout = 1000
 
     def step_measure(self):
         self.dmm.timeout = 7000
         print(self.dmm.query("READ?"))
 
     # There is a limit to the resolution of the data
-    def cont_measure(self, DURATION, NUMBER_OF_SAMPLES, list):
+    def cont_measure(self, DURATION, NUMBER_OF_SAMPLES, dataList):
         self.duration = DURATION
         self.samples = NUMBER_OF_SAMPLES
-        self.list = list
+        self.dataList = dataList
         self.dmm.timeout = 7000
         for i in range(int(self.duration)):
-            list.append(float(self.dmm.query("READ?")))
+            dataList.append(float(self.dmm.query("READ?")))
             time.sleep(self.duration / self.samples)
 
-        print(list)
+        print(dataList)
 
-    def measure(self, DURATION, period, list, *args):
+    def measure(self, DURATION, period, dataList, *args):
         self.duration = DURATION
-        self.list = list
+        self.dataList = dataList
         self.period = period
 
         if len(args) == 1:
@@ -108,11 +110,11 @@ class EDU34450A(object):
             cmd = "MEAS:" + str1 + ":" + str2 + ":" + str3 + "?"
 
         for i in range(int(self.duration)):
-            self.dmm.timeout = 7000
-            list.append(float(self.dmm.query(cmd)))
-            time.sleep(self.period)
+            self.dmm.timeout = 3000
+            self.dataList.insert(i, [float(self.dmm.query(cmd))])
+            time.sleep(0.5)
 
-        print(list)
+        # print(dataList)
 
     def setFunction(self, *args):
         str1 = ""
@@ -173,7 +175,6 @@ class EDU34450A(object):
 
             print(str1 + " " + str2 + " " + str3 + " has been updated.")
             self.dmm.write("SENS:" + str1 + ":" + str2 + ":" + str3)
-            self.dmm.timeout = 1000
 
         elif len(args) == 4:
             str1 = ""
@@ -192,7 +193,6 @@ class EDU34450A(object):
 
             print(str1 + " " + str2 + " " + str3 + " " + str4 + " has been updated.")
             self.dmm.write("SENS:" + str1 + ":" + str2 + ":" + str3 + ":" + str4)
-            self.dmm.timeout = 1000
 
     def QSense(self, *args):
         if len(args) == 2:
@@ -212,7 +212,7 @@ class EDU34450A(object):
                 + ": "
                 + self.dmm.query("SENS:" + str1 + ":" + str2 + "?")
             )
-            self.dmm.timeout = 1000
+
         elif len(args) == 3:
             str1 = ""
             str2 = ""
@@ -269,8 +269,6 @@ class EDU34450A(object):
                 )
             )
 
-            self.dmm.timeout = 1000
-
 
 class plotGraph:
     def plotting(self, list):
@@ -295,7 +293,6 @@ class N6701C(EDU34450A):
         self.dmm = rm.open_resource(VISA_ADDRESS)
         self.dmm.baud_rate = 9600
         # '*IDN?' is standard GPIB Message for "what are you?"
-        self.dmm.timeout = 1000
         print(self.dmm.query("*IDN?"))
 
         # Resets the instrument configuration and synchronizes it before each R/W
@@ -350,7 +347,7 @@ class N6701C(EDU34450A):
             )
 
         for i in range(int(self.duration)):
-            self.dmm.timeout = 10000
+            # self.dmm.timeout = 10000
             # print(cmd)
             list.append(float(self.dmm.query(cmd)))
             time.sleep(self.period)
@@ -372,13 +369,14 @@ class N6701C(EDU34450A):
 
 
 # A = EDU34450A("USB0::0x2A8D::0x8E01::CN60440004::0::INSTR")
-# A.config("Primary", "Frequency")
-# A.Sense("Primary", "Voltage", "AC", "RES FAST")
-# A.QSense("Primary", "Voltage", "Range")
+# A.execute()
+# A.config("Primary", "Voltage")
+# A.measure(5, 1, dataList, "Voltage", "DC")
+
 
 # B = N6701C("USB0::0x2A8D::0x0102::MY56000223::0::INSTR")
 # B.Output("ON", "3")
 # B.setCurrent("1", "3")
-# B.measure(50, 0.1, list, 3, "Voltage")
+# B.measure(50, 0.1, list, 3, "Current")
 # C = plotGraph()
 # C.plotting(list)
