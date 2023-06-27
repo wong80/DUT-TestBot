@@ -11,7 +11,7 @@ class E36731A(object):
         self.VISA_ADDRESS = VISA_ADDRESS
         # ResourceManager Setup
         rm = pyvisa.ResourceManager()
-
+        self.rm = rm
         # Visa Address is found under Keysight Connection Expert
         self.dmm = rm.open_resource(self.VISA_ADDRESS)
         self.dmm.baud_rate = 9600
@@ -21,16 +21,16 @@ class E36731A(object):
 
         # Resets the instrument configuration and synchronizes it before each R/W
         self.dmm.write("*rst")
-        self.dmm.query("*opc?")
-        # self.dmm.write("DISP:TEXT " + '"Reality can be whatever I want"')
-        self.dmm.write("DISP:TEXT:CLE")
+        # self.dmm.query("*opc?")
+        # # self.dmm.write("DISP:TEXT " + '"Reality can be whatever I want"')
+        # self.dmm.write("DISP:TEXT:CLE")
 
-        self.Output("ON")
-        self.testFunc(1, 30, 3, "CH1", 1, infoList)
-        self.Output("OFF")
+        # self.Output("ON")
+        self.testSetup(1, 30, 2, "CH1", 1, infoList)
+        # self.Output("OFF")
+        # rm.close()
 
-    def apply(self, CHANNEL, VOLTAGE_SET, CURRENT_SET):
-        self.Channel = CHANNEL
+    def apply(self, VOLTAGE_SET, CURRENT_SET):
         self.setVoltage = VOLTAGE_SET
         self.setCurrent = CURRENT_SET
 
@@ -42,6 +42,7 @@ class E36731A(object):
             + ","
             + str(self.setCurrent)
         )
+        # self.dmm.query("OPC?")
 
     def Emulate(self, Emul):
         self.emul = Emul
@@ -50,27 +51,28 @@ class E36731A(object):
     def Output(self, state):
         self.dmm.write("OUTPUT " + state)
 
-    def testFunc(self, minVoltage, maxVoltage, Current, Channel, step_size, infoList):
+    def testSetup(self, minVoltage, maxVoltage, Current, Channel, step_size, infoList):
         self.infoList = infoList
         self.Channel = Channel
         self.minVoltage = minVoltage
         self.maxVoltage = maxVoltage
         self.Current = Current
         self.step_size = step_size
+        self.iterations = (maxVoltage - minVoltage + 1) / step_size
 
-        k = minVoltage
-        i = 0
-        while k <= maxVoltage:
-            self.dmm.write(
-                "APPL " + self.Channel + "," + str(k) + "," + str(self.Current)
-            )
-            print("Voltage:  Current:    ")
-            print(self.dmm.query("APPL?"))
-            self.infoList.insert(i, [k, self.Current])
-            time.sleep(2.2)
+        # k = minVoltage
+        # i = 0
+        # while k <= maxVoltage:
+        #     self.dmm.write(
+        #         "APPL " + self.Channel + "," + str(k) + "," + str(self.Current)
+        #     )
+        #     print("Voltage:  Current:    ")
+        #     print(self.dmm.query("APPL?"))
+        #     self.infoList.insert(i, [k, self.Current])
+        #     time.sleep(2.18)
 
-            k += step_size
-            i += 1
+        #     k += step_size
+        #     i += 1
         # print(self.infoList)
 
 

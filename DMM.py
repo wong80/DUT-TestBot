@@ -10,20 +10,20 @@ class EDU34450A(object):
         self.VISA_ADDRESS = VISA_ADDRESS
         # ResourceManager Setup
         rm = pyvisa.ResourceManager()
-
+        self.rm = rm
         # Visa Address is found under Keysight Connection Expert
-        self.dmm = rm.open_resource(self.VISA_ADDRESS)
+        self.dmm = self.rm.open_resource(self.VISA_ADDRESS)
         self.dmm.baud_rate = 9600
         # '*IDN?' is standard GPIB Message for "what are you?"
-        self.dmm.timeout = 1000
         print(self.dmm.query("*IDN?"))
 
         # Resets the instrument configuration and synchronizes it before each R/W
         self.dmm.write("*rst")
-        self.dmm.query("*opc?")
+        # self.dmm.query("*opc?")
 
-        self.config("Primary", "Voltage")
-        self.measure(30, 1, dataList, "Voltage", "DC")
+        # self.config("Primary", "Voltage")
+        # self.Sense("Voltage", "DC", "RES FAST")
+        # self.execute()
 
     def config(self, *args):
         if len(args) == 1:
@@ -62,14 +62,11 @@ class EDU34450A(object):
         print(self.dmm.query("READ?"))
 
     # There is a limit to the resolution of the data
-    def cont_measure(self, DURATION, NUMBER_OF_SAMPLES, dataList):
-        self.duration = DURATION
-        self.samples = NUMBER_OF_SAMPLES
+    def cont_measure(self):
         self.dataList = dataList
         self.dmm.timeout = 7000
-        for i in range(int(self.duration)):
-            dataList.append(float(self.dmm.query("READ?")))
-            time.sleep(self.duration / self.samples)
+
+        dataList.append(float(self.dmm.query("READ?")))
 
         print(dataList)
 
@@ -269,6 +266,10 @@ class EDU34450A(object):
                 )
             )
 
+    def execute(self):
+        self.measure(30, 1, dataList, "Voltage", "DC")
+        # self.rm.close()
+
 
 class plotGraph:
     def plotting(self, list):
@@ -369,7 +370,7 @@ class N6701C(EDU34450A):
 
 
 # A = EDU34450A("USB0::0x2A8D::0x8E01::CN60440004::0::INSTR")
-# A.execute()
+# A.Sense("Voltage", "DC", "RES FAST")
 # A.config("Primary", "Voltage")
 # A.measure(5, 1, dataList, "Voltage", "DC")
 
