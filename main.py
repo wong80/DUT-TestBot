@@ -1,27 +1,31 @@
 import DMM
 import PSU
 import Data
-from threading import Thread
 
+A = DMM.EDU34450A("USB0::0x2A8D::0x8E01::CN60440004::0::INSTR")
+B = PSU.E36731A("USB0::0x2A8D::0x5C02::MY62100050::0::INSTR")
 
-def Test1():
-    A = DMM.EDU34450A("USB0::0x2A8D::0x8E01::CN60440004::0::INSTR")
+k = 0
+V = B.minVoltage
+I = B.Current
+infoList = []
+dataList = []
 
+B.Output("ON")
+while k < B.iterations:
+    B.apply(V, I)
+    print("Voltage:", V, " Current:", I)
+    infoList.insert(k, [V, I])
 
-def Test2():
-    B = PSU.E36731A("USB0::0x2A8D::0x5C02::MY62100050::0::INSTR")
+    temp_string = float(B.dmm.query("*OPC?"))
+    if temp_string == 1:
+        dataList.append(float(A.dmm.query("READ?")))
+        del temp_string
 
+    V += B.step_size
+    k += 1
 
-def Test3():
-    C = Data.datatoCSV()
-
-
-thread1 = Thread(target=Test1)
-thread2 = Thread(target=Test2)
-thread3 = Thread(target=Test3)
-
-thread1.start()
-thread2.start()
-thread1.join()
-thread2.join()
-thread3.start()
+B.Output("OFF")
+A.rm.close()
+B.rm.close()
+C = Data.datatoCSV(infoList, dataList)
