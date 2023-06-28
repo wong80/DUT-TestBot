@@ -14,16 +14,12 @@ class EDU34450A(object):
         # Visa Address is found under Keysight Connection Expert
         self.dmm = self.rm.open_resource(self.VISA_ADDRESS)
         self.dmm.baud_rate = 9600
+
         # '*IDN?' is standard GPIB Message for "what are you?"
         print(self.dmm.query("*IDN?"))
 
         # Resets the instrument configuration and synchronizes it before each R/W
         self.dmm.write("*rst")
-        # self.dmm.query("*opc?")
-
-        # self.config("Primary", "Voltage")
-        # self.Sense("Voltage", "DC", "RES FAST")
-        # self.execute()
 
     def config(self, *args):
         if len(args) == 1:
@@ -266,23 +262,6 @@ class EDU34450A(object):
                 )
             )
 
-    def execute(self):
-        self.measure(30, 1, dataList, "Voltage", "DC")
-        # self.rm.close()
-
-
-class plotGraph:
-    def plotting(self, list):
-        plt.plot(list)
-        # naming the x axis
-        plt.xlabel("x - axis")
-        # naming the y axis
-        plt.ylabel("y - axis")
-        # giving a title to my graph
-        plt.title("Graph Title")
-
-        plt.show()
-
 
 class N6701C(EDU34450A):
     def __init__(self, VISA_ADDRESS):
@@ -370,14 +349,6 @@ class N6701C(EDU34450A):
 
 
 # A = EDU34450A("USB0::0x2A8D::0x8E01::CN60440004::0::INSTR")
-# A.Sense("Voltage", "DC", "RES FAST")
-# A.config("Primary", "Voltage")
-# A.measure(5, 1, dataList, "Voltage", "DC")
 
 
 # B = N6701C("USB0::0x2A8D::0x0102::MY56000223::0::INSTR")
-# B.Output("ON", "3")
-# B.setCurrent("1", "3")
-# B.measure(50, 0.1, list, 3, "Current")
-# C = plotGraph()
-# C.plotting(list)
