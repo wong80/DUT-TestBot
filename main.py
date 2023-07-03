@@ -1,5 +1,6 @@
 import DMM
 import PSU
+import ELoad
 import Data
 
 infoList = []
@@ -7,60 +8,88 @@ dataList = []
 
 
 def VoltageMeasurement():
-    C.config("Current", "DC")
-    C.Sense("Voltage", "RES FAST")
-    B.Voltage_Sweep(1, 10, 3, "CH1", 1)
-    k = 0
+    A.display("Channel 3")
+    A.function("Current", 3)
+    A.currentSetup(0.5, 3, 3, 0.5)
+    B.Voltage_Sweep(0.5, 2, 4, "CH1", 1)
+    i = 0
+    j = 0
+    I1 = A.minCurrent
     V = B.minVoltage
     I = B.Current
 
+    A.Output("ON", 3)
     B.Output("ON")
-    while k < B.iterations:
-        B.apply(V, I)
-        print("Voltage:", V, " Current:", I)
-        infoList.insert(k, [V, I])
 
-        temp_string = float(B.dmm.query("*OPC?"))
-        if temp_string == 1:
-            dataList.append(float(C.dmm.query("READ?")))
-            del temp_string
+    while i < A.iterations:
+        A.setCurrent(I1 - 0.1, 3)
+        j = 0
+        V = B.minVoltage
+        while j < B.iterations:
+            B.apply(V, I)
+            print("Voltage:", V, " Current:", I1)
+            infoList.insert(j, [V, I1])
 
-        I += B.step_size
-        k += 1
+            temp_string = float(B.dmm.query("*OPC?"))
+            if temp_string == 1:
+                dataList.insert(j, [float(C.dmm.query("READ?")), I1])
+                del temp_string
+
+            V += B.step_size
+            j += 1
+        I1 += A.step_size
+        i += 1
+
+    B.Output("OFF")
+    A.Output("OFF", 3)
 
 
 def CurrentMeasurement():
+    A.display("Channel 3")
+    A.function("Voltage", 3)
+    A.voltageSetup(0.5, 3, 3, 0.5)
     B.Current_Sweep(0.5, 2, 5, "CH1", 0.05)
-    k = 0
+    i = 0
+    j = 0
+    V1 = A.minVoltage
     V = B.Voltage
     I = B.minCurrent
 
+    A.Output("ON", 3)
     B.Output("ON")
-    while k < B.iterations:
-        B.apply(V, I)
-        print("Voltage:", V, " Current:", I)
-        infoList.insert(k, [V, I])
 
-        temp_string = float(B.dmm.query("*OPC?"))
-        if temp_string == 1:
-            dataList.insert(k, [V, float(C.dmm.query("READ?"))])
-            del temp_string
+    while i < A.iterations:
+        A.setVoltage(V1, 3)
+        j = 0
+        I = B.minCurrent
+        while j < B.iterations:
+            B.apply(V, I)
+            print("Voltage:", V1, " Current:", I)
+            infoList.insert(j, [V1, I])
 
-        I += B.step_size
-        k += 1
+            temp_string = float(B.dmm.query("*OPC?"))
+            if temp_string == 1:
+                dataList.insert(j, [V, float(C.dmm.query("READ?"))])
+                del temp_string
+
+            I += B.step_size
+            j += 1
+
+        V1 += A.step_size
+        i += 1
 
     B.Output("OFF")
+    A.Output("OFF", 3)
 
 
-A = DMM.EDU34450A("USB0::0x2A8D::0x8E01::CN60440004::0::INSTR")
+A = ELoad.N6701C("USB0::0x2A8D::0x0102::MY56000223::0::INSTR")
 B = PSU.E36731A("USB0::0x2A8D::0x5C02::MY62100050::0::INSTR")
-C = DMM.A34405A("USB0::0x0957::0x0618::TW46260038::0::INSTR")
-
-CurrentMeasurement()
+C = DMM.EDU34450A("USB0::0x2A8D::0x8E01::CN60440004::0::INSTR")
+VoltageMeasurement()
 A.rm.close()
 B.rm.close()
 C.rm.close()
 D = Data.datatoCSV(infoList, dataList)
 E = Data.datatoGraph(infoList, dataList)
 
-E.plotScatter(0.00035, 0.0015, "Current")
+E.plotScatter(0.00035, 0.0015, "Voltage")
