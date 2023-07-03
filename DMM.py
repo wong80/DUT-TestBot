@@ -357,15 +357,16 @@ class A34405A(EDU34450A):
         # Visa Address is found under Keysight Connection Expert
         self.dmm = rm.open_resource(VISA_ADDRESS)
         self.dmm.baud_rate = 9600
+        # print(self.dmm.query("*IDN?"))
+
         # '*IDN?' is standard GPIB Message for "what are you?"
-        print(self.dmm.query("*IDN?"))
 
         # Resets the instrument configuration and synchronizes it before each R/W
-        self.dmm.write("*rst")
-        self.dmm.query("*opc?")
+        # self.dmm.query("*OPC?")
 
 
 # A = EDU34450A("USB0::0x2A8D::0x8E01::CN60440004::0::INSTR")
 # B = N6701C("USB0::0x2A8D::0x0102::MY56000223::0::INSTR")
 # C = A34405A("USB0::0x0957::0x0618::TW46260038::0::INSTR")
-# C.config("Current", "DC")
+
+# print(C.dmm.query("READ?"))

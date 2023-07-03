@@ -47,13 +47,21 @@ class E36731A(object):
     def Output(self, state):
         self.dmm.write("OUTPUT " + state)
 
-    def testSetup(self, minVoltage, maxVoltage, Current, Channel, step_size):
+    def Voltage_Sweep(self, minVoltage, maxVoltage, Current, Channel, step_size):
         self.Channel = Channel
         self.minVoltage = minVoltage
         self.maxVoltage = maxVoltage
         self.Current = Current
         self.step_size = step_size
         self.iterations = (maxVoltage - minVoltage + 1) / step_size
+
+    def Current_Sweep(self, minCurrent, maxCurrent, Voltage, Channel, step_size):
+        self.Channel = Channel
+        self.minCurrent = minCurrent
+        self.maxCurrent = maxCurrent
+        self.Voltage = Voltage
+        self.step_size = step_size
+        self.iterations = (maxCurrent - minCurrent + 1) / step_size
 
 
 # A = E36731A("USB0::0x2A8D::0x5C02::MY62100050::0::INSTR")
