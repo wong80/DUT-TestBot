@@ -54,7 +54,6 @@ class EDU34450A(object):
             self.dmm.write("CONF:" + str1 + ":" + str2 + ":" + str3)
 
     def step_measure(self):
-        self.dmm.timeout = 7000
         print(self.dmm.query("READ?"))
 
     # There is a limit to the resolution of the data
@@ -357,12 +356,12 @@ class A34405A(EDU34450A):
         # Visa Address is found under Keysight Connection Expert
         self.dmm = rm.open_resource(VISA_ADDRESS)
         self.dmm.baud_rate = 9600
-        # print(self.dmm.query("*IDN?"))
+        print(self.dmm.query("*IDN?"))
 
         # '*IDN?' is standard GPIB Message for "what are you?"
 
         # Resets the instrument configuration and synchronizes it before each R/W
-        # self.dmm.query("*OPC?")
+        self.dmm.query("*OPC?")
 
 
 # A = EDU34450A("USB0::0x2A8D::0x8E01::CN60440004::0::INSTR")
