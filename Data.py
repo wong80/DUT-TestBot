@@ -292,6 +292,41 @@ class datatoGraph(datatoCSV):
         plt.ylabel("Percentage Error (%)")
         plt.show()
 
+    def plotCorr(self):
+        self.powerSet = self.Vset * self.Iset
+        self.powerCalc = self.Vmeasured * self.Imeasured
 
-# A = datatoGraph(infoList, main.dataList)
-# A.plotScatter(0.00025, 0.0015)
+        self.powerSetF = self.powerSet.to_frame(name="Power Set")
+        self.powerCalcF = self.powerCalc.to_frame(name="Power Measured")
+
+        self.CSV3 = pd.concat(
+            [
+                self.VsetF,
+                self.IsetF,
+                self.powerSetF,
+                self.powerCalcF,
+                self.VmeasuredF,
+                self.ImeasuredF,
+                self.Vabsolute_errorF,
+                self.Vpercent_errorF,
+                self.Iabsolute_errorF,
+                self.Ipercent_errorF,
+            ],
+            axis=1,
+        )
+
+        # plt.scatter(self.Vset, self.powerCalc, color="red")
+        # a, b = np.polyfit(self.Vset, self.powerSet, 1)
+        # c, d = np.polyfit(self.Vset, self.powerCalc, 1)
+
+        self.CSV3.to_csv("power.csv")
+
+        plt.plot(self.Vset, self.Iset, label="Ideal Power", color="blue", linewidth=1)
+        # plt.plot(
+        #     self.Vset, self.powerCalc, label="Actual Power", color="red", linewidth=1
+        # )
+        plt.xlabel("Voltage")
+        plt.ylabel("Power")
+        plt.legend(loc="upper left")
+
+        plt.show()
