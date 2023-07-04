@@ -51,14 +51,14 @@ class N6701C:
         self.minVoltage = minVoltage
         self.maxVoltage = maxVoltage
         self.step_size = step_size
-        self.iterations = (maxVoltage - minVoltage + 1) / step_size
+        self.iterations = ((maxVoltage - minVoltage) / step_size) + 1
 
     def currentSetup(self, minCurrent, maxCurrent, Channel, step_size):
         self.Channel = Channel
         self.minCurrent = minCurrent
         self.maxCurrent = maxCurrent
         self.step_size = step_size
-        self.iterations = (maxCurrent - minCurrent + 1) / step_size
+        self.iterations = ((self.maxCurrent - self.minCurrent) / self.step_size) + 1
 
 
 # A = N6701C("USB0::0x2A8D::0x0102::MY56000223::0::INSTR")
