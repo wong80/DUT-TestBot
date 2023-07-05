@@ -209,7 +209,7 @@ class datatoGraph(datatoCSV):
             lower_error_limitC, columns=["Lower Error Boundary"]
         )
 
-        CSV2 = pd.concat(
+        self.CSV2 = pd.concat(
             [
                 ungrouped_df,
                 upper_error_limitF,
@@ -219,7 +219,8 @@ class datatoGraph(datatoCSV):
             axis=1,
         )
 
-        CSV2.to_csv("error.csv")
+        self.CSV2.to_csv("error.csv")
 
         plt.legend(loc="lower left")
+        plt.savefig("Chart.png")
         plt.show()
