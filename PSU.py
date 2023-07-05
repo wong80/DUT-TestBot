@@ -1,7 +1,4 @@
 import pyvisa
-import time
-import matplotlib.pyplot as plt
-import array
 
 infoList = []
 
