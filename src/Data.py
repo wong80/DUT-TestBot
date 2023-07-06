@@ -68,6 +68,15 @@ class datatoGraph(datatoCSV):
         self.param1 = param1
         self.param2 = param2
 
+        my_dict = {"Name": "Voltage", "Gain": [param1], "Offset": [param2]}
+
+        df = pd.DataFrame.from_dict(my_dict)
+        # my_dict["Name"].append("Programmable Voltage")
+        # my_dict["Gain"].append(param1)
+        # my_dict["Offset"].append(param2)
+
+        df.to_json("param.json")
+
         if UNIT.upper() == "VOLTAGE":
             # a, b = np.polyfit(self.Vset, self.Vpercent_error, 1)
             upper_error_limit = self.param1 * x + self.param2 * 100
@@ -211,7 +220,14 @@ class datatoGraph(datatoCSV):
 
         self.CSV2 = pd.concat(
             [
-                ungrouped_df,
+                self.VsetF,
+                self.IsetF,
+                self.VmeasuredF,
+                self.ImeasuredF,
+                self.Vabsolute_errorF,
+                self.Vpercent_errorF,
+                self.Iabsolute_errorF,
+                self.Ipercent_errorF,
                 upper_error_limitF,
                 lower_error_limitF,
                 conditionF,
@@ -223,4 +239,21 @@ class datatoGraph(datatoCSV):
 
         plt.legend(loc="lower left")
         plt.savefig("images/Chart.png")
-        plt.show()
+        # plt.show()
+
+
+class instrumentData:
+    def __init__(self, *args):
+        instrumentIDN = []
+        instrumentVersion = []
+
+        for x in args:
+            instrumentIDN.append(x.dmm.query("*IDN?"))
+            instrumentVersion.append(x.dmm.query("SYST:VERS?"))
+
+        df1 = pd.DataFrame(instrumentIDN, columns=["Instruments Used: "])
+        df2 = pd.DataFrame(instrumentVersion, columns=["SCPI Version"])
+
+        instrument = pd.concat([df2, df1], axis=1)
+
+        instrument.to_csv("csv/instrumentData.csv", index=False)
