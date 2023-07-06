@@ -16,7 +16,7 @@ class EDU34450A(object):
         self.dmm.baud_rate = 9600
 
         # '*IDN?' is standard GPIB Message for "what are you?"
-        print(self.dmm.query("*IDN?"))
+        # print(self.dmm.query("*IDN?"))
 
         # Resets the instrument configuration and synchronizes it before each R/W
         self.dmm.write("*rst")
@@ -272,7 +272,7 @@ class N6701C(EDU34450A):
         self.dmm = rm.open_resource(VISA_ADDRESS)
         self.dmm.baud_rate = 9600
         # '*IDN?' is standard GPIB Message for "what are you?"
-        print(self.dmm.query("*IDN?"))
+        # print(self.dmm.query("*IDN?"))
 
         # Resets the instrument configuration and synchronizes it before each R/W
         self.dmm.write("*rst")
@@ -356,7 +356,7 @@ class A34405A(EDU34450A):
         # Visa Address is found under Keysight Connection Expert
         self.dmm = rm.open_resource(VISA_ADDRESS)
         self.dmm.baud_rate = 9600
-        print(self.dmm.query("*IDN?"))
+        # print(self.dmm.query("*IDN?"))
 
         # '*IDN?' is standard GPIB Message for "what are you?"
 

@@ -10,7 +10,7 @@ class N6701C:
         self.dmm = self.rm.open_resource(VISA_ADDRESS)
         self.dmm.baud_rate = 9600
         # '*IDN?' is standard GPIB Message for "what are you?"
-        print(self.dmm.query("*IDN?"))
+        # print(self.dmm.query("*IDN?"))
 
         # Resets the instrument configuration and synchronizes it before each R/W
         self.dmm.write("*rst")

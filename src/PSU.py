@@ -16,7 +16,7 @@ class E36731A(object):
 
         # '*IDN?' is standard GPIB Message for "what are you?"
         self.dmm.timeout = 1000
-        print(self.dmm.query("*IDN?"))
+        # print(self.dmm.query("*IDN?"))
 
         # Resets the instrument configuration and synchronizes it before each R/W
         self.dmm.write("*rst")
