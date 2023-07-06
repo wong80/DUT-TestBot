@@ -53,7 +53,7 @@ class datatoCSV(object):
             axis=1,
         )
 
-        self.CSV1.to_csv("data.csv")
+        self.CSV1.to_csv("csv/data.csv")
 
     def column(self, matrix, i):
         return [row[i] for row in matrix]
@@ -62,7 +62,7 @@ class datatoCSV(object):
 class datatoGraph(datatoCSV):
     def __init__(self, infoList, dataList):
         super().__init__(infoList, dataList)
-        self.data = pd.read_csv("data.csv")
+        self.data = pd.read_csv("csv/data.csv")
 
     def errorBoundary(self, param1, param2, UNIT, x, Vpercent_error):
         self.param1 = param1
@@ -146,7 +146,7 @@ class datatoGraph(datatoCSV):
             plt.ylabel("Percentage Error (%)")
 
     def scatterCompare(self):
-        ungrouped_df = pd.read_csv("data.csv")
+        ungrouped_df = pd.read_csv("csv/data.csv")
         grouped_df = ungrouped_df.groupby(["key"])
         [grouped_df.get_group(x) for x in grouped_df.groups]
 
@@ -219,8 +219,8 @@ class datatoGraph(datatoCSV):
             axis=1,
         )
 
-        self.CSV2.to_csv("error.csv")
+        self.CSV2.to_csv("csv/error.csv")
 
         plt.legend(loc="lower left")
-        plt.savefig("Chart.png")
+        plt.savefig("images/Chart.png")
         plt.show()

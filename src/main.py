@@ -1,7 +1,7 @@
-import DMM
-import PSU
-import ELoad
-import Data
+import src.DMM as DMM
+import src.PSU as PSU
+import src.ELoad as ELoad
+import src.Data as Data
 
 infoList = []
 dataList = []
