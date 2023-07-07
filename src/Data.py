@@ -1,6 +1,7 @@
 import pandas as pd
 from matplotlib import pyplot as plt
 import numpy as np
+import json
 
 
 class datatoCSV(object):
@@ -68,14 +69,11 @@ class datatoGraph(datatoCSV):
         self.param1 = param1
         self.param2 = param2
 
-        my_dict = {"Name": "Voltage", "Gain": [param1], "Offset": [param2]}
+        my_dict = {"Gain": [param1], "Name": "Voltage", "Offset": [param2]}
 
         df = pd.DataFrame.from_dict(my_dict)
-        # my_dict["Name"].append("Programmable Voltage")
-        # my_dict["Gain"].append(param1)
-        # my_dict["Offset"].append(param2)
 
-        df.to_json("param.json")
+        df.to_csv("csv/param.csv", index=False)
 
         if UNIT.upper() == "VOLTAGE":
             # a, b = np.polyfit(self.Vset, self.Vpercent_error, 1)
