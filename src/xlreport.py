@@ -16,13 +16,16 @@ def alignCell(worksheet, row_number, column_number, style):
 
 
 with pd.ExcelWriter("excel_report.xlsx", engine="openpyxl") as writer:
-    df1 = pd.read_csv("csv/error.csv", index_col=[1])
-    df2 = pd.read_csv("csv/instrumentData.csv", index_col=[1])
-    df3 = pd.read_csv("csv/param.csv", index_col=[1])
+    df1 = pd.read_csv("csv/error.csv", index_col=False)
+    df2 = pd.read_csv(
+        "csv/instrumentData.csv",
+        index_col=False,
+    )
+    df3 = pd.read_csv("csv/param.csv", index_col=False)
 
-    df1.to_excel(writer, sheet_name="Data", startrow=7, startcol=1)
-    df2.to_excel(writer, sheet_name="Data")
-    df3.to_excel(writer, sheet_name="Data", startcol=5)
+    df1.to_excel(writer, sheet_name="Data", index=False, startrow=7, startcol=1)
+    df2.to_excel(writer, sheet_name="Data", index=False)
+    df3.to_excel(writer, sheet_name="Data", index=False, startcol=5)
     wb = writer.book
     ws = wb["Data"]
 

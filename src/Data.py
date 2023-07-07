@@ -69,7 +69,7 @@ class datatoGraph(datatoCSV):
         self.param1 = param1
         self.param2 = param2
 
-        my_dict = {"Gain": [param1], "Name": "Voltage", "Offset": [param2]}
+        my_dict = {"Name": "Voltage", "Gain": [param1], "Offset": [param2]}
 
         df = pd.DataFrame.from_dict(my_dict)
 
@@ -233,7 +233,7 @@ class datatoGraph(datatoCSV):
             axis=1,
         )
 
-        self.CSV2.to_csv("csv/error.csv")
+        self.CSV2.to_csv("csv/error.csv", index=False)
 
         plt.legend(loc="lower left")
         plt.savefig("images/Chart.png")
@@ -252,6 +252,6 @@ class instrumentData:
         df1 = pd.DataFrame(instrumentIDN, columns=["Instruments Used: "])
         df2 = pd.DataFrame(instrumentVersion, columns=["SCPI Version"])
 
-        instrument = pd.concat([df2, df1], axis=1)
+        instrument = pd.concat([df1, df2], axis=1)
 
         instrument.to_csv("csv/instrumentData.csv", index=False)
