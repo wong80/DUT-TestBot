@@ -2,6 +2,7 @@ import src.DMM as DMM
 import src.PSU as PSU
 import src.ELoad as Eload
 import src.Data as Data
+from library.IEEEStandard import OPC
 
 infoList = []
 dataList = []
@@ -11,8 +12,8 @@ def VoltageMeasurement():
     C.Sense("Voltage", "RES FAST")
     A.display("Channel 3")
     A.function("Current", 3)
-    A.currentSetup(1, 2, 3, 1)
-    B.Voltage_Sweep(0.5, 5, 4, "CH1", 1)
+    A.currentSetup(1, 2, 3, 0.5)
+    B.Voltage_Sweep(1, 30, 4, "CH1", 0.5)
     i = 0
     j = 0
     k = 0
@@ -32,7 +33,7 @@ def VoltageMeasurement():
             print("Voltage:", V, " Current:", I1)
             infoList.insert(k, [V, I1, i])
 
-            temp_string = float(B.dmm.query("*OPC?"))
+            temp_string = float(OPC(ADDR2).query())
             if temp_string == 1:
                 dataList.insert(k, [float(C.dmm.query("READ?")), I1])
                 del temp_string
@@ -86,9 +87,12 @@ def CurrentMeasurement():
     A.Output("OFF", 3)
 
 
-A = Eload.N6701C("USB0::0x2A8D::0x0102::MY56000223::0::INSTR")
-B = PSU.E36731A("USB0::0x2A8D::0x5C02::MY62100050::0::INSTR")
-C = DMM.EDU34450A("USB0::0x2A8D::0x8E01::CN60440004::0::INSTR")
+ADDR1 = "GPIB0::5::INSTR"
+ADDR2 = "USB0::0x2A8D::0x5C02::MY62100050::0::INSTR"
+ADDR3 = "USB0::0x2A8D::0x8E01::CN60440004::0::INSTR"
+A = Eload.N6701C(ADDR1)
+B = PSU.E36731A(ADDR2)
+C = DMM.EDU34450A(ADDR3)
 
 VoltageMeasurement()
 
