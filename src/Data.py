@@ -1,7 +1,6 @@
 import pandas as pd
 from matplotlib import pyplot as plt
 import numpy as np
-import json
 
 
 class datatoCSV(object):
@@ -76,13 +75,10 @@ class datatoGraph(datatoCSV):
         df.to_csv("csv/param.csv", index=False)
 
         if UNIT.upper() == "VOLTAGE":
-            # a, b = np.polyfit(self.Vset, self.Vpercent_error, 1)
             upper_error_limit = self.param1 * x + self.param2 * 100
             lower_error_limit = -upper_error_limit
             self.upper_error_limit = upper_error_limit
             self.lower_error_limit = lower_error_limit
-            # upper_error_margin = upper_error_limit * 0.6
-            # lower_error_margin = lower_error_limit * 0.6
 
             condition1 = upper_error_limit < x_err
             condition2 = lower_error_limit > x_err
@@ -103,13 +99,6 @@ class datatoGraph(datatoCSV):
             self.lower_error_limitF = lower_error_limit.to_frame(
                 name="Lower Error Boundary (" + UNIT + " )"
             )
-            # self.upper_error_marginF = self.upper_error_margin.to_frame(
-            #     name="Upper Error Margin" + UNIT
-            # )
-            # self.lower_error_marginF = self.lower_error_margin.to_frame(
-            #     name="Lower Error Margin" + UNIT
-            # )
-            # # self.error_marginF = self.error_margin.to_frame(name="Error Margin")
 
             self.conditionF = self.condition_series.to_frame(name="Condition ?")
 
@@ -135,40 +124,36 @@ class datatoGraph(datatoCSV):
             plt.title(UNIT)
             plt.xlabel("Voltage (V)")
             plt.ylabel("Percentage Error (%)")
-            # plt.show()
 
         elif UNIT.upper() == "CURRENT":
-            # a, b = np.polyfit(self.Vset, self.Vpercent_error, 1)
             upper_error_limit = self.param1 * x + self.param2 * 100
             lower_error_limit = -upper_error_limit
             self.upper_error_limit = upper_error_limit
             self.lower_error_limit = lower_error_limit
-            # upper_error_margin = upper_error_limit * 0.6
-            # lower_error_margin = lower_error_limit * 0.6
 
-            condition1 = upper_error_limit < x_err
-            condition2 = lower_error_limit > x_err
+            for i in range(condition1.count()):
+                if condition1.iloc[i] | condition2.iloc[i]:
+                    self.condition = "FAIL"
+                    boolList.append(self.condition)
+                else:
+                    self.condition = "PASS"
+                    boolList.append(self.condition)
 
-            self.condition = condition1 | condition2
+            self.condition_series = pd.Series(boolList)
+
             self.upper_error_limitF = upper_error_limit.to_frame(
                 name="Upper Error Boundary (" + UNIT + " )"
             )
             self.lower_error_limitF = lower_error_limit.to_frame(
                 name="Lower Error Boundary (" + UNIT + " )"
             )
-            # self.upper_error_marginF = self.upper_error_margin.to_frame(
-            #     name="Upper Error Margin" + UNIT
-            # )
-            # self.lower_error_marginF = self.lower_error_margin.to_frame(
-            #     name="Lower Error Margin" + UNIT
-            # )
-            # # self.error_marginF = self.error_margin.to_frame(name="Error Margin")
+
             self.conditionF = self.condition.to_frame(name="Condition ?")
 
             self.z = self.condition.to_numpy()
-            self.colour_condition = np.where(self.z == False, "white", "red")
-            self.size_condition = np.where(self.z == False, 0, 12)
-            self.alpha_condition = np.where(self.z == False, 0, 1)
+            self.colour_condition = np.where(self.z == "PASS", "black", "red")
+            self.size_condition = np.where(self.z == "PASS", 6, 12)
+            self.alpha_condition = np.where(self.z == "PASS", 0, 1)
 
             plt.scatter(
                 x,
@@ -207,8 +192,6 @@ class datatoGraph(datatoCSV):
             Vpercent_errorS = Vpercent_error.squeeze()
 
             self.errorBoundary(0.00025, 0.0015, "Voltage", VsetS, Vpercent_errorS, Iset)
-
-            # a, b = np.polyfit(VsetS, Vpercent_errorS, 1)
 
             upper_error_limitC = pd.concat([upper_error_limitC, self.upper_error_limit])
             lower_error_limitC = pd.concat([lower_error_limitC, self.lower_error_limit])
@@ -260,7 +243,6 @@ class datatoGraph(datatoCSV):
 
         plt.legend(loc="lower left")
         plt.savefig("images/Chart.png")
-        # plt.show()
 
 
 class instrumentData:
