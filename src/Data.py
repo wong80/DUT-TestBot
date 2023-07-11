@@ -37,7 +37,7 @@ class datatoCSV(object):
             name="Current Absolute Error"
         )
         self.Ipercent_errorF = self.Ipercent_error.to_frame(
-            name="Current Percentage Error(%)"
+            name="Current Percentage Error (%)"
         )
         self.CSV1 = pd.concat(
             [
@@ -65,10 +65,10 @@ class datatoGraph(datatoCSV):
         super().__init__(infoList, dataList)
         self.data = pd.read_csv("csv/data.csv")
 
-    def errorBoundary(self, param1, param2, UNIT, x, Vpercent_error):
+    def errorBoundary(self, param1, param2, UNIT, x, x_err, y):
         self.param1 = param1
         self.param2 = param2
-
+        boolList = []
         my_dict = {"Name": "Voltage", "Gain": [param1], "Offset": [param2]}
 
         df = pd.DataFrame.from_dict(my_dict)
@@ -84,10 +84,19 @@ class datatoGraph(datatoCSV):
             # upper_error_margin = upper_error_limit * 0.6
             # lower_error_margin = lower_error_limit * 0.6
 
-            condition1 = upper_error_limit < Vpercent_error
-            condition2 = lower_error_limit > Vpercent_error
+            condition1 = upper_error_limit < x_err
+            condition2 = lower_error_limit > x_err
 
-            self.condition = condition1 | condition2
+            for i in range(condition1.count()):
+                if condition1.iloc[i] | condition2.iloc[i]:
+                    self.condition = "FAIL"
+                    boolList.append(self.condition)
+                else:
+                    self.condition = "PASS"
+                    boolList.append(self.condition)
+
+            self.condition_series = pd.Series(boolList)
+
             self.upper_error_limitF = upper_error_limit.to_frame(
                 name="Upper Error Boundary (" + UNIT + " )"
             )
@@ -101,14 +110,28 @@ class datatoGraph(datatoCSV):
             #     name="Lower Error Margin" + UNIT
             # )
             # # self.error_marginF = self.error_margin.to_frame(name="Error Margin")
-            self.conditionF = self.condition.to_frame(name="Condition ?")
 
-            self.z = self.condition.to_numpy()
-            self.colour_condition = np.where(self.z == False, "black", "red")
-            self.size_condition = np.where(self.z == False, 6, 12)
-            self.alpha_condition = np.where(self.z == False, 0, 1)
+            self.conditionF = self.condition_series.to_frame(name="Condition ?")
 
-            # plt.legend(loc="upper left")
+            self.z = self.condition_series.to_numpy()
+            self.colour_condition = np.where(self.z == "PASS", "black", "red")
+            self.size_condition = np.where(self.z == "PASS", 6, 12)
+            self.alpha_condition = np.where(self.z == "PASS", 0, 1)
+
+            plt.scatter(
+                x,
+                x_err,
+                color=self.colour_condition,
+                s=self.size_condition,
+                alpha=self.alpha_condition,
+            )
+
+            plt.plot(
+                x,
+                x_err,
+                label="Current = " + str(y.iloc[0]["Current Set"]),
+            )
+
             plt.title(UNIT)
             plt.xlabel("Voltage (V)")
             plt.ylabel("Percentage Error (%)")
@@ -123,8 +146,8 @@ class datatoGraph(datatoCSV):
             # upper_error_margin = upper_error_limit * 0.6
             # lower_error_margin = lower_error_limit * 0.6
 
-            condition1 = upper_error_limit < Vpercent_error
-            condition2 = lower_error_limit > Vpercent_error
+            condition1 = upper_error_limit < x_err
+            condition2 = lower_error_limit > x_err
 
             self.condition = condition1 | condition2
             self.upper_error_limitF = upper_error_limit.to_frame(
@@ -147,6 +170,19 @@ class datatoGraph(datatoCSV):
             self.size_condition = np.where(self.z == False, 0, 12)
             self.alpha_condition = np.where(self.z == False, 0, 1)
 
+            plt.scatter(
+                x,
+                x_err,
+                color=self.colour_condition,
+                s=self.size_condition,
+                alpha=self.alpha_condition,
+            )
+
+            plt.plot(
+                x,
+                x_err,
+                label="Current = " + str(y.iloc[0]["Current Set"]),
+            )
             plt.legend(loc="upper left")
             plt.title(UNIT)
             plt.xlabel("Current (A)")
@@ -165,33 +201,18 @@ class datatoGraph(datatoCSV):
             Vset = grouped_df.get_group(x)[["Voltage Set"]]
             Iset = grouped_df.get_group(x)[["Current Set"]]
             Vpercent_error = grouped_df.get_group(x)[["Voltage Percentage Error (%)"]]
+            Ipercent_error = grouped_df.get_group(x)[["Current Percentage Error (%)"]]
 
             VsetS = Vset.squeeze()
             Vpercent_errorS = Vpercent_error.squeeze()
 
-            self.errorBoundary(0.00025, 0.0015, "Voltage", VsetS, Vpercent_errorS)
+            self.errorBoundary(0.00025, 0.0015, "Voltage", VsetS, Vpercent_errorS, Iset)
 
             # a, b = np.polyfit(VsetS, Vpercent_errorS, 1)
 
             upper_error_limitC = pd.concat([upper_error_limitC, self.upper_error_limit])
             lower_error_limitC = pd.concat([lower_error_limitC, self.lower_error_limit])
-            conditionC = pd.concat([conditionC, self.condition])
-
-            plt.scatter(
-                Vset,
-                Vpercent_errorS,
-                color=self.colour_condition,
-                s=self.size_condition,
-                alpha=self.alpha_condition,
-            )
-
-            plt.plot(
-                Vset,
-                Vpercent_errorS,
-                label="Current = " + str(Iset.iloc[0]["Current Set"]),
-            )
-
-            # plt.plot(Vset, a * Vset + b)
+            conditionC = pd.concat([conditionC, self.condition_series])
 
         plt.plot(
             Vset,
@@ -209,6 +230,8 @@ class datatoGraph(datatoCSV):
         )
 
         conditionF = conditionC.to_frame(name="Condition ?")
+        conditionFF = conditionF.reset_index(drop=True)
+
         upper_error_limitF = pd.DataFrame(
             upper_error_limitC, columns=["Upper Error Boundary"]
         )
@@ -228,7 +251,7 @@ class datatoGraph(datatoCSV):
                 self.Ipercent_errorF,
                 upper_error_limitF,
                 lower_error_limitF,
-                conditionF,
+                conditionFF,
             ],
             axis=1,
         )
