@@ -22,7 +22,77 @@ class Abort(Subsystem):
     def __init__(self, VISA_ADDRESS):
         super().__init__(VISA_ADDRESS)
 
-        self.instr.write("ABOR")
+    def abort_acquire(self, Channel_Number):
+        self.instr.write("ABOR:ACQ+(@" + str(Channel_Number) + ")")
+
+    def abort_dlog(self):
+        self.instr.write("ABOR:DLOG")
+
+    def abort(self, Channel_Number):
+        self.instr.write("ABOR (@" + str(Channel_Number) + ")")
+
+
+class Apply(Subsystem):
+    def __init__(self, VISA_ADDRESS):
+        super().__init__(VISA_ADDRESS)
+
+    def write(self, Channel_Number, Voltage, Current):
+        self.instr.write(
+            "APPL CH" + str(Channel_Number) + "," + str(Voltage) + "," + str(Current)
+        )
+
+
+class Current(Subsystem):
+    def __init__(self, VISA_ADDRESS):
+        super().__init__(VISA_ADDRESS)
+
+    def setOutputCurrent(self, Current, ChannelNumber):
+        self.instr.write("CURR " + str(Current) + ",(@" + str(ChannelNumber) + ")")
+
+    def OutputCurrentStepSize(self, Current, ChannelNumber):
+        self.instr.write("CURR:STEP " + str(Current) + ",(@" + str(ChannelNumber) + ")")
+
+    def setTriggeredCurrent(self, Current, ChannelNumber):
+        self.instr.write("CURR:TRIG " + str(Current) + ",(@" + str(ChannelNumber) + ")")
+
+    def setCurrentLimit(self, Current, ChannelNumber):
+        self.instr.write("CURR:LIM " + str(Current) + ",(@" + str(ChannelNumber) + ")")
+
+    def setCurrentMode(self, Mode, ChannelNumber):
+        self.instr.write("CURR:MODE " + Mode + ",(@" + str(ChannelNumber) + ")")
+
+    def CLECurrentProtection(self, ChannelNumber):
+        self.instr.write("CURR:PROT:CLE (@" + str(ChannelNumber) + ")")
+
+    def setProtectionDelay(self, delay_time, ChannelNumber):
+        self.instr.write(
+            "CURR:PROT:DEL " + str(delay_time) + ",(@" + str(ChannelNumber) + ")"
+        )
+
+    def enableCurrentProtection(self, state, ChannelNumber):
+        self.instr.write(
+            "CURR:PROT:STAT " + str(state) + ",(@" + str(ChannelNumber) + ")"
+        )
+
+    def queryCurrentTrip(self):
+        return self.instr.query("CURR:PROT:TRIP?")
+
+    def setCurrentRange(self, range, ChannelNumber):
+        self.instr.write("CURR:RANG " + str(range) + ",(@" + str(ChannelNumber) + ")")
+
+    def enableLowRangeCurrent(self, mode):
+        self.instr.write("CURR:SENS:LOW " + str(mode))
+
+    def setPositiveSlew(self, Current, ChannelNumber):
+        self.instr.write("CURR:SLEW " + str(Current) + ",(@" + str(ChannelNumber) + ")")
+
+    def setNegativeSlew(self, Current, ChannelNumber):
+        self.instr.write(
+            "CURR:SLEW:NEG " + str(Current) + ",(@" + str(ChannelNumber) + ")"
+        )
+
+    def setTransInput(self, Current, ChannelNumber):
+        self.instr.write("CURR:TLEV " + str(Current) + ",(@" + str(ChannelNumber) + ")")
 
 
 class Calculate(Subsystem):
@@ -155,29 +225,55 @@ class Display(Subsystem):
     def __init__(self, VISA_ADDRESS):
         super().__init__(VISA_ADDRESS)
 
-    def display(self, *args):
-        if len(args) == 1:
-            self.dmm.write("DISP:" + self.strtoargs(args))
+    def displayState(self, state):
+        self.instr.write("DISP " + str(state))
 
-        elif len(args) == 2:
-            self.dmm.write(
-                "DISP:" + self.strtoargs(args[0]) + ":" + self.strtoargs(args[1])
-            )
+    def displayText(self, string):
+        self.instr.write('DISP:TEXT "' + str(string) + '"')
 
-    def query(self, *args):
-        if len(args) == 1:
-            return self.dmm.query("DISP:" + self.strtoargs(args) + "?")
+    def clearDisplayText(self):
+        self.instr.write("DISP:TEXT:CLE")
 
-        elif len(args) == 2:
-            self.dmm.query(
-                "DISP:" + self.strtoargs(args[0]) + ":" + self.strtoargs(args[1]) + "?"
-            )
+
+class Emul(Subsystem):
+    def __init__(self, VISA_ADDRESS):
+        super().__init__(VISA_ADDRESS)
+
+    def Emulate(self, mode):
+        self.instr.write("EMUL " + str(mode))
 
 
 class Fetch(Subsystem):
     def __init__(self, VISA_ADDRESS):
         super().__init__(VISA_ADDRESS)
+
+    def query(self):
         return self.instr.query("FETC?")
+
+    def query2(self, ChannelNumber, *args):
+        if len(args) == 1:
+            return self.instr.query(
+                "FETC:" + self.strtoargs(args) + "? (@" + str(ChannelNumber) + ")"
+            )
+
+        elif len(args) == 2:
+            return self.instr.query(
+                "FETC:"
+                + self.strtoargs(args[0])
+                + ":"
+                + self.strtoargs(args[1])
+                + "? (@"
+                + str(ChannelNumber)
+                + ")"
+            )
+
+
+class Function(Subsystem):
+    def __init__(self, VISA_ADDRESS):
+        super().__init__(VISA_ADDRESS)
+
+    def setMode(self, MODE, ChannelNumber):
+        self.instr.write("FUNC " + str(MODE) + ",(@" + str(ChannelNumber) + ")")
 
 
 class Format(Subsystem):
@@ -195,7 +291,44 @@ class Format(Subsystem):
 class Initiate(Subsystem):
     def __init__(self, VISA_ADDRESS):
         super().__init__(VISA_ADDRESS)
+
+    def initiate(self):
         self.instr.write("INIT")
+
+    def initiateAcquire(self, ChannelNumber):
+        self.instr.write("INIT:ACQ (@" + str(ChannelNumber) + ")")
+
+    def initiateDLog(self, filename):
+        self.instr.write("INIT:DLOG " + str(filename))
+
+    def initiateContinuous(self, state, ChannelNumber):
+        self.instr.write(
+            "INIT:CONT:TRAN " + str(state) + ",(@" + str(ChannelNumber) + ")"
+        )
+
+
+class Output(Subsystem):
+    def __init__(self, VISA_ADDRESS):
+        super().__init__(VISA_ADDRESS)
+
+    def setOutputState(self, state):
+        self.instr.write("OUTP " + str(state))
+
+    def setOutputStateC(self, state, ChannelNumber):
+        self.instr.write("OUTP " + str(state) + ",(@" + str(ChannelNumber) + ")")
+
+    def coupleChannel(self, ChannelNumber):
+        self.instr.write("OUTP:COUP:CHAN CH" + str(ChannelNumber))
+
+    def setDelayOn(self, delay_time, ChannelNumber):
+        self.instr.write(
+            "OUTP:DEL:FALL " + str(delay_time) + ",(@" + str(ChannelNumber) + ")"
+        )
+
+    def setDelayOff(self, delay_time, ChannelNumber):
+        self.instr.write(
+            "OUTP:DEL:RISE " + str(delay_time) + ",(@" + str(ChannelNumber) + ")"
+        )
 
 
 class LXI(Subsystem):
@@ -307,6 +440,8 @@ class Memory(Subsystem):
 class Read(Subsystem):
     def __init__(self, VISA_ADDRESS):
         super().__init__(VISA_ADDRESS)
+
+    def query(self):
         return self.instr.query("READ?")
 
 
