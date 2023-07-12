@@ -83,7 +83,7 @@ class PSC(IEEE_488):
         if len(*args) == 0:
             self.instr.write("*PSC")
 
-        if len(*args) == 1:
+        elif len(*args) == 1:
             self.instr.write("*PSC " + self.strtoargs(args))
 
 
