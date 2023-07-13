@@ -330,6 +330,38 @@ class Output(Subsystem):
             "OUTP:DEL:RISE " + str(delay_time) + ",(@" + str(ChannelNumber) + ")"
         )
 
+    def setOutputMode(self, Mode, ChannelNumber):
+        self.instr.write("OUTP:PMOD " + str(Mode) + ",(@" + str(ChannelNumber) + ")")
+
+    def setInhibMode(self, Mode):
+        self.instr.write("OUTP:INH:MODE " + str(Mode))
+
+    def setPowerOnState(self, state):
+        self.instr.write("OUTP:PON:STAT " + str(state))
+
+    def clearLatchProtection(self, ChannelNumber):
+        self.instr.write("INP:PRO:CLE (@" + str(ChannelNumber) + ")")
+
+    def setRelayState(self, state):
+        self.instr.write("OUTP:REL " + str(state))
+
+    def shortInput(self, state):
+        self.instr.write("INP:SHOR " + str(state))
+
+
+class List(Subsystem):
+    def __init__(self, VISA_ADDRESS):
+        super().__init__(VISA_ADDRESS)
+
+    def setListCount(self, range, ChannelNumber):
+        self.instr.write("LIST:COUN " + str(range) + ",(@" + str(ChannelNumber) + ")")
+
+    def setCurrentList(self, list, ChannelNumber):
+        self.instr.write("LIST:CURR " + str(list) + ",(@" + str(ChannelNumber) + ")")
+
+    def queryCurrentPoints(self, ChannelNumber):
+        self.instr.write("LIST:CURR:POIN? (@)" + str(ChannelNumber) + ")")
+
 
 class LXI(Subsystem):
     def __init__(self, VISA_ADDRESS):
@@ -370,26 +402,7 @@ class Measure(Subsystem):
     def __init__(self, VISA_ADDRESS):
         super().__init__(VISA_ADDRESS)
 
-    def config(self, *args):
-        if len(args) == 1:
-            self.instr.write("MEAS:" + self.strtoargs(args))
-
-        elif len(args) == 2:
-            self.instr.write(
-                "MEAS:" + self.strtoargs(args[0]) + ":" + self.strtoargs(args[1])
-            )
-
-        elif len(args) == 3:
-            self.instr.write(
-                "MEAS:"
-                + self.strtoargs(args[0])
-                + ":"
-                + self.strtoargs(args[1])
-                + ":"
-                + self.strtoargs(args[2])
-            )
-
-    def query(self, *args):
+    def singleChannelQuery(self, *args):
         if len(args) == 1:
             return self.instr.query("MEAS:" + self.strtoargs(args) + "?")
 
@@ -407,6 +420,24 @@ class Measure(Subsystem):
                 + ":"
                 + self.strtoargs(args[2])
                 + "?"
+            )
+
+    def multipleChannelQuery(self, ChannelNumber, *args):
+        if len(args) == 1:
+            return self.instr.query(
+                "MEAS:" + self.strtoargs(args) + "? " + "(@" + str(ChannelNumber) + ")"
+            )
+
+        elif len(args) == 2:
+            return self.instr.query(
+                "MEAS:"
+                + self.strtoargs(args[0])
+                + ":"
+                + self.strtoargs(args[1])
+                + "? "
+                + "(@"
+                + str(ChannelNumber)
+                + ")"
             )
 
 
@@ -437,12 +468,112 @@ class Memory(Subsystem):
             )
 
 
+class MMemory(Subsystem):
+    def __init__(self, VISA_ADDRESS):
+        super().__init__(VISA_ADDRESS)
+
+    def exportData(self, filename):
+        self.instr.write("MMEM:EXP:DLOG " + str(filename))
+
+
+class Power(Subsystem):
+    def __init__(self, VISA_ADDRESS):
+        super().__init__(VISA_ADDRESS)
+
+    def setInputPower(self, value, ChannelNumber):
+        self.instr.write("POW " + str(value) + "(@" + str(ChannelNumber) + ")")
+
+    def setTrigPower(self, value, ChannelNumber):
+        self.instr.write("POW:TRIG " + str(value) + "(@" + str(ChannelNumber) + ")")
+
+    def setPowerMode(self, mode, ChannelNumber):
+        self.instr.write("POW:MODE " + str(mode) + ",(@" + str(ChannelNumber) + ")")
+
+    def setProtectionDelay(self, delaytime, ChannelNumber):
+        self.instr.write(
+            "POW:PROT:DEL " + str(delaytime) + ",(@" + str(ChannelNumber) + ")"
+        )
+
+    def setProtectionState(self, state, ChannelNumber):
+        self.instr.write(
+            "POW:PROT:STAT " + str(state) + ",(@" + str(ChannelNumber) + ")"
+        )
+
+    def setPowerRange(self, range, ChannelNumber):
+        self.instr.write("POW:RANG " + str(range) + ",(@" + str(ChannelNumber) + ")")
+
+    def setPositiveSlew(self, rate, ChannelNumber):
+        self.instr.write("POW:SLEW " + str(rate) + ",(@" + str(ChannelNumber) + ")")
+
+    def setNegativeSlew(self, rate, ChannelNumber):
+        self.instr.write("POW:SLEW:NEG " + str(rate) + ",(@" + str(ChannelNumber) + ")")
+
+    def setSlewTracking(self, mode, ChannelNumber):
+        self.instr.write(
+            "POW:SLEW COUP " + str(mode) + ",(@" + str(ChannelNumber) + ")"
+        )
+
+    def setTransientPower(self, power, ChannelNumber):
+        self.instr.write("POW:TLEV " + str(power) + ",(@" + str(ChannelNumber) + ")")
+
+    def setPositiveSlewOverride(self, state, ChannelNumber):
+        self.instr.write(
+            "POW:SLEW:MAX " + str(state) + ",(@" + str(ChannelNumber) + ")"
+        )
+
+    def setNegativeSlewOverride(self, state, ChannelNumber):
+        self.instr.write(
+            "POW:SLEW:NEG:MAX " + str(state) + ",(@" + str(ChannelNumber) + ")"
+        )
+
+
 class Read(Subsystem):
     def __init__(self, VISA_ADDRESS):
         super().__init__(VISA_ADDRESS)
 
     def query(self):
         return self.instr.query("READ?")
+
+
+class Resistance(Subsystem):
+    def __init__(self, VISA_ADDRESS):
+        super().__init__(VISA_ADDRESS)
+
+    def setInputResistance(self, value, ChannelNumber):
+        self.instr.write("RES " + str(value) + "(@" + str(ChannelNumber) + ")")
+
+    def setTrigResistance(self, value, ChannelNumber):
+        self.instr.write("RES:TRIG " + str(value) + "(@" + str(ChannelNumber) + ")")
+
+    def setResistanceMode(self, mode, ChannelNumber):
+        self.instr.write("RES:MODE " + str(mode) + ",(@" + str(ChannelNumber) + ")")
+
+    def setResistanceRange(self, range, ChannelNumber):
+        self.instr.write("RES:RANG " + str(range) + ",(@" + str(ChannelNumber) + ")")
+
+    def setPositiveSlew(self, rate, ChannelNumber):
+        self.instr.write("RES:SLEW " + str(rate) + ",(@" + str(ChannelNumber) + ")")
+
+    def setNegativeSlew(self, rate, ChannelNumber):
+        self.instr.write("RES:SLEW:NEG " + str(rate) + ",(@" + str(ChannelNumber) + ")")
+
+    def setSlewTracking(self, mode, ChannelNumber):
+        self.instr.write(
+            "RES:SLEW COUP " + str(mode) + ",(@" + str(ChannelNumber) + ")"
+        )
+
+    def setTransientPower(self, power, ChannelNumber):
+        self.instr.write("RES:TLEV " + str(power) + ",(@" + str(ChannelNumber) + ")")
+
+    def setPositiveSlewOverride(self, state, ChannelNumber):
+        self.instr.write(
+            "RES:SLEW:MAX " + str(state) + ",(@" + str(ChannelNumber) + ")"
+        )
+
+    def setNegativeSlewOverride(self, state, ChannelNumber):
+        self.instr.write(
+            "RES:SLEW:NEG:MAX " + str(state) + ",(@" + str(ChannelNumber) + ")"
+        )
 
 
 class Sample(Subsystem):
@@ -460,69 +591,109 @@ class Sense(Subsystem):
     def __init__(self, VISA_ADDRESS):
         super().__init__(VISA_ADDRESS)
 
-    def write(self, *args):
-        if len(args) == 1:
-            self.instr.write("SENS:" + self.strtoargs(args))
+    def setVoltageRangeDC(self, range):
+        self.instr.write("VOLT:RANG " + str(range))
 
-        elif len(args) == 2:
-            self.instr.write(
-                "SENS:" + self.strtoargs(args[0]) + ":" + self.strtoargs(args[1])
-            )
+    def setVoltageResDC(self, string):
+        self.instr.write("VOLT:RES " + str(string))
 
-        elif len(args) == 3:
-            self.instr.write(
-                "SENS:"
-                + self.strtoargs(args[0])
-                + ":"
-                + self.strtoargs(args[1])
-                + ":"
-                + self.strtoargs(args[2])
-            )
+    def setVoltageRangeAC(self, range):
+        self.instr.write("VOLT:AC:RANG " + str(range))
 
-        elif len(args) == 4:
-            self.instr.write(
-                "SENS:"
-                + self.strtoargs(args[0])
-                + ":"
-                + self.strtoargs(args[1])
-                + ":"
-                + self.strtoargs(args[2])
-                + ":"
-                + self.strtoargs(args[3])
-            )
+    def setVoltageResAC(self, string):
+        self.instr.write("VOLT:AC:RES " + str(string))
 
-    def query(self, *args):
-        if len(args) == 1:
-            return self.instr.query("SENS:" + self.strtoargs(args) + "?")
+    def setCurrentRangeDC(self, range):
+        self.instr.write("CURR:RANG " + str(range))
 
-        elif len(args) == 2:
-            return self.instr.query(
-                "SENS:" + self.strtoargs(args[0]) + ":" + self.strtoargs(args[1]) + "?"
-            )
+    def setCurrentResDC(self, string):
+        self.instr.write("CURR:RES " + str(string))
 
-        elif len(args) == 3:
-            return self.instr.query(
-                "SENS:"
-                + self.strtoargs(args[0])
-                + ":"
-                + self.strtoargs(args[1])
-                + ":"
-                + self.strtoargs(args[2])
-                + "?"
-            )
+    def setCurrentRangeAC(self, range):
+        self.instr.write("CURR:AC:RANG " + str(range))
 
-        elif len(args) == 4:
-            return self.instr.query(
-                "SENS:"
-                + self.strtoargs(args[0])
-                + ":"
-                + self.strtoargs(args[1])
-                + ":"
-                + self.strtoargs(args[2])
-                + ":"
-                + self.strtoargs(args[3])
-                + "?"
-            )
+    def setCurrentResAC(self, string):
+        self.instr.write("CURR:AC:RES " + str(string))
+
+    def setResistanceRange(self, range):
+        self.instr.write("RES:RANG " + str(range))
+
+    def setResistanceRes(self, string):
+        self.instr.write("RES:RES " + str(string))
+
+    def setResistanceOCompensated(self, string):
+        self.instr.write("RES:OCOM " + str(string))
+
+    def setFResistanceRange(self, range):
+        self.instr.write("FRES:RANG " + str(range))
+
+    def setFResistanceRes(self, string):
+        self.instr.write("FRES:RES " + str(string))
+
+    def setFResistanceOCompensated(self, string):
+        self.instr.write("FRES:OCOM " + str(string))
+
+    def setFrequencyAperture(self, value):
+        self.instr.write("FREQ:APER " + str(value))
+
+    def setFrequencyVoltageRange(self, value):
+        self.instr.write("FREQ:VOLT:RANG " + str(value))
+
+    def setFrequencyCurrentRange(self, value):
+        self.instr.write("FREQ:CURR:RANG " + str(value))
+
+    def setThermsistorResistance(self, value):
+        self.instr.write("TEMP:TRAN:THER:TYPE " + str(value))
+
+    def setCapacitanceRange(self, range):
+        self.instr.write("CAP:RANG " + str(range))
+
+    def enableCurrentDataLogging(self, state, ChannelNumber):
+        self.instr.write(
+            "SENS:DLOG:FUNC:VOLT " + str(state) + ",(@" + str(ChannelNumber) + ")"
+        )
+
+    def enableCurrentDataLogging(self, state, ChannelNumber):
+        self.instr.write(
+            "SENS:DLOG:FUNC:CURR " + str(state) + ",(@" + str(ChannelNumber) + ")"
+        )
+
+    def enableMinMaxLogging(self, state):
+        self.instr.write("SENS:DLOG:FUNC:MINM " + str(state))
+
+    def setTriggerOffset(self, offset_percent):
+        self.instr.write("SENS:DLOG:OFFS " + str(offset_percent))
+
+    def setSamplePeriod(self, time):
+        self.instr.write("SENS:DLOG:PER " + str(time))
+
+    def setSampleDuration(self, time):
+        self.instr.write("SENS:DLOG:TIME " + str(time))
+
+    def enableCurrentMeasurement(self, state, ChannelNumber):
+        self.instr.write(
+            "SENS:FUNC:CURR " + str(state) + ",(@" + str(ChannelNumber) + ")"
+        )
+
+    def enableVoltageMeasurement(self, state, ChannelNumber):
+        self.instr.write(
+            "SENS:FUNC:VOLT " + str(state) + ",(@" + str(ChannelNumber) + ")"
+        )
+
+    def specifySweepPoint(self, data_points, ChannelNumber):
+        self.instr.write(
+            "SENS:SWE:POIN " + str(data_points) + ",(@" + str(ChannelNumber) + ")"
+        )
+
+    def specifyOffsetSweepPoint(self, data_points, ChannelNumber):
+        self.instr.write(
+            "SENS:SWE:OFFS:POIN " + str(data_points) + ",(@" + str(ChannelNumber) + ")"
+        )
+
+    def specifyIntervalPoints(self, time, ChannelNumber):
+        self.instr.write(
+            "SENS:SWE:TINT " + str(time) + ",(@" + str(ChannelNumber) + ")"
+        )
 
 
 class Status(Subsystem):
@@ -679,3 +850,86 @@ class Unit(Subsystem):
 
     def queryTemp(self):
         return self.instr.query("UNIT:TEMP?")
+
+
+class Voltage(Subsystem):
+    def __init__(self, VISA_ADDRESS):
+        super().__init__(VISA_ADDRESS)
+
+    def setOutputVoltage(self, Current, ChannelNumber):
+        self.instr.write("VOLT " + str(Current) + ",(@" + str(ChannelNumber) + ")")
+
+    def OutputVoltageStepSize(self, Current, ChannelNumber):
+        self.instr.write("VOLT:STEP " + str(Current) + ",(@" + str(ChannelNumber) + ")")
+
+    def setTriggeredVoltage(self, Current, ChannelNumber):
+        self.instr.write("VOLT:TRIG " + str(Current) + ",(@" + str(ChannelNumber) + ")")
+
+    def setVoltageLimit(self, Current, ChannelNumber):
+        self.instr.write("VOLT:LIM " + str(Current) + ",(@" + str(ChannelNumber) + ")")
+
+    def setVoltageMode(self, Mode, ChannelNumber):
+        self.instr.write("VOLT:MODE " + Mode + ",(@" + str(ChannelNumber) + ")")
+
+    def CLEVoltageProtection(self, ChannelNumber):
+        self.instr.write("VOLT:PROT:CLE (@" + str(ChannelNumber) + ")")
+
+    def setProtectionDelay(self, delay_time, ChannelNumber):
+        self.instr.write(
+            "VOLT:PROT:DEL " + str(delay_time) + ",(@" + str(ChannelNumber) + ")"
+        )
+
+    def enableVoltageProtection(self, state, ChannelNumber):
+        self.instr.write(
+            "VOLT:PROT:STAT " + str(state) + ",(@" + str(ChannelNumber) + ")"
+        )
+
+    def setTripVoltage(self, voltage, ChannelNumber):
+        self.instr.write("VOLT:PROT " + str(voltage) + ",(@" + str(ChannelNumber) + ")")
+
+    def setVoltageRange(self, range, ChannelNumber):
+        self.instr.write("VOLT:RANG " + str(range) + ",(@" + str(ChannelNumber) + ")")
+
+    def setPositiveSlew(self, Current, ChannelNumber):
+        self.instr.write("VOLT:SLEW " + str(Current) + ",(@" + str(ChannelNumber) + ")")
+
+    def setNegativeSlew(self, Current, ChannelNumber):
+        self.instr.write(
+            "VOLT:SLEW:NEG " + str(Current) + ",(@" + str(ChannelNumber) + ")"
+        )
+
+    def setTransInput(self, Current, ChannelNumber):
+        self.instr.write("VOLT:TLEV " + str(Current) + ",(@" + str(ChannelNumber) + ")")
+
+    def setSlewTracking(self, mode, ChannelNumber):
+        self.instr.write(
+            "VOLT:SLEW COUP " + str(mode) + ",(@" + str(ChannelNumber) + ")"
+        )
+
+    def setTransientPower(self, power, ChannelNumber):
+        self.instr.write("VOLT:TLEV " + str(power) + ",(@" + str(ChannelNumber) + ")")
+
+    def setPositiveSlewOverride(self, state, ChannelNumber):
+        self.instr.write(
+            "VOLT:SLEW:MAX " + str(state) + ",(@" + str(ChannelNumber) + ")"
+        )
+
+    def setNegativeSlewOverride(self, state, ChannelNumber):
+        self.instr.write(
+            "VOLT:SLEW:NEG:MAX " + str(state) + ",(@" + str(ChannelNumber) + ")"
+        )
+
+    def setSenseMode(self, state, ChannelNumber):
+        self.instr.write(
+            "VOLT:SENS:SOUR " + str(state) + ",(@" + str(ChannelNumber) + ")"
+        )
+
+    def specifyVoltageOn(self, Voltage, ChannelNumber):
+        self.instr.write(
+            "VOLT:INH:VON " + str(Voltage) + ",(@" + str(ChannelNumber) + ")"
+        )
+
+    def setInhibMode(self, mode, ChannelNumber):
+        self.instr.write(
+            "VOLT:INH:VON:MODE " + str(mode) + ",(@" + str(ChannelNumber) + ")"
+        )
