@@ -824,6 +824,26 @@ class System(Subsystem):
         return self.instr.query("SYST:VERS?")
 
 
+class Transient(Subsystem):
+    def __init__(self, VISA_ADDRESS):
+        super().__init__(VISA_ADDRESS)
+
+    def setTransientCount(self, value, ChannelNumber):
+        self.instr.write("TRAN:COUN " + str(value) + ",(@" + str(ChannelNumber) + ")")
+
+    def setDutyCycle(self, value, ChannelNumber):
+        self.instr.write("TRAN:DCYC " + str(value) + ",(@" + str(ChannelNumber) + ")")
+
+    def setTransientFrequency(self, value, ChannelNumber):
+        self.instr.write("TRAN:FREQ " + str(value) + ",(@" + str(ChannelNumber) + ")")
+
+    def setTransientMode(self, Mode, ChannelNumber):
+        self.instr.write("TRAN:MODE " + str(Mode) + ",(@" + str(ChannelNumber) + ")")
+
+    def setTransientPulseWidth(self, value, ChannelNumber):
+        self.instr.write("TRAN:TWID " + str(value) + ",(@" + str(ChannelNumber) + ")")
+
+
 class Trigger(Subsystem):
     def __init__(self, VISA_ADDRESS):
         super().__init__(VISA_ADDRESS)
@@ -839,6 +859,29 @@ class Trigger(Subsystem):
 
     def querySource(self):
         return self.instr.query("TRIG:SOUR?")
+
+    def triggerAcquire(self, ChannelNumber):
+        self.instr.write("TRIG:ACQ (@" + str(ChannelNumber) + ")")
+
+    def setTriggeredCurrent(self, value, ChannelNumber):
+        self.instr.write(
+            "TRIG:ACQ:CURR " + str(value) + ",(@" + str(ChannelNumber) + ")"
+        )
+
+    def setCurrentSlope(self, state, ChannelNumber):
+        self.instr.write(
+            "TRIG:ACQ:CURR:SLOP " + str(state) + ",(@" + str(ChannelNumber) + ")"
+        )
+
+    def setTriggeredVoltage(self, value, ChannelNumber):
+        self.instr.write(
+            "TRIG:ACQ:VOLT " + str(value) + ",(@" + str(ChannelNumber) + ")"
+        )
+
+    def setVoltageSlope(self, state, ChannelNumber):
+        self.instr.write(
+            "TRIG:ACQ:VOLT:SLOP " + str(state) + ",(@" + str(ChannelNumber) + ")"
+        )
 
 
 class Unit(Subsystem):
