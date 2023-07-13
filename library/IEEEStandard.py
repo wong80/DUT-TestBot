@@ -51,6 +51,7 @@ class IDN(IEEE_488):
     def __init__(self, VISA_ADDRESS):
         super().__init__(VISA_ADDRESS)
 
+    def query(self):
         return self.instr.query("*IDN?")
 
 
