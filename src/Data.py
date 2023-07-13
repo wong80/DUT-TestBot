@@ -1,6 +1,14 @@
+import sys
 import pandas as pd
 from matplotlib import pyplot as plt
 import numpy as np
+
+sys.path.insert(
+    1,
+    r"C://Users//zhiywong//OneDrive - Keysight Technologies//Documents//GitHub//PyVisa//library",
+)
+from IEEEStandard import IDN
+from Subsystems import System
 
 
 class datatoCSV(object):
@@ -251,8 +259,10 @@ class instrumentData:
         instrumentVersion = []
 
         for x in args:
-            instrumentIDN.append(x.dmm.query("*IDN?"))
-            instrumentVersion.append(x.dmm.query("SYST:VERS?"))
+            instrumentIDN.append(IDN(x).query())
+            instrumentVersion.append(System(x).version())
+            # instrumentIDN.append(x.dmm.query("*IDN?"))
+            # instrumentVersion.append(x.dmm.query("SYST:VERS?"))
 
         df1 = pd.DataFrame(instrumentIDN, columns=["Instruments Used: "])
         df2 = pd.DataFrame(instrumentVersion, columns=["SCPI Version"])
