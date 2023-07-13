@@ -20,7 +20,6 @@ class E36731A(object):
 
         # Resets the instrument configuration and synchronizes it before each R/W
         self.dmm.write("*rst")
-        self.dmm.write("VOLT:SENSE:SOUR EXT,(@1)")
         # # self.dmm.write("DISP:TEXT " + '"Reality can be whatever I want"')
         # self.dmm.write("DISP:TEXT:CLE")
 
