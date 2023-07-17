@@ -226,7 +226,7 @@ class Display(Subsystem):
         super().__init__(VISA_ADDRESS)
 
     def displayState(self, state):
-        self.instr.write("DISP " + str(state))
+        self.instr.write("DISP:CHAN " + str(state))
 
     def displayText(self, string):
         self.instr.write('DISP:TEXT "' + str(string) + '"')
