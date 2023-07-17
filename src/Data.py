@@ -184,7 +184,7 @@ class datatoGraph(datatoCSV):
             plt.xlabel("Current (A)")
             plt.ylabel("Percentage Error (%)")
 
-    def scatterCompare(self, Mode):
+    def scatterCompare(self, Mode, param1, param2):
         self.Mode = Mode
         ungrouped_df = pd.read_csv("csv/data.csv")
         grouped_df = ungrouped_df.groupby(["key"])
@@ -207,11 +207,11 @@ class datatoGraph(datatoCSV):
 
             if self.Mode.upper() == "VOLTAGE":
                 self.errorBoundary(
-                    0.00025, 0.0015, self.Mode, VsetS, Vpercent_errorS, Iset
+                    param1, param2, self.Mode, VsetS, Vpercent_errorS, Iset
                 )
             elif self.Mode.upper() == "CURRENT":
                 self.errorBoundary(
-                    0.00035, 0.0015, self.Mode, IsetS, Ipercent_errorS, Vset
+                    param1, param2, self.Mode, IsetS, Ipercent_errorS, Vset
                 )
 
             upper_error_limitC = pd.concat([upper_error_limitC, self.upper_error_limit])
