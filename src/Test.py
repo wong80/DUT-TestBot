@@ -143,7 +143,6 @@ class CurrentMeasurement:
             j = 0
             I = self.minCurrent
             while j < self.current_iter:
-                print(j)
                 Apply(self.PSU).write(self.PSU_Channel, V, I)
                 print("Voltage: ", V_fixed, "Current: ", I)
                 infoList.insert(k, [V_fixed, I, i])
