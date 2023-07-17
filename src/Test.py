@@ -1,5 +1,7 @@
 import pyvisa
 import sys
+import Data
+
 
 sys.path.insert(
     1,
@@ -13,18 +15,23 @@ infoList = []
 dataList = []
 
 
-class VisaResourceManager(object):
-    def __init__(self, *args):
+class VisaResourceManager:
+    def __init__(self):
         rm = pyvisa.ResourceManager()
+        self.rm = rm
 
+    def openRM(self, *args):
         for i in range(len(args)):
             # temp = ""
             # for item in args[i]:
             #     temp = temp + item
-            instr = rm.open_resource(args[i])
+            instr = self.rm.open_resource(args[i])
             instr.baud_rate = 9600
-
+            instr.write("*RST")
             print(instr.query("*IDN?"))
+
+    def closeRM(self):
+        self.rm.close()
 
 
 class VoltageMeasurement:
@@ -35,11 +42,13 @@ class VoltageMeasurement:
         self.ELoad_Channel = ELoad_Channel
         self.PSU_Channel = PSU_Channel
 
-    def settings(self):
+    def settings(self, param1, param2):
         Sense(self.DMM).setVoltageResDC("FAST")
         Display(self.ELoad).displayState(self.ELoad_Channel)
         Function(self.ELoad).setMode("Current", self.ELoad_Channel)
         Voltage(self.PSU).setSenseMode("EXT", 1)
+        self.param1 = param1
+        self.param2 = param2
 
     def Current_Sweep(self, minCurrent, maxCurrent, step_size):
         self.minCurrent = minCurrent
@@ -54,9 +63,9 @@ class VoltageMeasurement:
         self.voltage_iter = ((maxVoltage - minVoltage) / step_size) + 1
 
     def execute(self):
-        self.settings()
-        self.Current_Sweep(1, 2, 1)
-        self.Voltage_Sweep(1, 5, 0.1)
+        self.settings(0.00025, 0.0015)
+        self.Current_Sweep(1, 2, 0.5)
+        self.Voltage_Sweep(1, 30, 0.5)
         i = 0
         j = 0
         k = 0
@@ -93,7 +102,11 @@ class VoltageMeasurement:
 
         Output(self.PSU).setOutputState("OFF")
         Output(self.ELoad).setOutputStateC("OFF", self.ELoad_Channel)
-        return infoList, dataList
+
+        F = Data.instrumentData(self.PSU, self.DMM, self.ELoad)
+        D = Data.datatoCSV(infoList, dataList)
+        E = Data.datatoGraph(infoList, dataList)
+        E.scatterCompare("Voltage", self.param1, self.param2)
 
 
 class CurrentMeasurement:
@@ -104,11 +117,13 @@ class CurrentMeasurement:
         self.ELoad_Channel = ELoad_Channel
         self.PSU_Channel = PSU_Channel
 
-    def settings(self):
+    def settings(self, param1, param2):
         Sense(self.DMM).setCurrentResDC("FAST")
         Display(self.ELoad).displayState(self.ELoad_Channel)
         Function(self.ELoad).setMode("Voltage", self.ELoad_Channel)
         Voltage(self.PSU).setSenseMode("EXT", 1)
+        self.param1 = param1
+        self.param2 = param2
 
     def Current_Sweep(self, minCurrent, maxCurrent, step_size):
         self.minCurrent = minCurrent
@@ -123,7 +138,7 @@ class CurrentMeasurement:
         self.voltage_iter = ((maxVoltage - minVoltage) / step_size) + 1
 
     def execute(self):
-        self.settings()
+        self.settings(0.00035, 0.0015)
         self.Current_Sweep(0.5, 2, 0.5)
         self.Voltage_Sweep(1, 5, 1)
         i = 0
@@ -161,4 +176,7 @@ class CurrentMeasurement:
             i += 1
         Output(self.PSU).setOutputState("OFF")
         Output(self.ELoad).setOutputStateC("OFF", self.ELoad_Channel)
-        return infoList, dataList
+        F = Data.instrumentData(self.PSU, self.DMM, self.ELoad)
+        D = Data.datatoCSV(infoList, dataList)
+        E = Data.datatoGraph(infoList, dataList)
+        E.scatterCompare("Current", self.param1, self.param2)
