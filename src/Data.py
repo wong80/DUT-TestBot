@@ -139,6 +139,9 @@ class datatoGraph(datatoCSV):
             self.upper_error_limit = upper_error_limit
             self.lower_error_limit = lower_error_limit
 
+            condition1 = upper_error_limit < x_err
+            condition2 = lower_error_limit > x_err
+
             for i in range(condition1.count()):
                 if condition1.iloc[i] | condition2.iloc[i]:
                     self.condition = "FAIL"
@@ -156,9 +159,9 @@ class datatoGraph(datatoCSV):
                 name="Lower Error Boundary (" + UNIT + " )"
             )
 
-            self.conditionF = self.condition.to_frame(name="Condition ?")
+            self.conditionF = self.condition_series.to_frame(name="Condition ?")
 
-            self.z = self.condition.to_numpy()
+            self.z = self.condition_series.to_numpy()
             self.colour_condition = np.where(self.z == "PASS", "black", "red")
             self.size_condition = np.where(self.z == "PASS", 6, 12)
             self.alpha_condition = np.where(self.z == "PASS", 0, 1)
@@ -174,14 +177,15 @@ class datatoGraph(datatoCSV):
             plt.plot(
                 x,
                 x_err,
-                label="Current = " + str(y.iloc[0]["Current Set"]),
+                label="Voltage = " + str(y.iloc[0]["Voltage Set"]),
             )
             plt.legend(loc="upper left")
             plt.title(UNIT)
             plt.xlabel("Current (A)")
             plt.ylabel("Percentage Error (%)")
 
-    def scatterCompare(self):
+    def scatterCompare(self, Mode):
+        self.Mode = Mode
         ungrouped_df = pd.read_csv("csv/data.csv")
         grouped_df = ungrouped_df.groupby(["key"])
         [grouped_df.get_group(x) for x in grouped_df.groups]
@@ -198,27 +202,52 @@ class datatoGraph(datatoCSV):
 
             VsetS = Vset.squeeze()
             Vpercent_errorS = Vpercent_error.squeeze()
+            IsetS = Iset.squeeze()
+            Ipercent_errorS = Ipercent_error.squeeze()
 
-            self.errorBoundary(0.00025, 0.0015, "Voltage", VsetS, Vpercent_errorS, Iset)
+            if self.Mode.upper() == "VOLTAGE":
+                self.errorBoundary(
+                    0.00025, 0.0015, self.Mode, VsetS, Vpercent_errorS, Iset
+                )
+            elif self.Mode.upper() == "CURRENT":
+                self.errorBoundary(
+                    0.00035, 0.0015, self.Mode, IsetS, Ipercent_errorS, Vset
+                )
 
             upper_error_limitC = pd.concat([upper_error_limitC, self.upper_error_limit])
             lower_error_limitC = pd.concat([lower_error_limitC, self.lower_error_limit])
             conditionC = pd.concat([conditionC, self.condition_series])
 
-        plt.plot(
-            Vset,
-            self.upper_error_limit,
-            label="Upper Bound",
-            color="red",
-            linewidth=1,
-        )
-        plt.plot(
-            Vset,
-            self.lower_error_limit,
-            label="Lower Bound",
-            color="red",
-            linewidth=1,
-        )
+        if self.Mode.upper() == "VOLTAGE":
+            plt.plot(
+                Vset,
+                self.upper_error_limit,
+                label="Upper Bound",
+                color="red",
+                linewidth=1,
+            )
+            plt.plot(
+                Vset,
+                self.lower_error_limit,
+                label="Lower Bound",
+                color="red",
+                linewidth=1,
+            )
+        elif self.Mode.upper() == "CURRENT":
+            plt.plot(
+                Iset,
+                self.upper_error_limit,
+                label="Upper Bound",
+                color="red",
+                linewidth=1,
+            )
+            plt.plot(
+                Iset,
+                self.lower_error_limit,
+                label="Lower Bound",
+                color="red",
+                linewidth=1,
+            )
 
         conditionF = conditionC.to_frame(name="Condition ?")
         conditionFF = conditionF.reset_index(drop=True)
