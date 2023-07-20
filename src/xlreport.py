@@ -11,6 +11,13 @@ green_font = Font(size=14, bold=True, color="013220")
 green_fill = PatternFill(
     start_color="FFAAFF00", end_color="FFAAFF00", fill_type="solid"
 )
+path = (
+    r"C:\Users\zhiywong\OneDrive - Keysight Technologies\Documents\GitHub\PyVisa\Excel Files\\"
+    + datetime.datetime.now().strftime("%Y-%m-%d--%H-%M-%S")
+    + ".xlsx"
+)
+
+print(path)
 
 
 def adjustcolumnWidth(worksheet, value):
@@ -23,7 +30,7 @@ def alignCell(worksheet, row_number, column_number, style):
     currentCell.alignment = Alignment(horizontal=style)
 
 
-with pd.ExcelWriter("excel_report.xlsx", engine="openpyxl") as writer:
+with pd.ExcelWriter(path, engine="openpyxl") as writer:
     df1 = pd.read_csv("csv/error.csv", index_col=False)
     df2 = pd.read_csv(
         "csv/instrumentData.csv",
@@ -75,4 +82,4 @@ with pd.ExcelWriter("excel_report.xlsx", engine="openpyxl") as writer:
     img.anchor = "R1"
     ws.add_image(img)
 
-    wb.save("excel_report.xlsx")
+    wb.save(path)
