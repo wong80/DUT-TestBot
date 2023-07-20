@@ -61,7 +61,7 @@ class datatoCSV(object):
             axis=1,
         )
 
-        self.CSV1.to_csv("csv/data.csv")
+        self.CSV1.to_csv("csv/data.csv", index=False)
 
     def column(self, matrix, i):
         return [row[i] for row in matrix]
@@ -269,6 +269,130 @@ class datatoGraph(datatoCSV):
                 self.Vpercent_errorF,
                 self.Iabsolute_errorF,
                 self.Ipercent_errorF,
+                upper_error_limitF,
+                lower_error_limitF,
+                conditionFF,
+            ],
+            axis=1,
+        )
+
+        self.CSV2.to_csv("csv/error.csv", index=False)
+
+        plt.legend(loc="lower left")
+        plt.savefig("images/Chart.png")
+
+    def scatterCompareVoltage(self, param1, param2):
+        ungrouped_df = pd.read_csv("csv/data.csv", index_col=False)
+        grouped_df = ungrouped_df.groupby(["key"])
+        [grouped_df.get_group(x) for x in grouped_df.groups]
+
+        upper_error_limitC = pd.Series()
+        lower_error_limitC = pd.Series()
+        conditionC = pd.Series()
+
+        for x in range(len(grouped_df)):
+            Vset = grouped_df.get_group(x)[["Voltage Set"]]
+            Iset = grouped_df.get_group(x)[["Current Set"]]
+            Vpercent_error = grouped_df.get_group(x)[["Voltage Percentage Error (%)"]]
+            Ipercent_error = grouped_df.get_group(x)[["Current Percentage Error (%)"]]
+
+            VsetS = Vset.squeeze()
+            Vpercent_errorS = Vpercent_error.squeeze()
+            # IsetS = Iset.squeeze()
+            # Ipercent_errorS = Ipercent_error.squeeze()
+
+            self.param1 = param1
+            self.param2 = param2
+            boolList = []
+            my_dict = {"Name": "Voltage", "Gain": [param1], "Offset": [param2]}
+
+            df = pd.DataFrame.from_dict(my_dict)
+
+            df.to_csv("csv/param.csv", index=False)
+
+            upper_error_limit = self.param1 * VsetS + self.param2 * 100
+            lower_error_limit = -upper_error_limit
+            self.upper_error_limit = upper_error_limit
+            self.lower_error_limit = lower_error_limit
+
+            condition1 = upper_error_limit < Vpercent_errorS
+            condition2 = lower_error_limit > Vpercent_errorS
+
+            for i in range(condition1.count()):
+                if condition1.iloc[i] | condition2.iloc[i]:
+                    self.condition = "FAIL"
+                    boolList.append(self.condition)
+                else:
+                    self.condition = "PASS"
+                    boolList.append(self.condition)
+
+            self.condition_series = pd.Series(boolList)
+
+            self.upper_error_limitF = upper_error_limit.to_frame(
+                name="Upper Error Boundary ( Voltage )"
+            )
+            self.lower_error_limitF = lower_error_limit.to_frame(
+                name="Lower Error Boundary ( Voltage )"
+            )
+
+            self.conditionF = self.condition_series.to_frame(name="Condition ?")
+
+            self.z = self.condition_series.to_numpy()
+            self.colour_condition = np.where(self.z == "PASS", "black", "red")
+            self.size_condition = np.where(self.z == "PASS", 6, 12)
+            self.alpha_condition = np.where(self.z == "PASS", 0, 1)
+
+            plt.scatter(
+                VsetS,
+                Vpercent_errorS,
+                color=self.colour_condition,
+                s=self.size_condition,
+                alpha=self.alpha_condition,
+            )
+
+            plt.plot(
+                VsetS,
+                Vpercent_errorS,
+                label="Current = " + str(Iset.iloc[0]["Current Set"]),
+            )
+
+            plt.title("Voltage")
+            plt.xlabel("Voltage (V)")
+            plt.ylabel("Percentage Error (%)")
+
+            upper_error_limitC = pd.concat([upper_error_limitC, self.upper_error_limit])
+            lower_error_limitC = pd.concat([lower_error_limitC, self.lower_error_limit])
+            conditionC = pd.concat([conditionC, self.condition_series])
+
+        plt.plot(
+            Vset,
+            self.upper_error_limit,
+            label="Upper Bound",
+            color="red",
+            linewidth=1,
+        )
+        plt.plot(
+            Vset,
+            self.lower_error_limit,
+            label="Lower Bound",
+            color="red",
+            linewidth=1,
+        )
+
+        conditionF = conditionC.to_frame(name="Condition ?")
+        conditionFF = conditionF.reset_index(drop=True)
+
+        upper_error_limitF = pd.DataFrame(
+            upper_error_limitC, columns=["Upper Error Boundary"]
+        )
+        lower_error_limitF = pd.DataFrame(
+            lower_error_limitC, columns=["Lower Error Boundary"]
+        )
+
+        ungrouped_df.drop(columns=["key"], inplace=True)
+        self.CSV2 = pd.concat(
+            [
+                ungrouped_df,
                 upper_error_limitF,
                 lower_error_limitF,
                 conditionFF,
