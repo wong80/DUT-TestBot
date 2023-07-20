@@ -24,6 +24,7 @@ sys.path.insert(
     r"C://Users//zhiywong//OneDrive - Keysight Technologies//Documents//GitHub//PyVisa//src",
 )
 from Test import VoltageMeasurement
+from Data import *
 
 
 class Window(QMainWindow):
@@ -196,7 +197,11 @@ class Dialog(QDialog):
         layout1.addRow(QPushButton_Widget)
 
         # layout1.addRow(self.buttonBox)
-
+        # Default Values
+        self.setFunction = "Current"
+        self.VoltageRes = "SLOW"
+        self.VoltageSense = "INT"
+        self.checkbox_data = 2
         self.setLayout(layout1)
 
         QLineEdit_PSU_VisaAddress.textEdited.connect(self.PSU_VisaAddress_changed)
@@ -281,11 +286,12 @@ class Dialog(QDialog):
             self.VoltageSense = "EXT"
 
     def checkbox_state(self, s):
-        print(s == Qt.Checked)
+        self.checkbox_data = s
+        print(self.checkbox_data)
 
     def executeTest(self):
         VoltageMeasurement.settings(self, self.Error_Gain, self.Error_Offset)
-        VoltageMeasurement.executeA(
+        dataList, infoList = VoltageMeasurement.executeA(
             self,
             self.Error_Gain,
             self.Error_Offset,
@@ -304,6 +310,14 @@ class Dialog(QDialog):
             self.VoltageRes,
             self.setFunction,
         )
+
+        if self.checkbox_data == 2:
+            instrumentData(self.PSU, self.DMM, self.ELoad)
+            datatoCSV(infoList, dataList)
+            datatoGraph(infoList, dataList)
+            datatoGraph.scatterCompareVoltage(
+                self, float(self.Error_Gain), float(self.Error_Offset)
+            )
 
 
 if __name__ == "__main__":
