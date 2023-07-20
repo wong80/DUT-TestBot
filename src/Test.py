@@ -22,9 +22,6 @@ class VisaResourceManager:
 
     def openRM(self, *args):
         for i in range(len(args)):
-            # temp = ""
-            # for item in args[i]:
-            #     temp = temp + item
             instr = self.rm.open_resource(args[i])
             instr.baud_rate = 9600
             instr.write("*RST")
@@ -107,6 +104,75 @@ class VoltageMeasurement:
         D = Data.datatoCSV(infoList, dataList)
         E = Data.datatoGraph(infoList, dataList)
         E.scatterCompare("Voltage", self.param1, self.param2)
+
+    def executeA(
+        self,
+        Error_Gain,
+        Error_Offset,
+        minCurrent,
+        maxCurrent,
+        current_stepsize,
+        minVoltage,
+        maxVoltage,
+        voltage_stepsize,
+        PSU,
+        DMM,
+        ELoad,
+        ELoad_Channel,
+        PSU_Channel,
+        setVoltage_Sense,
+        setVoltage_Res,
+        setMode,
+    ):
+        dataList = []
+        infoList = []
+        Sense(self.DMM).setVoltageResDC(setVoltage_Res)
+        Display(self.ELoad).displayState(ELoad_Channel)
+        Function(self.ELoad).setMode(setMode, ELoad_Channel)
+        Voltage(self.PSU).setSenseMode(setVoltage_Sense, PSU_Channel)
+        self.param1 = Error_Gain
+        self.param2 = Error_Offset
+
+        i = 0
+        j = 0
+        k = 0
+        I_fixed = float(minCurrent)
+        V = float(minVoltage)
+        I = float(maxCurrent) + 1
+        current_iter = (
+            (float(maxCurrent) - float(minCurrent)) / float(current_stepsize)
+        ) + 1
+        voltage_iter = (
+            (float(maxVoltage) - float(minVoltage)) / float(voltage_stepsize)
+        ) + 1
+        Output(ELoad).setOutputStateC("ON", ELoad_Channel)
+        Output(PSU).setOutputState("ON")
+
+        while i < current_iter:
+            Current(ELoad).setOutputCurrent(I_fixed - 0.001 * I_fixed, ELoad_Channel)
+            j = 0
+            V = float(minVoltage)
+            while j < voltage_iter:
+                Apply(PSU).write(self.PSU_Channel, V, I)
+                print("Voltage: ", V, "Current: ", I_fixed)
+                infoList.insert(k, [V, I_fixed, i])
+
+                temp_string = float(OPC(self.PSU).query())
+
+                if temp_string == 1:
+                    dataList.insert(k, [float(Read(DMM).query()), I_fixed])
+                    del temp_string
+
+                V += float(voltage_stepsize)
+                j += 1
+                k += 1
+
+            I_fixed += float(current_stepsize)
+            i += 1
+
+        Output(PSU).setOutputState("OFF")
+        Output(ELoad).setOutputStateC("OFF", ELoad_Channel)
+        return dataList, infoList
 
 
 class CurrentMeasurement:
