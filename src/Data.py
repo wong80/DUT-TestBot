@@ -83,7 +83,7 @@ class datatoGraph(datatoCSV):
         df.to_csv("csv/param.csv", index=False)
 
         if UNIT.upper() == "VOLTAGE":
-            upper_error_limit = self.param1 * x + self.param2 * 100
+            upper_error_limit = (self.param1 * x + self.param2) * 100
             lower_error_limit = -upper_error_limit
             self.upper_error_limit = upper_error_limit
             self.lower_error_limit = lower_error_limit
@@ -299,8 +299,6 @@ class datatoGraph(datatoCSV):
             VsetS = Vset.squeeze()
             Vpercent_errorS = Vpercent_error.squeeze()
 
-            self.param1 = param1
-            self.param2 = param2
             boolList = []
             my_dict = {"Name": "Voltage", "Gain": [param1], "Offset": [param2]}
 
@@ -308,7 +306,7 @@ class datatoGraph(datatoCSV):
 
             df.to_csv("csv/param.csv", index=False)
 
-            upper_error_limit = self.param1 * VsetS + self.param2 * 100
+            upper_error_limit = (param1 * VsetS + param2) * 100
             lower_error_limit = -upper_error_limit
             self.upper_error_limit = upper_error_limit
             self.lower_error_limit = lower_error_limit
@@ -421,16 +419,14 @@ class datatoGraph(datatoCSV):
             IsetS = Iset.squeeze()
             Ipercent_errorS = Ipercent_error.squeeze()
 
-            self.param1 = param1
-            self.param2 = param2
             boolList = []
-            my_dict = {"Name": "Voltage", "Gain": [param1], "Offset": [param2]}
+            my_dict = {"Name": "Current", "Gain": [param1], "Offset": [param2]}
 
             df = pd.DataFrame.from_dict(my_dict)
 
             df.to_csv("csv/param.csv", index=False)
 
-            upper_error_limit = self.param1 * IsetS + self.param2 * 100
+            upper_error_limit = (param1 * IsetS + param2) * 100
             lower_error_limit = -upper_error_limit
             self.upper_error_limit = upper_error_limit
             self.lower_error_limit = lower_error_limit
@@ -473,7 +469,7 @@ class datatoGraph(datatoCSV):
             plt.plot(
                 IsetS,
                 Ipercent_errorS,
-                label="Voltage = " + str(Vset.iloc[0]["Current Set"]),
+                label="Voltage = " + str(Vset.iloc[0]["Voltage Set"]),
             )
 
             plt.title("Current")
