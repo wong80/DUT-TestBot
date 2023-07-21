@@ -1,0 +1,16 @@
+,0
+Error Gain,0.00025
+Error_Offset,0.0015
+Minimum Current,1
+Maximum Current,2
+Step Size (Current),1
+Minimum Voltage,1
+Maximum Voltage,10
+Step Size (Voltage),1
+PSU Visa Address,USB0::0x2A8D::0x5C02::MY62100050::0::INSTR
+DMM Visa Address,USB0::0x2A8D::0x8E01::CN60440004::0::INSTR
+ELoad Visa Address,GPIB0::5::INSTR
+ELoad Channel,3
+PSU Channel,1
+Voltage Sense,EXT
+Voltage Resolution,FAST
