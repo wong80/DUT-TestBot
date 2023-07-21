@@ -73,17 +73,10 @@ class datatoGraph(datatoCSV):
         self.data = pd.read_csv("csv/data.csv")
 
     def errorBoundary(self, param1, param2, UNIT, x, x_err, y):
-        self.param1 = param1
-        self.param2 = param2
         boolList = []
-        my_dict = {"Name": "Voltage", "Gain": [param1], "Offset": [param2]}
-
-        df = pd.DataFrame.from_dict(my_dict)
-
-        df.to_csv("csv/param.csv", index=False)
 
         if UNIT.upper() == "VOLTAGE":
-            upper_error_limit = (self.param1 * x + self.param2) * 100
+            upper_error_limit = (param1 * x + param2) * 100
             lower_error_limit = -upper_error_limit
             self.upper_error_limit = upper_error_limit
             self.lower_error_limit = lower_error_limit
@@ -300,11 +293,6 @@ class datatoGraph(datatoCSV):
             Vpercent_errorS = Vpercent_error.squeeze()
 
             boolList = []
-            my_dict = {"Name": "Voltage", "Gain": [param1], "Offset": [param2]}
-
-            df = pd.DataFrame.from_dict(my_dict)
-
-            df.to_csv("csv/param.csv", index=False)
 
             upper_error_limit = (param1 * VsetS + param2) * 100
             lower_error_limit = -upper_error_limit
@@ -420,11 +408,6 @@ class datatoGraph(datatoCSV):
             Ipercent_errorS = Ipercent_error.squeeze()
 
             boolList = []
-            my_dict = {"Name": "Current", "Gain": [param1], "Offset": [param2]}
-
-            df = pd.DataFrame.from_dict(my_dict)
-
-            df.to_csv("csv/param.csv", index=False)
 
             upper_error_limit = (param1 * IsetS + param2) * 100
             lower_error_limit = -upper_error_limit
