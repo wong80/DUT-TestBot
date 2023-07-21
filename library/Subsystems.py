@@ -166,15 +166,15 @@ class Configure(Subsystem):
 
     def write(self, *args):
         if len(args) == 1:
-            self.dmm.write("CONF:" + self.strtoargs(args))
+            self.instr.write("CONF:" + self.strtoargs(args))
 
         elif len(args) == 2:
-            self.dmm.write(
+            self.instr.write(
                 "CONF:" + self.strtoargs(args[0]) + ":" + self.strtoargs(args[1])
             )
 
         elif len(args) == 3:
-            self.dmm.write(
+            self.instr.write(
                 "CONF:"
                 + self.strtoargs(args[0])
                 + ":"
@@ -185,15 +185,15 @@ class Configure(Subsystem):
 
     def query(self, *args):
         if len(args) == 1:
-            return self.dmm.query("CONF:" + self.strtoargs(args) + "?")
+            return self.instr.query("CONF:" + self.strtoargs(args) + "?")
 
         elif len(args) == 2:
-            return self.dmm.query(
+            return self.instr.query(
                 "CONF:" + self.strtoargs(args[0]) + ":" + self.strtoargs(args[1]) + "?"
             )
 
         elif len(args) == 3:
-            return self.dmm.query(
+            return self.instr.query(
                 "CONF:"
                 + self.strtoargs(args[0])
                 + ":"
