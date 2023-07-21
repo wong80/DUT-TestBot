@@ -301,6 +301,23 @@ class VoltageMeasurementDialog(QDialog):
         print(self.checkbox_data)
 
     def executeTest(self):
+        my_dict = {
+            "Error Gain": [self.Error_Gain],
+            "Error_Offset": [self.Error_Offset],
+            "Minimum Current": [self.minCurrent],
+            "Maximum Current": [self.maxCurrent],
+            "Step Size (Current)": [self.current_step_size],
+            "Minimum Voltage": [self.minVoltage],
+            "Maximum Voltage": [self.maxVoltage],
+            "Step Size (Voltage)": [self.voltage_step_size],
+            "PSU Visa Address": [self.PSU],
+            "DMM Visa Address": [self.DMM],
+            "ELoad Visa Address": [self.ELoad],
+            "ELoad Channel": [self.ELoad_Channel],
+            "PSU Channel": [self.PSU_Channel],
+            "Voltage Sense": [self.VoltageSense],
+            "Voltage Resolution": [self.VoltageRes],
+        }
         if self.checkbox_data == 2:
             VoltageMeasurement.settings(self, self.Error_Gain, self.Error_Offset)
             dataList, infoList = VoltageMeasurement.executeVoltageMeasurement(
@@ -331,6 +348,8 @@ class VoltageMeasurementDialog(QDialog):
             )
             A = xlreport()
             A.run()
+            df = pd.DataFrame.from_dict(my_dict, orient="index")
+            df.to_csv("csv/config.csv")
         elif self.checkbox_data == 0:
             VoltageMeasurement.settings(self, self.Error_Gain, self.Error_Offset)
             dataList, infoList = VoltageMeasurement.executeVoltageMeasurement(
@@ -575,6 +594,23 @@ class CurrentMeasurementDialog(QDialog):
         print(self.checkbox_data)
 
     def executeTest(self):
+        my_dict = {
+            "Error Gain": [self.Error_Gain],
+            "Error_Offset": [self.Error_Offset],
+            "Minimum Current": [self.minCurrent],
+            "Maximum Current": [self.maxCurrent],
+            "Step Size (Current)": [self.current_step_size],
+            "Minimum Voltage": [self.minVoltage],
+            "Maximum Voltage": [self.maxVoltage],
+            "Step Size (Voltage)": [self.voltage_step_size],
+            "PSU Visa Address": [self.PSU],
+            "DMM Visa Address": [self.DMM],
+            "ELoad Visa Address": [self.ELoad],
+            "ELoad Channel": [self.ELoad_Channel],
+            "PSU Channel": [self.PSU_Channel],
+            "Current Sense": [self.VoltageSense],
+            "Current Resolution": [self.VoltageRes],
+        }
         if self.checkbox_data == 2:
             CurrentMeasurement.settings(self, self.Error_Gain, self.Error_Offset)
             dataList, infoList = CurrentMeasurement.executeCurrentMeasurement(
@@ -606,6 +642,8 @@ class CurrentMeasurementDialog(QDialog):
 
             A = xlreport()
             A.run()
+            df = pd.DataFrame.from_dict(my_dict, orient="index")
+            df.to_csv("csv/config.csv")
 
         elif self.checkbox_data == 0:
             CurrentMeasurement.settings(self, self.Error_Gain, self.Error_Offset)
