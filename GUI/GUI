@@ -389,7 +389,7 @@ class VoltageMeasurementDialog(QDialog):
             )
 
             instrumentData(self.PSU, self.DMM, self.ELoad)
-            datatoCSV(infoList, dataList)
+            datatoCSV_Accuracy(infoList, dataList)
             datatoGraph(infoList, dataList)
             datatoGraph.scatterCompareVoltage(
                 self, float(self.Error_Gain), float(self.Error_Offset)
@@ -682,7 +682,7 @@ class CurrentMeasurementDialog(QDialog):
             )
 
             instrumentData(self.PSU, self.DMM, self.ELoad)
-            datatoCSV(infoList, dataList)
+            datatoCSV_Accuracy(infoList, dataList)
             datatoGraph(infoList, dataList)
             datatoGraph.scatterCompareCurrent(
                 self, float(self.Error_Gain), float(self.Error_Offset)
