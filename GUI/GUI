@@ -1,8 +1,9 @@
 import sys
 from PyQt5 import QtCore, QtWidgets
 from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget
-from PyQt5.QtGui import QPalette, QColor, QFont
+from PyQt5.QtGui import QPalette, QColor, QFont, QPixmap
 from PyQt5.QtCore import QProcess, Qt
+
 
 from PyQt5.QtWidgets import (
     QApplication,
@@ -14,11 +15,12 @@ from PyQt5.QtWidgets import (
     QComboBox,
     QLabel,
     QFormLayout,
-    QDialogButtonBox,
+    QTabWidget,
     QLineEdit,
     QCheckBox,
     QGroupBox,
     QTextBrowser,
+    QRadioButton,
 )
 
 desp_font = QFont("Arial", 10)
@@ -32,6 +34,55 @@ from Data import *
 from xlreport import xlreport
 
 
+class tab(QTabWidget):
+    def __init__(self, parent=None):
+        super(tab, self).__init__(parent)
+        self.tab_VoltageAccuracy = QWidget()
+        self.tab_CurrentAccuracy = QWidget()
+        self.tab_LoadRegulation = QWidget()
+
+        self.addTab(self.tab_VoltageAccuracy, "Voltage Accuracy")
+        self.addTab(self.tab_CurrentAccuracy, "Current Accuracy")
+        self.addTab(self.tab_LoadRegulation, "Load Regulation")
+        self.VoltageAccuracyUI()
+        self.CurrentAccuracyUI()
+        self.LoadRegulationUI()
+
+    def VoltageAccuracyUI(self):
+        pixmap_VoltageAccuracy = QPixmap("GUI\img\Voltage Accuracy.PNG")
+        label_VoltageAccuracy = QLabel()
+        label_VoltageAccuracy.setPixmap(pixmap_VoltageAccuracy)
+        layout = QVBoxLayout()
+        layout.addWidget(label_VoltageAccuracy)
+        layout.addWidget(QLabel("To measure the programable error of output voltage"))
+        self.setTabText(0, "Voltage Accuracy")
+        self.tab_VoltageAccuracy.setLayout(layout)
+
+    def CurrentAccuracyUI(self):
+        pixmap_CurrentAccuracy = QPixmap("GUI\img\Voltage Accuracy.PNG")
+        label_CurrentAccuracy = QLabel()
+        label_CurrentAccuracy.setPixmap(pixmap_CurrentAccuracy)
+        layout = QVBoxLayout()
+        layout.addWidget(label_CurrentAccuracy)
+        layout.addWidget(QLabel("To measure the programm error of output current"))
+        self.setTabText(1, "Current Accuracy")
+        self.tab_CurrentAccuracy.setLayout(layout)
+
+    def LoadRegulationUI(self):
+        pixmap_LoadRegulation = QPixmap("GUI\img\Load Regulation.PNG")
+        label_LoadRegulation = QLabel()
+        label_LoadRegulation.setPixmap(pixmap_LoadRegulation)
+        layout = QVBoxLayout()
+        layout.addWidget(label_LoadRegulation)
+        layout.addWidget(QLabel("Load Regulation"))
+        self.setTabText(2, "Load Regulation")
+        self.tab_LoadRegulation.setLayout(layout)
+
+    def currentTabChanged(self, s):
+        self.CurrentTab = s
+        print(self.CurrentTab)
+
+
 class Window(QMainWindow):
     """Main window."""
 
@@ -39,51 +90,48 @@ class Window(QMainWindow):
         """Initializer."""
         super().__init__(parent)
         self.setWindowTitle("GUI")
-
+        Tab = tab()
         mainLayout = QVBoxLayout()
         layout1 = QHBoxLayout()
 
         QLabel_Widget = QLabel()
         QLabel_Widget.setText("Choose Test:")
 
-        QComboBox_Widget = QComboBox()
-        QComboBox_Widget.addItems(["Voltage Accuracy Test", "Current Accuracy Test"])
-
         QButton_Widget = QPushButton()
         QButton_Widget.setText("Confirm")
         QButton_Widget.setDefault(False)
 
         layout1.addWidget(QLabel_Widget)
-        layout1.addWidget(QComboBox_Widget)
+
         mainLayout.addLayout(layout1)
+        mainLayout.addWidget(Tab)
         mainLayout.addWidget(QButton_Widget)
 
         widget = QWidget()
         widget.setLayout(mainLayout)
         self.setCentralWidget(widget)
 
-        QComboBox_Widget.currentTextChanged.connect(self.currentTextChanged)
         QButton_Widget.clicked.connect(self.PushBtnClicked)
+        Tab.currentChanged.connect(self.currentTabChanged)
+        self.CurrentTab = 0
 
-        self.TestSelection = "Voltage Accuracy Test"
-
-    def currentTextChanged(self, s):
-        self.TestSelection = s
+    def currentTabChanged(self, s):
+        self.CurrentTab = s
 
     def PushBtnClicked(self):
-        if self.TestSelection == "Voltage Accuracy Test":
-            dlg = VoltageMeasurementDialog(self.TestSelection)
+        if self.CurrentTab == 0:
+            dlg = VoltageMeasurementDialog()
             dlg.exec()
 
-        elif self.TestSelection == "Current Accuracy Test":
-            dlg = CurrentMeasurementDialog(self.TestSelection)
+        elif self.CurrentTab == 1:
+            dlg = CurrentMeasurementDialog()
             dlg.exec()
 
 
 class VoltageMeasurementDialog(QDialog):
-    def __init__(self, CurrentTest):
+    def __init__(self):
         super().__init__()
-        self.setWindowTitle(CurrentTest)
+        self.setWindowTitle("Voltage Measurement")
 
         # QBtn = QDialogButtonBox.Save | QDialogButtonBox.Cancel
 
@@ -374,9 +422,9 @@ class VoltageMeasurementDialog(QDialog):
 
 
 class CurrentMeasurementDialog(QDialog):
-    def __init__(self, CurrentTest):
+    def __init__(self):
         super().__init__()
-        self.setWindowTitle(CurrentTest)
+        self.setWindowTitle("Current Measurement")
 
         # QBtn = QDialogButtonBox.Save | QDialogButtonBox.Cancel
 
