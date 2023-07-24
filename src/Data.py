@@ -11,7 +11,7 @@ from IEEEStandard import IDN
 from Subsystems import System
 
 
-class datatoCSV(object):
+class datatoCSV_Accuracy(object):
     def __init__(self, infoList, dataList):
         self.infoList = infoList
         self.dataList = dataList
@@ -67,7 +67,86 @@ class datatoCSV(object):
         return [row[i] for row in matrix]
 
 
-class datatoGraph(datatoCSV):
+class datatoCSV_Regulation(object):
+    def __init__(self, infoList, dataList, V_rating, param1, param2):
+        self.infoList = infoList
+        self.dataList = dataList
+
+        self.Current_Programmed = pd.Series(self.column(infoList, 0))
+        self.Load_Programmed = pd.Series(self.column(infoList, 1))
+        self.Voltage_Measured = pd.Series(self.column(dataList, 0))
+        self.Load_Measured = pd.Series(self.column(dataList, 1))
+
+        self.Voltage_Error = V_rating - self.Voltage_Measured
+        self.Voltage_Regulation = ((V_rating - self.Voltage_Error) / V_rating) * 100
+        self.Voltage_Regulation_ErrorBoundary = (V_rating * param1) + param2
+        self.Voltage_Regulation_Boundary = (
+            (V_rating - self.Voltage_Regulation_ErrorBoundary) / V_rating
+        ) * 100
+
+        self.condition = self.Voltage_Regulation > self.Voltage_Regulation_Boundary
+
+        self.Current_ProgrammedF = self.Current_Programmed.to_frame(name="Current Set")
+        self.Load_ProgrammedF = self.Load_Programmed.to_frame(name="Load Set")
+        self.Voltage_MeasuredF = self.Voltage_Measured.to_frame(name="Voltage Measured")
+        self.Load_MeasuredF = self.Load_Measured.to_frame(name="Load Measured")
+
+        self.Voltage_ErrorF = self.Voltage_Error.to_frame(name="Voltage Absolute Error")
+        self.Voltage_RegulationF = self.Voltage_Regulation.to_frame(
+            name="Voltage Regulation(%)"
+        )
+
+        self.conditionF = self.condition.to_frame(name="Condition")
+
+        self.z = self.condition.to_numpy()
+        self.colour_condition = np.where(self.z == True, "black", "red")
+        self.size_condition = np.where(self.z == True, 6, 12)
+        self.alpha_condition = np.where(self.z == True, 0, 1)
+
+        self.CSV1 = pd.concat(
+            [
+                self.Current_ProgrammedF,
+                self.Load_ProgrammedF,
+                self.Voltage_MeasuredF,
+                self.Load_MeasuredF,
+                self.Voltage_ErrorF,
+                self.Voltage_RegulationF,
+                self.conditionF,
+            ],
+            axis=1,
+        )
+
+        self.CSV1.to_csv("csv/data.csv", index=False)
+
+        plt.scatter(
+            self.Current_Programmed,
+            self.Voltage_Regulation,
+            color=self.colour_condition,
+            s=self.size_condition,
+            alpha=self.alpha_condition,
+        )
+        plt.axhline(
+            y=self.Voltage_Regulation_Boundary,
+            color="r",
+            linestyle="-",
+            label="Boundary",
+        )
+
+        plt.plot(
+            self.Current_Programmed,
+            self.Voltage_Regulation,
+            label="Voltage Regulation(%)",
+            color="blue",
+            linewidth=1,
+        )
+        plt.legend(loc="lower left")
+        plt.show()
+
+    def column(self, matrix, i):
+        return [row[i] for row in matrix]
+
+
+class datatoGraph(datatoCSV_Accuracy):
     def __init__(self, infoList, dataList):
         super().__init__(infoList, dataList)
         self.data = pd.read_csv("csv/data.csv")
