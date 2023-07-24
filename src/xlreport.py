@@ -21,8 +21,6 @@ class xlreport(object):
             + ".xlsx"
         )
 
-        print(self.path)
-
     def adjustcolumnWidth(self, worksheet, value):
         for x in ["A", "B", "C", "D", "E", "F", "G", "H", "I"]:
             worksheet.column_dimensions[x].width = value
@@ -39,15 +37,13 @@ class xlreport(object):
                 index_col=False,
             )
 
-            df3 = pd.read_csv("csv/param.csv", index_col=False)
-
-            df1.to_excel(writer, sheet_name="Data", index=False, startrow=7, startcol=1)
+            df4 = pd.read_csv("csv/config.csv")
+            df1.to_excel(writer, sheet_name="Data", index=False, startrow=7, startcol=3)
             df2.to_excel(writer, sheet_name="Data", index=False)
-            df3.to_excel(writer, sheet_name="Data", index=False, startcol=5)
-
+            df4.to_excel(writer, sheet_name="Data", index=False, startrow=6)
             wb = writer.book
             ws = wb["Data"]
-            cellref = "L9:L" + str(ws.max_row)
+            cellref = "N9:N" + str(ws.max_row)
 
             ws.conditional_formatting.add(
                 cellref,
@@ -75,8 +71,8 @@ class xlreport(object):
             self.alignCell(ws, 3, 1, "left")
             self.alignCell(ws, 4, 1, "left")
 
-            ws.cell(row=7, column=2).value = "Time Generated: "
-            ws.cell(row=7, column=3).value = datetime.datetime.now().strftime(
+            ws.cell(row=7, column=4).value = "Time Generated: "
+            ws.cell(row=7, column=5).value = datetime.datetime.now().strftime(
                 "%Y-%m-%d %H:%M:%S"
             )
 
