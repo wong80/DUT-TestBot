@@ -114,7 +114,7 @@ class TRG(IEEE_488):
     def __init__(self, VISA_ADDRESS):
         super().__init__(VISA_ADDRESS)
 
-        return self.instr.query("*TRG?")
+        self.instr.write("*TRG")
 
 
 class TST(IEEE_488):
