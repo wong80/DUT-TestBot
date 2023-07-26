@@ -128,7 +128,7 @@ class WAI(IEEE_488):
     def __init__(self, VISA_ADDRESS):
         super().__init__(VISA_ADDRESS)
 
-        return self.instr.query("*WAI")
+        self.instr.write("*WAI")
 
 
 class RCL(IEEE_488):
