@@ -593,6 +593,9 @@ class Sample(Subsystem):
     def query(self, *args):
         return self.instr.query("SAMP:" + self.strtoargs(args) + "?")
 
+    def setSampleCount(self, num):
+        self.instr.write("SAMP:COUN " + str(num))
+
 
 class Sense(Subsystem):
     def __init__(self, VISA_ADDRESS):
@@ -600,6 +603,9 @@ class Sense(Subsystem):
 
     def setVoltageRangeDC(self, range):
         self.instr.write("VOLT:RANG " + str(range))
+
+    def setVoltageRangeDCAuto(self):
+        self.instr.write("VOLT:RANG:AUTO ON")
 
     def setVoltageResDC(self, string):
         self.instr.write("VOLT:RES " + str(string))
@@ -612,6 +618,9 @@ class Sense(Subsystem):
 
     def setCurrentRangeDC(self, range):
         self.instr.write("CURR:RANG " + str(range))
+
+    def setCurrentRangeDCAuto(self):
+        self.instr.write("CURR:RANG:AUTO ON")
 
     def setCurrentResDC(self, string):
         self.instr.write("CURR:RES " + str(string))
@@ -855,14 +864,14 @@ class Trigger(Subsystem):
     def __init__(self, VISA_ADDRESS):
         super().__init__(VISA_ADDRESS)
 
-    def setCount(self, *args):
-        self.instr.write("TRIG:COUN " + self.strtoargs(*args))
+    def setCount(self, num):
+        self.instr.write("TRIG:COUN " + str(num))
 
     def queryCount(self, *args):
         return self.instr.query("TRIG:COUN? " + self.strtoargs(*args))
 
     def setSource(self, *args):
-        self.instr.write("TRIG:SOUR" + self.strtoargs(*args))
+        self.instr.write("TRIG:SOUR " + self.strtoargs(*args))
 
     def querySource(self):
         return self.instr.query("TRIG:SOUR?")
@@ -889,6 +898,9 @@ class Trigger(Subsystem):
         self.instr.write(
             "TRIG:ACQ:VOLT:SLOP " + str(state) + ",(@" + str(ChannelNumber) + ")"
         )
+
+    def setTriggerDelay(self, time):
+        self.instr.write("TRIG:DEL " + str(time))
 
 
 class Unit(Subsystem):
