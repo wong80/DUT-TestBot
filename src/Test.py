@@ -8,7 +8,7 @@ sys.path.insert(
     r"C://Users//zhiywong//OneDrive - Keysight Technologies//Documents//GitHub//PyVisa//library",
 )
 
-from IEEEStandard import OPC
+from IEEEStandard import OPC, WAI, TRG
 from Subsystems import (
     Read,
     Apply,
@@ -19,6 +19,12 @@ from Subsystems import (
     Voltage,
     Current,
     Configure,
+    Delay,
+    Trigger,
+    Sample,
+    Initiate,
+    Fetch,
+    Data,
 )
 from xlreport import xlreport
 
@@ -51,6 +57,7 @@ class VoltageMeasurement:
 
     def settings(self, param1, param2):
         Sense(self.DMM).setVoltageResDC("FAST")
+        Sense(self.DMM).setVoltageRangeDC(0.1)
         Display(self.ELoad).displayState(self.ELoad_Channel)
         Function(self.ELoad).setMode("Current", self.ELoad_Channel)
         Voltage(self.PSU).setSenseMode("EXT", 1)
@@ -72,7 +79,7 @@ class VoltageMeasurement:
     def execute(self):
         self.settings(0.00025, 0.0015)
         self.Current_Sweep(1, 2, 1)
-        self.Voltage_Sweep(1, 15, 1)
+        self.Voltage_Sweep(1, 9, 0.5)
         i = 0
         j = 0
         k = 0
@@ -100,6 +107,8 @@ class VoltageMeasurement:
                     dataList.insert(k, [float(Read(self.DMM).query()), I_fixed])
                     del temp_string
 
+                WAI(self.PSU)
+
                 V += self.voltage_step_size
                 j += 1
                 k += 1
@@ -111,7 +120,7 @@ class VoltageMeasurement:
         Output(self.ELoad).setOutputStateC("OFF", self.ELoad_Channel)
 
         F = Data.instrumentData(self.PSU, self.DMM, self.ELoad)
-        D = Data.datatoCSV(infoList, dataList)
+        D = Data.datatoCSV_Accuracy(infoList, dataList)
         E = Data.datatoGraph(infoList, dataList)
         E.scatterCompare("Voltage", self.param1, self.param2)
 
@@ -136,13 +145,21 @@ class VoltageMeasurement:
         setVoltage_Sense,
         setVoltage_Res,
         setMode,
+        setVoltage_Range,
     ):
         dataList = []
         infoList = []
         Sense(self.DMM).setVoltageResDC(setVoltage_Res)
+
         Display(self.ELoad).displayState(ELoad_Channel)
         Function(self.ELoad).setMode(setMode, ELoad_Channel)
         Voltage(self.PSU).setSenseMode(setVoltage_Sense, PSU_Channel)
+
+        if setVoltage_Range == "Auto":
+            Sense(self.DMM).setVoltageRangeDCAuto()
+        else:
+            Sense(self.DMM).setVoltageRangeDC(setVoltage_Range)
+
         self.param1 = Error_Gain
         self.param2 = Error_Offset
 
@@ -170,12 +187,13 @@ class VoltageMeasurement:
                 print("Voltage: ", V, "Current: ", I_fixed)
                 infoList.insert(k, [V, I_fixed, i])
 
-                temp_string = float(OPC(self.PSU).query())
+                temp_string = float(OPC(PSU).query())
 
                 if temp_string == 1:
                     dataList.insert(k, [float(Read(DMM).query()), I_fixed])
                     del temp_string
 
+                WAI(PSU)
                 V += float(voltage_stepsize)
                 j += 1
                 k += 1
@@ -248,6 +266,7 @@ class CurrentMeasurement:
                     dataList.insert(k, [V_fixed, float(Read(self.DMM).query())])
                     del temp_string
 
+                WAI(self.PSU)
                 I += self.current_step_size
                 j += 1
                 k += 1
@@ -282,6 +301,7 @@ class CurrentMeasurement:
         setVoltage_Sense,
         setVoltage_Res,
         setMode,
+        setCurrent_Range,
     ):
         dataList = []
         infoList = []
@@ -289,6 +309,11 @@ class CurrentMeasurement:
         Display(ELoad).displayState(ELoad_Channel)
         Function(ELoad).setMode(setMode, ELoad_Channel)
         Voltage(PSU).setSenseMode(setVoltage_Sense, PSU_Channel)
+
+        if setCurrent_Range == "Auto":
+            Sense(self.DMM).setCurrentRangeDCAuto()
+        else:
+            Sense(self.DMM).setCurrentRangeDC(setCurrent_Range)
         self.param1 = Error_Gain
         self.param2 = Error_Offset
 
@@ -322,6 +347,7 @@ class CurrentMeasurement:
                     dataList.insert(k, [V_fixed, float(Read(DMM).query())])
                     del temp_string
 
+                WAI(PSU)
                 I += float(current_stepsize)
                 j += 1
                 k += 1
@@ -363,15 +389,17 @@ class LoadRegulation:
 
     def execute(self):
         self.settings(0.0001, 0.002)
-        self.specifications(5, 20, 200)
-        self.Current_Sweep(0.25, 10, 0.25)
+        self.specifications(30, 20, 200)
+        self.Current_Sweep(0.25, 6, 0.25)
         iter = 0
         k = 0
-        I_max = self.maxCurrent + 1
+        I_max = self.maxCurrent + 0.1
         V = self.V_rating
         I_min = self.minCurrent
         Output(self.PSU).setOutputState("ON")
         Apply(self.PSU).write(self.PSU_Channel, V, I_max)
+
+        V_NL = float(Read(self.DMM).query())
 
         while iter < self.current_iter:
             Current(self.ELoad).setOutputCurrent(I_min, self.ELoad_Channel)
@@ -391,5 +419,26 @@ class LoadRegulation:
         Output(self.ELoad).setOutputStateC("OFF", self.ELoad_Channel)
         Output(self.PSU).setOutputState("OFF")
         D = Data.datatoCSV_Regulation(
-            infoList, dataList, self.V_rating, self.param1, self.param2
+            infoList, dataList, self.V_rating, self.param1, self.param2, V_NL
         )
+
+
+class DataBuffer:
+    def __init__(self, ADDR1, ADDR2, ADDR3, ELoad_Channel, PSU_Channel):
+        self.ELoad = ADDR1
+        self.PSU = ADDR2
+        self.DMM = ADDR3
+        self.ELoad_Channel = ELoad_Channel
+        self.PSU_Channel = PSU_Channel
+
+    def run(self):
+        Trigger(self.DMM).setSource("BUS")
+        Trigger(self.DMM).setTriggerDelay(4)
+        Trigger(self.DMM).setCount(4)
+        Sample(self.DMM).setSampleCount(30)
+        Initiate(self.DMM).initiate()
+        TRG(self.DMM)
+        print(Fetch(self.DMM).query())
+        # Delay(self.DMM, 1000)
+        # print(Read(self.DMM).query())
+        print(Data(self.DMM).data())
