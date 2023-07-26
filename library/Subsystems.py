@@ -535,6 +535,13 @@ class Read(Subsystem):
         return self.instr.query("READ?")
 
 
+class Delay(Subsystem):
+    def __init__(self, VISA_ADDRESS, time):
+        super().__init__(VISA_ADDRESS)
+
+        self.instr.timeout = time
+
+
 class Resistance(Subsystem):
     def __init__(self, VISA_ADDRESS):
         super().__init__(VISA_ADDRESS)
