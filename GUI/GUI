@@ -180,6 +180,7 @@ class VoltageMeasurementDialog(QDialog):
         QLabel_Voltage_Sense = QLabel()
         QLabel_Error_Gain = QLabel()
         QLabel_Error_Offset = QLabel()
+        QLabel_Range = QLabel()
 
         QLabel_Voltage_Res.setText("Voltage Resolution (DMM):")
         QLabel_ELoad_Display_Channel.setText("Display Channel (Eload):")
@@ -188,6 +189,7 @@ class VoltageMeasurementDialog(QDialog):
         QLabel_Voltage_Sense.setText("Voltage Sense:")
         QLabel_Error_Gain.setText("Programmable Error(Gain):")
         QLabel_Error_Offset.setText("Programmable Error (Offset):")
+        QLabel_Range.setText("Voltage Range:")
 
         QComboBox_Voltage_Res = QComboBox()
         QLineEdit_ELoad_Display_Channel = QLineEdit()
@@ -196,6 +198,7 @@ class VoltageMeasurementDialog(QDialog):
         QComboBox_Voltage_Sense = QComboBox()
         QLineEdit_Error_Gain = QLineEdit()
         QLineEdit_Error_Offset = QLineEdit()
+        QComboBox_Range = QComboBox()
 
         QComboBox_Voltage_Res.addItems(["SLOW", "MEDIUM", "FAST"])
         QComboBox_set_Function.addItems(
@@ -206,6 +209,8 @@ class VoltageMeasurementDialog(QDialog):
             ]
         )
         QComboBox_Voltage_Sense.addItems(["2 Wire", "4 Wire"])
+
+        QComboBox_Range.addItems(["Auto", "100mV", "1V", "10V", "100V", "1kV"])
 
         # Current Sweep
         QLabel_minCurrent = QLabel()
@@ -240,6 +245,7 @@ class VoltageMeasurementDialog(QDialog):
         layout1.addRow(QLabel_ELoad_VisaAddress, QLineEdit_ELoad_VisaAddress)
         layout1.addRow(Desp2)
         layout1.addRow(QLabel_Voltage_Res, QComboBox_Voltage_Res)
+        layout1.addRow(QLabel_Range, QComboBox_Range)
         layout1.addRow(QLabel_ELoad_Display_Channel, QLineEdit_ELoad_Display_Channel)
         layout1.addRow(QLabel_PSU_Display_Channel, QLineEdit_PSU_Display_Channel)
         layout1.addRow(QLabel_set_Function, QComboBox_set_Function)
@@ -263,6 +269,7 @@ class VoltageMeasurementDialog(QDialog):
         self.VoltageRes = "SLOW"
         self.VoltageSense = "INT"
         self.checkbox_data = 2
+        self.VoltageRange = "Auto"
         self.setLayout(layout1)
 
         QLineEdit_PSU_VisaAddress.textEdited.connect(self.PSU_VisaAddress_changed)
@@ -285,6 +292,7 @@ class VoltageMeasurementDialog(QDialog):
         )
         QCheckBox_Widget.stateChanged.connect(self.checkbox_state)
         QPushButton_Widget.clicked.connect(self.executeTest)
+        QComboBox_Range.currentTextChanged.connect(self.set_VoltageRange_changed)
 
     def PSU_VisaAddress_changed(self, s):
         self.PSU = s
@@ -346,7 +354,9 @@ class VoltageMeasurementDialog(QDialog):
 
     def checkbox_state(self, s):
         self.checkbox_data = s
-        print(self.checkbox_data)
+
+    def set_VoltageRange_changed(self, s):
+        self.VoltageRange = s
 
     def executeTest(self):
         my_dict = {
@@ -365,6 +375,7 @@ class VoltageMeasurementDialog(QDialog):
             "PSU Channel": [self.PSU_Channel],
             "Voltage Sense": [self.VoltageSense],
             "Voltage Resolution": [self.VoltageRes],
+            "Voltage Range": [self.VoltageRange],
         }
         if self.checkbox_data == 2:
             VoltageMeasurement.settings(self, self.Error_Gain, self.Error_Offset)
@@ -386,6 +397,7 @@ class VoltageMeasurementDialog(QDialog):
                 self.VoltageSense,
                 self.VoltageRes,
                 self.setFunction,
+                self.VoltageRange,
             )
 
             instrumentData(self.PSU, self.DMM, self.ELoad)
@@ -418,7 +430,10 @@ class VoltageMeasurementDialog(QDialog):
                 self.VoltageSense,
                 self.VoltageRes,
                 self.setFunction,
+                self.VoltageRange,
             )
+        dataList.clear()
+        infoList.clear()
 
 
 class CurrentMeasurementDialog(QDialog):
@@ -473,6 +488,7 @@ class CurrentMeasurementDialog(QDialog):
         QLabel_Voltage_Sense = QLabel()
         QLabel_Error_Gain = QLabel()
         QLabel_Error_Offset = QLabel()
+        QLabel_Range = QLabel()
 
         QLabel_Voltage_Res.setText("Current Resolution (DMM):")
         QLabel_ELoad_Display_Channel.setText("Display Channel (Eload):")
@@ -481,6 +497,7 @@ class CurrentMeasurementDialog(QDialog):
         QLabel_Voltage_Sense.setText("Current Sense:")
         QLabel_Error_Gain.setText("Programmable Error(Gain):")
         QLabel_Error_Offset.setText("Programmable Error (Offset):")
+        QLabel_Range.setText("Current Range:")
 
         QComboBox_Voltage_Res = QComboBox()
         QLineEdit_ELoad_Display_Channel = QLineEdit()
@@ -489,7 +506,7 @@ class CurrentMeasurementDialog(QDialog):
         QComboBox_Voltage_Sense = QComboBox()
         QLineEdit_Error_Gain = QLineEdit()
         QLineEdit_Error_Offset = QLineEdit()
-
+        QComboBox_Range = QComboBox()
         QComboBox_Voltage_Res.addItems(["SLOW", "MEDIUM", "FAST"])
         QComboBox_set_Function.addItems(
             [
@@ -499,7 +516,7 @@ class CurrentMeasurementDialog(QDialog):
             ]
         )
         QComboBox_Voltage_Sense.addItems(["2 Wire", "4 Wire"])
-
+        QComboBox_Range.addItems(["Auto", "10mA", "100mA", "1A", "3A"])
         # Current Sweep
         QLabel_minCurrent = QLabel()
         QLabel_maxCurrent = QLabel()
@@ -533,6 +550,7 @@ class CurrentMeasurementDialog(QDialog):
         layout1.addRow(QLabel_ELoad_VisaAddress, QLineEdit_ELoad_VisaAddress)
         layout1.addRow(Desp2)
         layout1.addRow(QLabel_Voltage_Res, QComboBox_Voltage_Res)
+        layout1.addRow(QLabel_Range, QComboBox_Range)
         layout1.addRow(QLabel_ELoad_Display_Channel, QLineEdit_ELoad_Display_Channel)
         layout1.addRow(QLabel_PSU_Display_Channel, QLineEdit_PSU_Display_Channel)
         layout1.addRow(QLabel_set_Function, QComboBox_set_Function)
@@ -556,6 +574,7 @@ class CurrentMeasurementDialog(QDialog):
         self.VoltageRes = "SLOW"
         self.VoltageSense = "INT"
         self.checkbox_data = 2
+        self.CurrentRange = "Auto"
         self.setLayout(layout1)
 
         QLineEdit_PSU_VisaAddress.textEdited.connect(self.PSU_VisaAddress_changed)
@@ -578,6 +597,7 @@ class CurrentMeasurementDialog(QDialog):
         )
         QCheckBox_Widget.stateChanged.connect(self.checkbox_state)
         QPushButton_Widget.clicked.connect(self.executeTest)
+        QComboBox_Range.currentTextChanged.connect(self.set_CurrentRange_changed)
 
     def PSU_VisaAddress_changed(self, s):
         self.PSU = s
@@ -641,6 +661,9 @@ class CurrentMeasurementDialog(QDialog):
         self.checkbox_data = s
         print(self.checkbox_data)
 
+    def set_CurrentRange_changed(self, s):
+        self.CurrentRange = s
+
     def executeTest(self):
         my_dict = {
             "Error Gain": [self.Error_Gain],
@@ -658,6 +681,7 @@ class CurrentMeasurementDialog(QDialog):
             "PSU Channel": [self.PSU_Channel],
             "Current Sense": [self.VoltageSense],
             "Current Resolution": [self.VoltageRes],
+            "Current Range": [self.CurrentRange],
         }
         if self.checkbox_data == 2:
             CurrentMeasurement.settings(self, self.Error_Gain, self.Error_Offset)
@@ -679,6 +703,7 @@ class CurrentMeasurementDialog(QDialog):
                 self.VoltageSense,
                 self.VoltageRes,
                 self.setFunction,
+                self.CurrentRange,
             )
 
             instrumentData(self.PSU, self.DMM, self.ELoad)
@@ -714,6 +739,8 @@ class CurrentMeasurementDialog(QDialog):
                 self.VoltageRes,
                 self.setFunction,
             )
+        dataList.clear()
+        infoList.clear()
 
 
 if __name__ == "__main__":
