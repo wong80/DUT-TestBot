@@ -21,6 +21,8 @@ from PyQt5.QtWidgets import (
     QGroupBox,
     QTextBrowser,
     QRadioButton,
+    QDialogButtonBox,
+    QMessageBox,
 )
 
 desp_font = QFont("Arial", 10)
@@ -264,7 +266,22 @@ class VoltageMeasurementDialog(QDialog):
         layout1.addRow(QPushButton_Widget)
 
         # layout1.addRow(self.buttonBox)
+
         # Default Values
+        self.Error_Gain = ""
+        self.Error_Offset = ""
+        self.minCurrent = ""
+        self.maxCurrent = ""
+        self.current_step_size = ""
+        self.minVoltage = ""
+        self.maxVoltage = ""
+        self.voltage_step_size = ""
+        self.PSU = ""
+        self.DMM = ""
+        self.ELoad = ""
+        self.ELoad_Channel = ""
+        self.PSU_Channel = ""
+
         self.setFunction = "Current"
         self.VoltageRes = "SLOW"
         self.VoltageSense = "INT"
@@ -377,63 +394,89 @@ class VoltageMeasurementDialog(QDialog):
             "Voltage Resolution": [self.VoltageRes],
             "Voltage Range": [self.VoltageRange],
         }
-        if self.checkbox_data == 2:
-            VoltageMeasurement.settings(self, self.Error_Gain, self.Error_Offset)
-            dataList, infoList = VoltageMeasurement.executeVoltageMeasurement(
-                self,
-                self.Error_Gain,
-                self.Error_Offset,
-                self.minCurrent,
-                self.maxCurrent,
-                self.current_step_size,
-                self.minVoltage,
-                self.maxVoltage,
-                self.voltage_step_size,
-                self.PSU,
-                self.DMM,
-                self.ELoad,
-                self.ELoad_Channel,
-                self.PSU_Channel,
-                self.VoltageSense,
-                self.VoltageRes,
-                self.setFunction,
-                self.VoltageRange,
-            )
 
-            instrumentData(self.PSU, self.DMM, self.ELoad)
-            datatoCSV_Accuracy(infoList, dataList)
-            datatoGraph(infoList, dataList)
-            datatoGraph.scatterCompareVoltage(
-                self, float(self.Error_Gain), float(self.Error_Offset)
-            )
-            A = xlreport()
-            A.run()
-            df = pd.DataFrame.from_dict(my_dict, orient="index")
-            df.to_csv("csv/config.csv")
-        elif self.checkbox_data == 0:
-            VoltageMeasurement.settings(self, self.Error_Gain, self.Error_Offset)
-            dataList, infoList = VoltageMeasurement.executeVoltageMeasurement(
-                self,
-                self.Error_Gain,
-                self.Error_Offset,
-                self.minCurrent,
-                self.maxCurrent,
-                self.current_step_size,
-                self.minVoltage,
-                self.maxVoltage,
-                self.voltage_step_size,
-                self.PSU,
-                self.DMM,
-                self.ELoad,
-                self.ELoad_Channel,
-                self.PSU_Channel,
-                self.VoltageSense,
-                self.VoltageRes,
-                self.setFunction,
-                self.VoltageRange,
-            )
-        dataList.clear()
-        infoList.clear()
+        for i in [
+            self.Error_Gain,
+            self.Error_Offset,
+            self.minCurrent,
+            self.maxCurrent,
+            self.current_step_size,
+            self.minVoltage,
+            self.maxVoltage,
+            self.voltage_step_size,
+            self.PSU,
+            self.DMM,
+            self.ELoad,
+            self.ELoad_Channel,
+            self.PSU_Channel,
+            self.VoltageSense,
+            self.VoltageRes,
+            self.setFunction,
+            self.VoltageRange,
+        ]:
+            if i == "":
+                QMessageBox.warning(
+                    self, "Error", "One of the parameters are not filled in"
+                )
+                break
+        else:
+            if self.checkbox_data == 2:
+                VoltageMeasurement.settings(self, self.Error_Gain, self.Error_Offset)
+                dataList, infoList = VoltageMeasurement.executeVoltageMeasurement(
+                    self,
+                    self.Error_Gain,
+                    self.Error_Offset,
+                    self.minCurrent,
+                    self.maxCurrent,
+                    self.current_step_size,
+                    self.minVoltage,
+                    self.maxVoltage,
+                    self.voltage_step_size,
+                    self.PSU,
+                    self.DMM,
+                    self.ELoad,
+                    self.ELoad_Channel,
+                    self.PSU_Channel,
+                    self.VoltageSense,
+                    self.VoltageRes,
+                    self.setFunction,
+                    self.VoltageRange,
+                )
+
+                instrumentData(self.PSU, self.DMM, self.ELoad)
+                datatoCSV_Accuracy(infoList, dataList)
+                datatoGraph(infoList, dataList)
+                datatoGraph.scatterCompareVoltage(
+                    self, float(self.Error_Gain), float(self.Error_Offset)
+                )
+                A = xlreport()
+                A.run()
+                df = pd.DataFrame.from_dict(my_dict, orient="index")
+                df.to_csv("csv/config.csv")
+            elif self.checkbox_data == 0:
+                VoltageMeasurement.settings(self, self.Error_Gain, self.Error_Offset)
+                dataList, infoList = VoltageMeasurement.executeVoltageMeasurement(
+                    self,
+                    self.Error_Gain,
+                    self.Error_Offset,
+                    self.minCurrent,
+                    self.maxCurrent,
+                    self.current_step_size,
+                    self.minVoltage,
+                    self.maxVoltage,
+                    self.voltage_step_size,
+                    self.PSU,
+                    self.DMM,
+                    self.ELoad,
+                    self.ELoad_Channel,
+                    self.PSU_Channel,
+                    self.VoltageSense,
+                    self.VoltageRes,
+                    self.setFunction,
+                    self.VoltageRange,
+                )
+            dataList.clear()
+            infoList.clear()
 
 
 class CurrentMeasurementDialog(QDialog):
@@ -570,6 +613,20 @@ class CurrentMeasurementDialog(QDialog):
 
         # layout1.addRow(self.buttonBox)
         # Default Values
+        self.Error_Gain = ""
+        self.Error_Offset = ""
+        self.minCurrent = ""
+        self.maxCurrent = ""
+        self.current_step_size = ""
+        self.minVoltage = ""
+        self.maxVoltage = ""
+        self.voltage_step_size = ""
+        self.PSU = ""
+        self.DMM = ""
+        self.ELoad = ""
+        self.ELoad_Channel = ""
+        self.PSU_Channel = ""
+
         self.setFunction = "Current"
         self.VoltageRes = "SLOW"
         self.VoltageSense = "INT"
@@ -683,64 +740,109 @@ class CurrentMeasurementDialog(QDialog):
             "Current Resolution": [self.VoltageRes],
             "Current Range": [self.CurrentRange],
         }
-        if self.checkbox_data == 2:
-            CurrentMeasurement.settings(self, self.Error_Gain, self.Error_Offset)
-            dataList, infoList = CurrentMeasurement.executeCurrentMeasurement(
-                self,
-                self.Error_Gain,
-                self.Error_Offset,
-                self.minCurrent,
-                self.maxCurrent,
-                self.current_step_size,
-                self.minVoltage,
-                self.maxVoltage,
-                self.voltage_step_size,
-                self.PSU,
-                self.DMM,
-                self.ELoad,
-                self.ELoad_Channel,
-                self.PSU_Channel,
-                self.VoltageSense,
-                self.VoltageRes,
-                self.setFunction,
-                self.CurrentRange,
-            )
+        for i in [
+            self.Error_Gain,
+            self.Error_Offset,
+            self.minCurrent,
+            self.maxCurrent,
+            self.current_step_size,
+            self.minVoltage,
+            self.maxVoltage,
+            self.voltage_step_size,
+            self.PSU,
+            self.DMM,
+            self.ELoad,
+            self.ELoad_Channel,
+            self.PSU_Channel,
+            self.VoltageSense,
+            self.VoltageRes,
+            self.setFunction,
+            self.CurrentRange,
+        ]:
+            if i == "":
+                QMessageBox.warning(
+                    self, "Error", "One of the parameters are not filled in"
+                )
+                break
 
-            instrumentData(self.PSU, self.DMM, self.ELoad)
-            datatoCSV_Accuracy(infoList, dataList)
-            datatoGraph(infoList, dataList)
-            datatoGraph.scatterCompareCurrent(
-                self, float(self.Error_Gain), float(self.Error_Offset)
-            )
+        else:
+            if self.checkbox_data == 2:
+                CurrentMeasurement.settings(self, self.Error_Gain, self.Error_Offset)
+                dataList, infoList = CurrentMeasurement.executeCurrentMeasurement(
+                    self,
+                    self.Error_Gain,
+                    self.Error_Offset,
+                    self.minCurrent,
+                    self.maxCurrent,
+                    self.current_step_size,
+                    self.minVoltage,
+                    self.maxVoltage,
+                    self.voltage_step_size,
+                    self.PSU,
+                    self.DMM,
+                    self.ELoad,
+                    self.ELoad_Channel,
+                    self.PSU_Channel,
+                    self.VoltageSense,
+                    self.VoltageRes,
+                    self.setFunction,
+                    self.CurrentRange,
+                )
 
-            A = xlreport()
-            A.run()
-            df = pd.DataFrame.from_dict(my_dict, orient="index")
-            df.to_csv("csv/config.csv")
+                instrumentData(self.PSU, self.DMM, self.ELoad)
+                datatoCSV_Accuracy(infoList, dataList)
+                datatoGraph(infoList, dataList)
+                datatoGraph.scatterCompareCurrent(
+                    self, float(self.Error_Gain), float(self.Error_Offset)
+                )
 
-        elif self.checkbox_data == 0:
-            CurrentMeasurement.settings(self, self.Error_Gain, self.Error_Offset)
-            dataList, infoList = CurrentMeasurement.executeCurrentMeasurement(
-                self,
-                self.Error_Gain,
-                self.Error_Offset,
-                self.minCurrent,
-                self.maxCurrent,
-                self.current_step_size,
-                self.minVoltage,
-                self.maxVoltage,
-                self.voltage_step_size,
-                self.PSU,
-                self.DMM,
-                self.ELoad,
-                self.ELoad_Channel,
-                self.PSU_Channel,
-                self.VoltageSense,
-                self.VoltageRes,
-                self.setFunction,
-            )
-        dataList.clear()
-        infoList.clear()
+                A = xlreport()
+                A.run()
+                df = pd.DataFrame.from_dict(my_dict, orient="index")
+                df.to_csv("csv/config.csv")
+
+            elif self.checkbox_data == 0:
+                CurrentMeasurement.settings(self, self.Error_Gain, self.Error_Offset)
+                dataList, infoList = CurrentMeasurement.executeCurrentMeasurement(
+                    self,
+                    self.Error_Gain,
+                    self.Error_Offset,
+                    self.minCurrent,
+                    self.maxCurrent,
+                    self.current_step_size,
+                    self.minVoltage,
+                    self.maxVoltage,
+                    self.voltage_step_size,
+                    self.PSU,
+                    self.DMM,
+                    self.ELoad,
+                    self.ELoad_Channel,
+                    self.PSU_Channel,
+                    self.VoltageSense,
+                    self.VoltageRes,
+                    self.setFunction,
+                )
+            dataList.clear()
+            infoList.clear()
+
+
+class WarningDialog(QDialog):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+        self.setWindowTitle("Error")
+
+        QBtn = QDialogButtonBox.Ok
+
+        self.buttonBox = QDialogButtonBox(QBtn)
+        self.buttonBox.accepted.connect(self.accept)
+        self.buttonBox.rejected.connect(self.reject)
+
+        self.layout = QVBoxLayout()
+        message = QLabel("Something happened, is that OK?")
+        self.layout.addWidget(message)
+        self.layout.addWidget(self.buttonBox)
+        self.setLayout(self.layout)
 
 
 if __name__ == "__main__":
