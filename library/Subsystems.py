@@ -94,6 +94,18 @@ class Current(Subsystem):
     def setTransInput(self, Current, ChannelNumber):
         self.instr.write("CURR:TLEV " + str(Current) + ",(@" + str(ChannelNumber) + ")")
 
+    def setTerminal(self, terminal):
+        self.instr.write("CURR:TERM " + str(terminal))
+
+    def setApertureTime(self, seconds):
+        self.instr.write("CURR:DC:APER " + str(seconds))
+
+    def setNPLC(self, value):
+        self.instr.write("CURR:DC:NPLC " + str(value))
+
+    def setAutoZeroMode(self, mode):
+        self.instr.write("CURR:ZERO:AUTO " + str(mode))
+
 
 class Calculate(Subsystem):
     def __init__(self, VISA_ADDRESS):
@@ -995,3 +1007,18 @@ class Voltage(Subsystem):
         self.instr.write(
             "VOLT:INH:VON:MODE " + str(mode) + ",(@" + str(ChannelNumber) + ")"
         )
+
+    def setApertureMode(self, mode):
+        self.instr.write("VOLT:APER:ENAB " + str(mode))
+
+    def setApertureTime(self, seconds):
+        self.instr.write("VOLT:DC:APER " + str(seconds))
+
+    def setNPLC(self, value):
+        self.instr.write("VOLT:DC:NPLC " + str(value))
+
+    def setAutoZeroMode(self, mode):
+        self.instr.write("VOLT:ZERO:AUTO " + str(mode))
+
+    def setAutoImpedanceMode(self, mode):
+        self.instr.write("VOLT:IMP:AUTO " + str(mode))
