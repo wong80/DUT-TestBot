@@ -548,10 +548,14 @@ class Read(Subsystem):
 
 
 class Delay(Subsystem):
-    def __init__(self, VISA_ADDRESS, time):
+    def __init__(self, VISA_ADDRESS):
         super().__init__(VISA_ADDRESS)
 
+    def write(self, time):
         self.instr.timeout = time
+
+    def inf(self):
+        del self.instr.timeout
 
 
 class Resistance(Subsystem):
