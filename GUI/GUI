@@ -244,7 +244,6 @@ class VoltageMeasurementDialog(QDialog):
         layout1.addRow(QLabel_DMM_VisaAddress, QLineEdit_DMM_VisaAddress)
         layout1.addRow(QLabel_ELoad_VisaAddress, QLineEdit_ELoad_VisaAddress)
         layout1.addRow(Desp2)
-        layout1.addRow(QLabel_Voltage_Res, QComboBox_Voltage_Res)
         layout1.addRow(QLabel_ELoad_Display_Channel, QLineEdit_ELoad_Display_Channel)
         layout1.addRow(QLabel_PSU_Display_Channel, QLineEdit_PSU_Display_Channel)
         layout1.addRow(QLabel_set_Function, QComboBox_set_Function)
@@ -621,7 +620,6 @@ class CurrentMeasurementDialog(QDialog):
         layout1.addRow(QLabel_DMM_VisaAddress, QLineEdit_DMM_VisaAddress)
         layout1.addRow(QLabel_ELoad_VisaAddress, QLineEdit_ELoad_VisaAddress)
         layout1.addRow(Desp2)
-        layout1.addRow(QLabel_Voltage_Res, QComboBox_Voltage_Res)
         layout1.addRow(QLabel_ELoad_Display_Channel, QLineEdit_ELoad_Display_Channel)
         layout1.addRow(QLabel_PSU_Display_Channel, QLineEdit_PSU_Display_Channel)
         layout1.addRow(QLabel_set_Function, QComboBox_set_Function)
@@ -794,6 +792,7 @@ class CurrentMeasurementDialog(QDialog):
             "Auto Zero": [AdvancedSettingsList[2]],
             "Terminal": [AdvancedSettingsList[3]],
         }
+        print(AdvancedSettingsList)
         for i in [
             self.Error_Gain,
             self.Error_Offset,
