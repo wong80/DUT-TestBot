@@ -586,7 +586,7 @@ class datatoGraph(datatoCSV_Accuracy):
         plt.savefig("images/Chart.png")
 
 
-class instrumentData:
+class instrumentData(object):
     def __init__(self, *args):
         instrumentIDN = []
         instrumentVersion = []
