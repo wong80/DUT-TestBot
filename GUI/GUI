@@ -23,6 +23,7 @@ from PyQt5.QtWidgets import (
     QRadioButton,
     QDialogButtonBox,
     QMessageBox,
+    QGridLayout,
 )
 
 desp_font = QFont("Arial", 10)
@@ -146,9 +147,12 @@ class VoltageMeasurementDialog(QDialog):
         QPushButton_Widget1.setText("Execute Test")
         QPushButton_Widget2 = QPushButton()
         QPushButton_Widget2.setText("Advanced Settings")
-        QCheckBox_Widget = QCheckBox()
-        QCheckBox_Widget.setText("Generate Excel Report")
-        QCheckBox_Widget.setCheckState(Qt.Checked)
+        QCheckBox_Report_Widget = QCheckBox()
+        QCheckBox_Report_Widget.setText("Generate Excel Report")
+        QCheckBox_Report_Widget.setCheckState(Qt.Checked)
+        QCheckBox_Image_Widget = QCheckBox()
+        QCheckBox_Image_Widget.setText("Show Graph")
+        QCheckBox_Image_Widget.setCheckState(Qt.Checked)
         layout1 = QFormLayout()
 
         Desp1 = QLabel()
@@ -259,7 +263,8 @@ class VoltageMeasurementDialog(QDialog):
         layout1.addRow(QLabel_minCurrent, QLineEdit_minCurrent)
         layout1.addRow(QLabel_maxCurrent, QLineEdit_maxCurrent)
         layout1.addRow(QLabel_current_step_size, QLineEdit_current_stepsize)
-        layout1.addRow(QCheckBox_Widget)
+        layout1.addRow(QCheckBox_Report_Widget)
+        layout1.addRow(QCheckBox_Image_Widget)
         layout1.addRow(QPushButton_Widget2)
         layout1.addRow(QPushButton_Widget1)
 
@@ -283,7 +288,8 @@ class VoltageMeasurementDialog(QDialog):
         self.setFunction = "Current"
         self.VoltageRes = "SLOW"
         self.VoltageSense = "INT"
-        self.checkbox_data = 2
+        self.checkbox_data_Report = 2
+        self.checkbox_data_Image = 2
         self.Range = "Auto"
         self.Aperture = "10"
         self.AutoZero = "ON"
@@ -316,7 +322,8 @@ class VoltageMeasurementDialog(QDialog):
         QComboBox_Voltage_Sense.currentTextChanged.connect(
             self.set_VoltageSense_changed
         )
-        QCheckBox_Widget.stateChanged.connect(self.checkbox_state)
+        QCheckBox_Report_Widget.stateChanged.connect(self.checkbox_state_Report)
+        QCheckBox_Image_Widget.stateChanged.connect(self.checkbox_state_Image)
         QPushButton_Widget1.clicked.connect(self.executeTest)
         QPushButton_Widget2.clicked.connect(self.openDialog)
 
@@ -390,8 +397,11 @@ class VoltageMeasurementDialog(QDialog):
     def setInputZ(self, value):
         AdvancedSettingsList[3] = value
 
-    def checkbox_state(self, s):
-        self.checkbox_data = s
+    def checkbox_state_Report(self, s):
+        self.checkbox_data_Report = s
+
+    def checkbox_state_Image(self, s):
+        self.checkbox_data_Image = s
 
     def setUpTime(self, value):
         AdvancedSettingsList[4] = value
@@ -456,7 +466,7 @@ class VoltageMeasurementDialog(QDialog):
                 )
                 break
         else:
-            if self.checkbox_data == 2:
+            if self.checkbox_data_Report == 2:
                 VoltageMeasurement.settings(self, self.Error_Gain, self.Error_Offset)
                 dataList, infoList = VoltageMeasurement.executeVoltageMeasurement(
                     self,
@@ -494,7 +504,12 @@ class VoltageMeasurementDialog(QDialog):
                 A.run()
                 df = pd.DataFrame.from_dict(my_dict, orient="index")
                 df.to_csv("csv/config.csv")
-            elif self.checkbox_data == 0:
+
+                if self.checkbox_data_Image == 2:
+                    dlg = image_Window()
+                    dlg.exec()
+
+            elif self.checkbox_data_Report == 0:
                 VoltageMeasurement.settings(self, self.Error_Gain, self.Error_Offset)
                 dataList, infoList = VoltageMeasurement.executeVoltageMeasurement(
                     self,
@@ -521,9 +536,10 @@ class VoltageMeasurementDialog(QDialog):
                     AdvancedSettingsList[4],
                     AdvancedSettingsList[5],
                 )
-            dataList.clear()
-            infoList.clear()
-            AdvancedSettingsList.clear()
+
+                if self.checkbox_data_Image == 2:
+                    dlg = image_Window()
+                    dlg.exec()
 
 
 class CurrentMeasurementDialog(QDialog):
@@ -541,9 +557,12 @@ class CurrentMeasurementDialog(QDialog):
         QPushButton_Widget1.setText("Execute Test")
         QPushButton_Widget2 = QPushButton()
         QPushButton_Widget2.setText("Advanced Settings")
-        QCheckBox_Widget = QCheckBox()
-        QCheckBox_Widget.setText("Generate Excel Report")
-        QCheckBox_Widget.setCheckState(Qt.Checked)
+        QCheckBox_Report_Widget = QCheckBox()
+        QCheckBox_Report_Widget.setText("Generate Excel Report")
+        QCheckBox_Report_Widget.setCheckState(Qt.Checked)
+        QCheckBox_Image_Widget = QCheckBox()
+        QCheckBox_Image_Widget.setText("Show Graph")
+        QCheckBox_Image_Widget.setCheckState(Qt.Checked)
         layout1 = QFormLayout()
 
         Desp1 = QLabel()
@@ -656,7 +675,8 @@ class CurrentMeasurementDialog(QDialog):
         layout1.addRow(QLabel_minCurrent, QLineEdit_minCurrent)
         layout1.addRow(QLabel_maxCurrent, QLineEdit_maxCurrent)
         layout1.addRow(QLabel_current_step_size, QLineEdit_current_stepsize)
-        layout1.addRow(QCheckBox_Widget)
+        layout1.addRow(QCheckBox_Report_Widget)
+        layout1.addRow(QCheckBox_Image_Widget)
         layout1.addRow(QPushButton_Widget2)
         layout1.addRow(QPushButton_Widget1)
 
@@ -679,7 +699,8 @@ class CurrentMeasurementDialog(QDialog):
         self.setFunction = "Voltage"
         self.CurrentRes = "SLOW"
         self.CurrentSense = "INT"
-        self.checkbox_data = 2
+        self.checkbox_data_Report = 2
+        self.checkbox_data_Image = 2
         self.Range = "Auto"
         self.Aperture = "10"
         self.AutoZero = "ON"
@@ -712,7 +733,8 @@ class CurrentMeasurementDialog(QDialog):
         QComboBox_Voltage_Sense.currentTextChanged.connect(
             self.set_VoltageSense_changed
         )
-        QCheckBox_Widget.stateChanged.connect(self.checkbox_state)
+        QCheckBox_Report_Widget.stateChanged.connect(self.checkbox_state_Report)
+        QCheckBox_Image_Widget.stateChanged.connect(self.checkbox_state_Image)
         QPushButton_Widget1.clicked.connect(self.executeTest)
         QPushButton_Widget2.clicked.connect(self.openDialog)
 
@@ -774,8 +796,11 @@ class CurrentMeasurementDialog(QDialog):
         elif s == "4 Wire":
             self.VoltageSense = "EXT"
 
-    def checkbox_state(self, s):
-        self.checkbox_data = s
+    def checkbox_state_Report(self, s):
+        self.checkbox_data_Report = s
+
+    def checkbox_state_Image(self, s):
+        self.checkbox_data_Image = s
 
     def set_CurrentRange_changed(self, s):
         self.CurrentRange = s
@@ -899,6 +924,9 @@ class CurrentMeasurementDialog(QDialog):
                 A.run()
                 df = pd.DataFrame.from_dict(my_dict, orient="index")
                 df.to_csv("csv/config.csv")
+                if self.checkbox_data_Image == 2:
+                    dlg = image_Window()
+                    dlg.exec()
 
             elif self.checkbox_data == 0:
                 CurrentMeasurement.settings(self, self.Error_Gain, self.Error_Offset)
@@ -927,9 +955,10 @@ class CurrentMeasurementDialog(QDialog):
                     AdvancedSettingsList[4],
                     AdvancedSettingsList[5],
                 )
-            dataList.clear()
-            infoList.clear()
-            AdvancedSettingsList.clear()
+
+                if self.checkbox_data_Image == 2:
+                    dlg = image_Window()
+                    dlg.exec()
 
 
 class AdvancedSetting_Voltage(QDialog):
@@ -1114,6 +1143,19 @@ class AdvancedSetting_Current(QDialog):
     def DownTimeChanged(self, s):
         self.DownTime = s
         CurrentMeasurementDialog.setDownTime(self, self.DownTime)
+
+
+class image_Window(QDialog):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Image")
+        self.im = QPixmap("images\Chart.png")
+        self.label = QLabel()
+        self.label.setPixmap(self.im)
+        self.grid = QGridLayout()
+        self.grid.addWidget(self.label, 1, 1)
+        self.setLayout(self.grid)
+        self.show()
 
 
 if __name__ == "__main__":
