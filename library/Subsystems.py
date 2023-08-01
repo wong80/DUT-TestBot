@@ -552,7 +552,7 @@ class Delay(Subsystem):
         super().__init__(VISA_ADDRESS)
 
     def write(self, time):
-        self.instr.timeout = time
+        self.instr.timeout = int(time)
 
     def inf(self):
         del self.instr.timeout
