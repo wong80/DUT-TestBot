@@ -191,8 +191,8 @@ class VoltageMeasurementDialog(QDialog):
         QLabel_PSU_Display_Channel.setText("Display Channel (PSU):")
         QLabel_set_Function.setText("Mode(Eload):")
         QLabel_Voltage_Sense.setText("Voltage Sense:")
-        QLabel_Error_Gain.setText("Programmable Error(Gain):")
-        QLabel_Error_Offset.setText("Programmable Error (Offset):")
+        QLabel_Error_Gain.setText("Desired Specification (Gain):")
+        QLabel_Error_Offset.setText("Desired Specification (Offset):")
 
         QComboBox_Voltage_Res = QComboBox()
         QLineEdit_ELoad_Display_Channel = QLineEdit()
@@ -210,6 +210,7 @@ class VoltageMeasurementDialog(QDialog):
                 "Resistance Priority",
             ]
         )
+        QComboBox_set_Function.setEnabled(False)
         QComboBox_Voltage_Sense.addItems(["2 Wire", "4 Wire"])
 
         # Current Sweep
@@ -287,10 +288,14 @@ class VoltageMeasurementDialog(QDialog):
         self.Aperture = "10"
         self.AutoZero = "ON"
         self.inputZ = "ON"
+        self.UpTime = "50"
+        self.DownTime = "50"
         AdvancedSettingsList.append(self.Range)
         AdvancedSettingsList.append(self.Aperture)
         AdvancedSettingsList.append(self.AutoZero)
         AdvancedSettingsList.append(self.inputZ)
+        AdvancedSettingsList.append(self.UpTime)
+        AdvancedSettingsList.append(self.DownTime)
         self.setLayout(layout1)
 
         QLineEdit_PSU_VisaAddress.textEdited.connect(self.PSU_VisaAddress_changed)
@@ -388,6 +393,12 @@ class VoltageMeasurementDialog(QDialog):
     def checkbox_state(self, s):
         self.checkbox_data = s
 
+    def setUpTime(self, value):
+        AdvancedSettingsList[4] = value
+
+    def setDownTime(self, value):
+        AdvancedSettingsList[5] = value
+
     def openDialog(self):
         dlg = AdvancedSetting_Voltage()
         dlg.exec()
@@ -413,6 +424,8 @@ class VoltageMeasurementDialog(QDialog):
             "NPLC Value": [AdvancedSettingsList[1]],
             "Auto Zero": [AdvancedSettingsList[2]],
             "Auto Input Impedance": [AdvancedSettingsList[3]],
+            "PSU Settling Time (UP)": [AdvancedSettingsList[4]],
+            "PSU Settling Time (DOWN)": [AdvancedSettingsList[5]],
         }
 
         for i in [
@@ -467,6 +480,8 @@ class VoltageMeasurementDialog(QDialog):
                     AdvancedSettingsList[1],
                     AdvancedSettingsList[2],
                     AdvancedSettingsList[3],
+                    AdvancedSettingsList[4],
+                    AdvancedSettingsList[5],
                 )
 
                 instrumentData(self.PSU, self.DMM, self.ELoad)
@@ -499,6 +514,12 @@ class VoltageMeasurementDialog(QDialog):
                     self.VoltageSense,
                     self.VoltageRes,
                     self.setFunction,
+                    AdvancedSettingsList[0],
+                    AdvancedSettingsList[1],
+                    AdvancedSettingsList[2],
+                    AdvancedSettingsList[3],
+                    AdvancedSettingsList[4],
+                    AdvancedSettingsList[5],
                 )
             dataList.clear()
             infoList.clear()
@@ -566,8 +587,8 @@ class CurrentMeasurementDialog(QDialog):
         QLabel_PSU_Display_Channel.setText("Display Channel (PSU):")
         QLabel_set_Function.setText("Mode(Eload):")
         QLabel_Voltage_Sense.setText("Current Sense:")
-        QLabel_Error_Gain.setText("Programmable Error(Gain):")
-        QLabel_Error_Offset.setText("Programmable Error (Offset):")
+        QLabel_Error_Gain.setText("Desired Specification (Gain):")
+        QLabel_Error_Offset.setText("Desired Specification (Offset):")
         QLabel_Range.setText("Current Range:")
 
         QComboBox_Voltage_Res = QComboBox()
@@ -581,11 +602,12 @@ class CurrentMeasurementDialog(QDialog):
         QComboBox_Voltage_Res.addItems(["SLOW", "MEDIUM", "FAST"])
         QComboBox_set_Function.addItems(
             [
-                "Current Priority",
                 "Voltage Priority",
+                "Current Priority",
                 "Resistance Priority",
             ]
         )
+        QComboBox_set_Function.setEnabled(False)
         QComboBox_Voltage_Sense.addItems(["2 Wire", "4 Wire"])
         QComboBox_Range.addItems(["Auto", "10mA", "100mA", "1A", "3A"])
         # Current Sweep
@@ -654,7 +676,7 @@ class CurrentMeasurementDialog(QDialog):
         self.ELoad_Channel = ""
         self.PSU_Channel = ""
 
-        self.setFunction = "Current"
+        self.setFunction = "Voltage"
         self.CurrentRes = "SLOW"
         self.CurrentSense = "INT"
         self.checkbox_data = 2
@@ -662,10 +684,14 @@ class CurrentMeasurementDialog(QDialog):
         self.Aperture = "10"
         self.AutoZero = "ON"
         self.Terminal = "3A"
+        self.UpTime = "50"
+        self.DownTime = "50"
         AdvancedSettingsList.append(self.Range)
         AdvancedSettingsList.append(self.Aperture)
         AdvancedSettingsList.append(self.AutoZero)
         AdvancedSettingsList.append(self.Terminal)
+        AdvancedSettingsList.append(self.UpTime)
+        AdvancedSettingsList.append(self.DownTime)
         self.setLayout(layout1)
 
         QLineEdit_PSU_VisaAddress.textEdited.connect(self.PSU_VisaAddress_changed)
@@ -770,6 +796,12 @@ class CurrentMeasurementDialog(QDialog):
     def setTerminal(self, value):
         AdvancedSettingsList[3] = value
 
+    def setUpTime(self, value):
+        AdvancedSettingsList[4] = value
+
+    def setDownTime(self, value):
+        AdvancedSettingsList[5] = value
+
     def executeTest(self):
         my_dict = {
             "Error Gain": [self.Error_Gain],
@@ -791,6 +823,8 @@ class CurrentMeasurementDialog(QDialog):
             "NPLC Value": [AdvancedSettingsList[1]],
             "Auto Zero": [AdvancedSettingsList[2]],
             "Terminal": [AdvancedSettingsList[3]],
+            "PSU Settling Time (UP)": [AdvancedSettingsList[4]],
+            "PSU Settling Time (DOWN)": [AdvancedSettingsList[5]],
         }
         print(AdvancedSettingsList)
         for i in [
@@ -815,6 +849,8 @@ class CurrentMeasurementDialog(QDialog):
             AdvancedSettingsList[1],
             AdvancedSettingsList[2],
             AdvancedSettingsList[3],
+            AdvancedSettingsList[4],
+            AdvancedSettingsList[5],
         ]:
             if i == "":
                 QMessageBox.warning(
@@ -843,10 +879,13 @@ class CurrentMeasurementDialog(QDialog):
                     self.VoltageSense,
                     self.VoltageRes,
                     self.setFunction,
+                    self.CurrentRange,
                     AdvancedSettingsList[0],
                     AdvancedSettingsList[1],
                     AdvancedSettingsList[2],
                     AdvancedSettingsList[3],
+                    AdvancedSettingsList[4],
+                    AdvancedSettingsList[5],
                 )
 
                 instrumentData(self.PSU, self.DMM, self.ELoad)
@@ -881,6 +920,12 @@ class CurrentMeasurementDialog(QDialog):
                     self.VoltageSense,
                     self.VoltageRes,
                     self.setFunction,
+                    AdvancedSettingsList[0],
+                    AdvancedSettingsList[1],
+                    AdvancedSettingsList[2],
+                    AdvancedSettingsList[3],
+                    AdvancedSettingsList[4],
+                    AdvancedSettingsList[5],
                 )
             dataList.clear()
             infoList.clear()
@@ -896,23 +941,33 @@ class AdvancedSetting_Voltage(QDialog):
         QPushButton_Widget.setText("Confirm")
         layout1 = QFormLayout()
 
-        Desp = QLabel()
-        Desp.setText("Advanced Settings:")
+        Desp1 = QLabel()
+        Desp1.setText("DMM Settings:")
+        Desp2 = QLabel()
+        Desp2.setText("PSU Settings:")
 
+        Desp1.setFont(desp_font)
+        Desp2.setFont(desp_font)
         QLabel_Range = QLabel()
         QLabel_Aperture = QLabel()
         QLabel_AutoZero = QLabel()
         QLabel_InputZ = QLabel()
+        QLabel_UpTime = QLabel()
+        QLabel_DownTime = QLabel()
 
         QLabel_Range.setText("DC Voltage Range")
         QLabel_Aperture.setText("NPLC")
         QLabel_AutoZero.setText("Auto Zero Function")
         QLabel_InputZ.setText("Input Impedance")
+        QLabel_UpTime.setText("Programming Settling Time (UP) (in ms)")
+        QLabel_DownTime.setText("Programming Setting Time (Down) (in ms)")
 
         QComboBox_Range = QComboBox()
         QComboBox_Aperture = QComboBox()
         QComboBox_AutoZero = QComboBox()
         QComboBox_InputZ = QComboBox()
+        QLineEdit_UpTime = QLineEdit()
+        QLineEdit_DownTime = QLineEdit()
 
         QComboBox_Range.addItems(["Auto", "100mV", "1V", "10V", "100V", "1kV"])
         QComboBox_Aperture.addItems(
@@ -921,21 +976,25 @@ class AdvancedSetting_Voltage(QDialog):
         QComboBox_AutoZero.addItems(["ON", "OFF"])
         QComboBox_InputZ.addItems(["10M", "Auto"])
 
-        layout1.addRow(Desp)
+        layout1.addRow(Desp1)
         layout1.addRow(QLabel_Range, QComboBox_Range)
         layout1.addRow(QLabel_Aperture, QComboBox_Aperture)
         layout1.addRow(QLabel_AutoZero, QComboBox_AutoZero)
         layout1.addRow(QLabel_InputZ, QComboBox_InputZ)
-        layout1.addRow(QPushButton_Widget)
-        self.setLayout(layout1)
 
-        # Default Values
+        layout1.addRow(Desp2)
+        layout1.addRow(QLabel_UpTime, QLineEdit_UpTime)
+        layout1.addRow(QLabel_DownTime, QLineEdit_DownTime)
+        self.setLayout(layout1)
+        layout1.addRow(QPushButton_Widget)
 
         QPushButton_Widget.clicked.connect(self.close)
         QComboBox_Range.currentTextChanged.connect(self.RangeChanged)
         QComboBox_Aperture.currentTextChanged.connect(self.ApertureChanged)
         QComboBox_AutoZero.currentTextChanged.connect(self.AutoZeroChanged)
         QComboBox_InputZ.currentTextChanged.connect(self.InputZChanged)
+        QLineEdit_UpTime.textEdited.connect(self.UpTimeChanged)
+        QLineEdit_DownTime.textEdited.connect(self.DownTimeChanged)
 
     def RangeChanged(self, s):
         self.Range = s
@@ -953,6 +1012,14 @@ class AdvancedSetting_Voltage(QDialog):
         self.inputZ = s
         VoltageMeasurementDialog.setInputZ(self, self.inputZ)
 
+    def UpTimeChanged(self, s):
+        self.UpTime = s
+        VoltageMeasurementDialog.setUpTime(self, self.UpTime)
+
+    def DownTimeChanged(self, s):
+        self.DownTime = s
+        VoltageMeasurementDialog.setDownTime(self, self.DownTime)
+
 
 class AdvancedSetting_Current(QDialog):
     def __init__(self):
@@ -963,23 +1030,33 @@ class AdvancedSetting_Current(QDialog):
         QPushButton_Widget.setText("Confirm")
         layout1 = QFormLayout()
 
-        Desp = QLabel()
-        Desp.setText("Advanced Settings:")
+        Desp1 = QLabel()
+        Desp1.setText("DMM Settings:")
+        Desp2 = QLabel()
+        Desp2.setText("PSU Settings:")
 
+        Desp1.setFont(desp_font)
+        Desp2.setFont(desp_font)
         QLabel_Range = QLabel()
         QLabel_Aperture = QLabel()
         QLabel_AutoZero = QLabel()
         QLabel_Terminal = QLabel()
+        QLabel_UpTime = QLabel()
+        QLabel_DownTime = QLabel()
 
         QLabel_Range.setText("DC Voltage Range")
         QLabel_Aperture.setText("NPLC")
         QLabel_AutoZero.setText("Auto Zero Function")
         QLabel_Terminal.setText("Current Terminal:")
+        QLabel_UpTime.setText("Programming Settling Time (UP) (in ms)")
+        QLabel_DownTime.setText("Programming Setting Time (Down) (in ms)")
 
         QComboBox_Range = QComboBox()
         QComboBox_Aperture = QComboBox()
         QComboBox_AutoZero = QComboBox()
         QComboBox_Terminal = QComboBox()
+        QLineEdit_UpTime = QLineEdit()
+        QLineEdit_DownTime = QLineEdit()
 
         QComboBox_Range.addItems(["Auto", "0.001", "0.01", "0.1", "1", "3"])
         QComboBox_Aperture.addItems(
@@ -988,11 +1065,14 @@ class AdvancedSetting_Current(QDialog):
         QComboBox_AutoZero.addItems(["ON", "OFF"])
         QComboBox_Terminal.addItems(["3A", "10A"])
 
-        layout1.addRow(Desp)
+        layout1.addRow(Desp1)
         layout1.addRow(QLabel_Range, QComboBox_Range)
         layout1.addRow(QLabel_Aperture, QComboBox_Aperture)
         layout1.addRow(QLabel_AutoZero, QComboBox_AutoZero)
         layout1.addRow(QLabel_Terminal, QComboBox_Terminal)
+        layout1.addRow(Desp2)
+        layout1.addRow(QLabel_UpTime, QLineEdit_UpTime)
+        layout1.addRow(QLabel_DownTime, QLineEdit_DownTime)
         layout1.addRow(QPushButton_Widget)
         self.setLayout(layout1)
 
@@ -1001,6 +1081,10 @@ class AdvancedSetting_Current(QDialog):
         QComboBox_Aperture.currentTextChanged.connect(self.ApertureChanged)
         QComboBox_AutoZero.currentTextChanged.connect(self.AutoZeroChanged)
         QComboBox_Terminal.currentTextChanged.connect(self.TerminalChanged)
+        QLineEdit_UpTime.textEdited.connect(self.UpTimeChanged)
+        QLineEdit_DownTime.textEdited.connect(self.DownTimeChanged)
+
+        self.QComboBox_Range = QComboBox_Range
 
     def RangeChanged(self, s):
         self.Range = s
@@ -1017,6 +1101,19 @@ class AdvancedSetting_Current(QDialog):
     def TerminalChanged(self, s):
         self.Terminal = s
         CurrentMeasurementDialog.setTerminal(self, self.Terminal)
+        if self.Terminal == "10A":
+            self.QComboBox_Range.setEnabled(False)
+
+        else:
+            self.QComboBox_Range.setEnabled(True)
+
+    def UpTimeChanged(self, s):
+        self.UpTime = s
+        CurrentMeasurementDialog.setUpTime(self, self.UpTime)
+
+    def DownTimeChanged(self, s):
+        self.DownTime = s
+        CurrentMeasurementDialog.setDownTime(self, self.DownTime)
 
 
 if __name__ == "__main__":
