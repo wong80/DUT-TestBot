@@ -24,6 +24,8 @@ from Subsystems import (
     Sample,
     Initiate,
     Fetch,
+    Status,
+    Delay,
 )
 from xlreport import xlreport
 
@@ -37,10 +39,16 @@ class VisaResourceManager:
         self.rm = rm
 
     def openRM(self, *args):
-        for i in range(len(args)):
-            instr = self.rm.open_resource(args[i])
-            instr.baud_rate = 9600
-            print(instr.query("*IDN?"))
+        try:
+            for i in range(len(args)):
+                instr = self.rm.open_resource(args[i])
+                instr.baud_rate = 9600
+                print(instr.query("*IDN?"))
+
+            return 1, None
+        except pyvisa.VisaIOError as e:
+            print(e.args)
+            return 0, e.args
 
     def closeRM(self):
         self.rm.close()
@@ -87,7 +95,7 @@ class VoltageMeasurement:
     def execute(self):
         self.settings(0.00025, 0.0015)
         self.Current_Sweep(1, 2, 1)
-        self.Voltage_Sweep(1, 15, 0.5)
+        self.Voltage_Sweep(1, 9, 0.5)
         i = 0
         j = 0
         k = 0
@@ -105,20 +113,25 @@ class VoltageMeasurement:
             j = 0
             V = self.minVoltage
             while j < self.voltage_iter:
-                Initiate(self.DMM).initiate()
                 Apply(self.PSU).write(self.PSU_Channel, V, I)
                 print("Voltage: ", V, "Current: ", I_fixed)
                 infoList.insert(k, [V, I_fixed, i])
 
-                temp_string = float(OPC(self.PSU).query())
-
-                if temp_string == 1:
-                    TRG(self.DMM)
-                    dataList.insert(k, [float(Fetch(self.DMM).query()), I_fixed])
-                    WAI(self.DMM)
-                    del temp_string
-
                 WAI(self.PSU)
+                Initiate(self.DMM).initiate()
+                status = float(Status(self.DMM).operationCondition())
+                TRG(self.DMM)
+
+                while status == 8240.0 or 8208.0:
+                    status = float(Status(self.DMM).operationCondition())
+
+                    if status == 8704.0:
+                        dataList.insert(k, [float(Fetch(self.DMM).query()), I_fixed])
+                        break
+
+                    elif status == 512.0:
+                        dataList.insert(k, [float(Fetch(self.DMM).query()), I_fixed])
+                        break
 
                 V += self.voltage_step_size
                 j += 1
@@ -160,6 +173,8 @@ class VoltageMeasurement:
         Aperture,
         AutoZero,
         InputZ,
+        UpTime,
+        DownTime,
     ):
         dataList = []
         infoList = []
@@ -206,16 +221,24 @@ class VoltageMeasurement:
                 Apply(PSU).write(self.PSU_Channel, V, I)
                 print("Voltage: ", V, "Current: ", I_fixed)
                 infoList.insert(k, [V, I_fixed, i])
-
+                WAI(self.PSU)
+                Delay(self.PSU).write(UpTime)
                 Initiate(self.DMM).initiate()
-                temp_string = float(OPC(PSU).query())
+                status = float(Status(self.DMM).operationCondition())
+                TRG(self.DMM)
 
-                if temp_string == 1:
-                    TRG(self.DMM)
-                    dataList.insert(k, [float(Fetch(self.DMM).query()), I_fixed])
-                    del temp_string
+                while 1:
+                    status = float(Status(self.DMM).operationCondition())
 
-                WAI(PSU)
+                    if status == 8704.0:
+                        dataList.insert(k, [float(Fetch(self.DMM).query()), I_fixed])
+                        break
+
+                    elif status == 512.0:
+                        dataList.insert(k, [float(Fetch(self.DMM).query()), I_fixed])
+                        break
+
+                Delay(self.PSU).write(DownTime)
                 V += float(voltage_stepsize)
                 j += 1
                 k += 1
@@ -228,11 +251,22 @@ class VoltageMeasurement:
         return dataList, infoList
 
     def test(self):
-        # Trigger(self.DMM).setSource("BUS")
-        # Initiate(self.DMM).initiate()
-        # TRG(self.DMM)
-        # print(Fetch(self.DMM).query())
-        Current(self.DMM).setTerminal(10)
+        Trigger(self.DMM).setSource("BUS")
+        Initiate(self.DMM).initiate()
+        status = float(Status(self.DMM).operationCondition())
+
+        TRG(self.DMM)
+        print(status)
+        while 1:
+            status = float(Status(self.DMM).operationCondition())
+            print(status)
+            if status == 512.0:
+                print(Fetch(self.DMM).query())
+                break
+
+            elif status == 8704.0:
+                print(Fetch(self.DMM).query())
+                break
 
 
 class CurrentMeasurement:
@@ -288,14 +322,22 @@ class CurrentMeasurement:
                 Apply(self.PSU).write(self.PSU_Channel, V, I)
                 print("Voltage: ", V_fixed, "Current: ", I)
                 infoList.insert(k, [V_fixed, I, i])
-
-                temp_string = float(OPC(self.PSU).query())
-
-                if temp_string == 1:
-                    dataList.insert(k, [V_fixed, float(Read(self.DMM).query())])
-                    del temp_string
-
                 WAI(self.PSU)
+                Initiate(self.DMM).initiate()
+                status = float(Status(self.DMM).operationCondition())
+                TRG(self.DMM)
+
+                while 1:
+                    status = float(Status(self.DMM).operationCondition())
+
+                    if status == 8704.0:
+                        dataList.insert(k, [V_fixed, float(Fetch(self.DMM).query())])
+                        break
+
+                    elif status == 512.0:
+                        dataList.insert(k, [V_fixed, float(Fetch(self.DMM).query())])
+                        break
+
                 I += self.current_step_size
                 j += 1
                 k += 1
@@ -379,13 +421,21 @@ class CurrentMeasurement:
                 print("Voltage: ", V_fixed, "Current: ", I)
                 infoList.insert(k, [V_fixed, I, i])
 
-                temp_string = float(OPC(PSU).query())
+                WAI(self.PSU)
+                Initiate(self.DMM).initiate()
+                status = float(Status(self.DMM).operationCondition())
+                TRG(self.DMM)
 
-                if temp_string == 1:
-                    dataList.insert(k, [V_fixed, float(Read(DMM).query())])
-                    del temp_string
+                while 1:
+                    status = float(Status(self.DMM).operationCondition())
 
-                WAI(PSU)
+                    if status == 8704.0:
+                        dataList.insert(k, [V_fixed, float(Fetch(self.DMM).query())])
+                        break
+
+                    elif status == 512.0:
+                        dataList.insert(k, [V_fixed, float(Fetch(self.DMM).query())])
+                        break
                 I += float(current_stepsize)
                 j += 1
                 k += 1

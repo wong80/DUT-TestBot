@@ -32,7 +32,7 @@ sys.path.insert(
     1,
     r"C://Users//zhiywong//OneDrive - Keysight Technologies//Documents//GitHub//PyVisa//src",
 )
-from Test import VoltageMeasurement, CurrentMeasurement
+from Test import VoltageMeasurement, CurrentMeasurement, VisaResourceManager
 from data import *
 from xlreport import xlreport
 import sys
@@ -120,8 +120,6 @@ class Window(QMainWindow):
         QButton_Widget.clicked.connect(self.PushBtnClicked)
         Tab.currentChanged.connect(self.currentTabChanged)
         self.CurrentTab = 0
-
-        # def outputBoxupdate():
 
     def currentTabChanged(self, s):
         self.CurrentTab = s
@@ -476,6 +474,17 @@ class VoltageMeasurementDialog(QDialog):
                 break
         else:
             if self.checkbox_data_Report == 2:
+                A = VisaResourceManager()
+                flag, args = A.openRM(self.ELoad, self.PSU, self.DMM)
+
+                if flag == 0:
+                    string = ""
+                    for item in args:
+                        string = string + item
+
+                    QMessageBox.warning(self, "VISA IO ERROR", string)
+                    exit()
+
                 VoltageMeasurement.settings(self, self.Error_Gain, self.Error_Offset)
                 dataList, infoList = VoltageMeasurement.executeVoltageMeasurement(
                     self,
@@ -901,7 +910,17 @@ class CurrentMeasurementDialog(QDialog):
                 break
 
         else:
-            if self.checkbox_data == 2:
+            if self.checkbox_data_Report == 2:
+                A = VisaResourceManager()
+                flag, args = A.openRM(self.ELoad, self.PSU, self.DMM)
+
+                if flag == 0:
+                    string = ""
+                    for item in args:
+                        string = string + item
+
+                    QMessageBox.warning(self, "VISA IO ERROR", string)
+                    exit()
                 CurrentMeasurement.settings(self, self.Error_Gain, self.Error_Offset)
                 dataList, infoList = CurrentMeasurement.executeCurrentMeasurement(
                     self,
@@ -947,7 +966,7 @@ class CurrentMeasurementDialog(QDialog):
                     dlg = image_Window()
                     dlg.exec()
 
-            elif self.checkbox_data == 0:
+            elif self.checkbox_data_Report == 0:
                 CurrentMeasurement.settings(self, self.Error_Gain, self.Error_Offset)
                 dataList, infoList = CurrentMeasurement.executeCurrentMeasurement(
                     self,
