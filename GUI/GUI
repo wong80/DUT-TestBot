@@ -35,6 +35,8 @@ sys.path.insert(
 from Test import VoltageMeasurement, CurrentMeasurement
 from data import *
 from xlreport import xlreport
+import sys
+from io import StringIO
 
 AdvancedSettingsList = []
 
@@ -93,6 +95,7 @@ class Window(QMainWindow):
     def __init__(self, parent=None):
         """Initializer."""
         super().__init__(parent)
+
         self.setWindowTitle("GUI")
         Tab = tab()
         mainLayout = QVBoxLayout()
@@ -110,7 +113,6 @@ class Window(QMainWindow):
         mainLayout.addLayout(layout1)
         mainLayout.addWidget(Tab)
         mainLayout.addWidget(QButton_Widget)
-
         widget = QWidget()
         widget.setLayout(mainLayout)
         self.setCentralWidget(widget)
@@ -118,6 +120,8 @@ class Window(QMainWindow):
         QButton_Widget.clicked.connect(self.PushBtnClicked)
         Tab.currentChanged.connect(self.currentTabChanged)
         self.CurrentTab = 0
+
+        # def outputBoxupdate():
 
     def currentTabChanged(self, s):
         self.CurrentTab = s
@@ -154,7 +158,9 @@ class VoltageMeasurementDialog(QDialog):
         QCheckBox_Image_Widget.setText("Show Graph")
         QCheckBox_Image_Widget.setCheckState(Qt.Checked)
         layout1 = QFormLayout()
+        self.OutputBox = QTextBrowser()
 
+        self.OutputBox.append(my_result.getvalue())
         Desp1 = QLabel()
         Desp2 = QLabel()
         Desp3 = QLabel()
@@ -241,9 +247,6 @@ class VoltageMeasurementDialog(QDialog):
         QLineEdit_maxVoltage = QLineEdit()
         QLineEdit_voltage_stepsize = QLineEdit()
 
-        groupBox = QGroupBox()
-        self.outputBox = QTextBrowser(groupBox)
-
         layout1.addRow(Desp1)
         layout1.addRow(QLabel_PSU_VisaAddress, QLineEdit_PSU_VisaAddress)
         layout1.addRow(QLabel_DMM_VisaAddress, QLineEdit_DMM_VisaAddress)
@@ -267,6 +270,7 @@ class VoltageMeasurementDialog(QDialog):
         layout1.addRow(QCheckBox_Image_Widget)
         layout1.addRow(QPushButton_Widget2)
         layout1.addRow(QPushButton_Widget1)
+        layout1.addRow(self.OutputBox)
 
         # layout1.addRow(self.buttonBox)
 
@@ -303,7 +307,6 @@ class VoltageMeasurementDialog(QDialog):
         AdvancedSettingsList.append(self.UpTime)
         AdvancedSettingsList.append(self.DownTime)
         self.setLayout(layout1)
-
         QLineEdit_PSU_VisaAddress.textEdited.connect(self.PSU_VisaAddress_changed)
         QLineEdit_DMM_VisaAddress.textEdited.connect(self.DMM_VisaAddress_changed)
         QLineEdit_ELoad_VisaAddress.textEdited.connect(self.ELoad_VisaAddress_changed)
@@ -414,6 +417,12 @@ class VoltageMeasurementDialog(QDialog):
         dlg.exec()
 
     def executeTest(self):
+        QMessageBox.warning(
+            self,
+            "In Progress",
+            "Measurement will start now , please do not close the main window until test is completed",
+        )
+
         my_dict = {
             "Error Gain": [self.Error_Gain],
             "Error_Offset": [self.Error_Offset],
@@ -494,6 +503,8 @@ class VoltageMeasurementDialog(QDialog):
                     AdvancedSettingsList[5],
                 )
 
+                self.OutputBox.append(my_result.getvalue())
+                self.OutputBox.append("Measurement is complete !")
                 instrumentData(self.PSU, self.DMM, self.ELoad)
                 datatoCSV_Accuracy(infoList, dataList)
                 datatoGraph(infoList, dataList)
@@ -536,7 +547,8 @@ class VoltageMeasurementDialog(QDialog):
                     AdvancedSettingsList[4],
                     AdvancedSettingsList[5],
                 )
-
+                self.OutputBox.append(my_result.getvalue())
+                self.OutputBox.append("Measurement is complete !")
                 if self.checkbox_data_Image == 2:
                     dlg = image_Window()
                     dlg.exec()
@@ -609,7 +621,7 @@ class CurrentMeasurementDialog(QDialog):
         QLabel_Error_Gain.setText("Desired Specification (Gain):")
         QLabel_Error_Offset.setText("Desired Specification (Offset):")
         QLabel_Range.setText("Current Range:")
-
+        self.OutputBox = QTextBrowser()
         QComboBox_Voltage_Res = QComboBox()
         QLineEdit_ELoad_Display_Channel = QLineEdit()
         QLineEdit_PSU_Display_Channel = QLineEdit()
@@ -679,7 +691,7 @@ class CurrentMeasurementDialog(QDialog):
         layout1.addRow(QCheckBox_Image_Widget)
         layout1.addRow(QPushButton_Widget2)
         layout1.addRow(QPushButton_Widget1)
-
+        layout1.addRow(self.OutputBox)
         # layout1.addRow(self.buttonBox)
         # Default Values
         self.Error_Gain = ""
@@ -828,6 +840,11 @@ class CurrentMeasurementDialog(QDialog):
         AdvancedSettingsList[5] = value
 
     def executeTest(self):
+        QMessageBox.warning(
+            self,
+            "In Progress",
+            "Measurement will start now , please do not close the main window until test is completed",
+        )
         my_dict = {
             "Error Gain": [self.Error_Gain],
             "Error_Offset": [self.Error_Offset],
@@ -913,6 +930,8 @@ class CurrentMeasurementDialog(QDialog):
                     AdvancedSettingsList[5],
                 )
 
+                self.OutputBox.append(my_result.getvalue())
+                self.OutputBox.append("Measurement is complete !")
                 instrumentData(self.PSU, self.DMM, self.ELoad)
                 datatoCSV_Accuracy(infoList, dataList)
                 datatoGraph(infoList, dataList)
@@ -955,7 +974,8 @@ class CurrentMeasurementDialog(QDialog):
                     AdvancedSettingsList[4],
                     AdvancedSettingsList[5],
                 )
-
+                self.OutputBox.append(my_result.getvalue())
+                self.OutputBox.append("Measurement is complete !")
                 if self.checkbox_data_Image == 2:
                     dlg = image_Window()
                     dlg.exec()
@@ -1159,6 +1179,9 @@ class image_Window(QDialog):
 
 
 if __name__ == "__main__":
+    original_stdout = sys.stdout
+    my_result = StringIO()
+    sys.stdout = my_result
     # Create the application
     app = QApplication(sys.argv)
     # Create and show the application's main window
