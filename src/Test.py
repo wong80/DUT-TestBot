@@ -9,7 +9,7 @@ sys.path.insert(
 )
 
 from IEEEStandard import OPC, WAI, TRG
-from Subsystems import (
+from Keysight import (
     Read,
     Apply,
     Display,
