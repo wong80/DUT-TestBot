@@ -472,7 +472,24 @@ class CurrentMeasurement:
         self.ELoad_Channel = ELoad_Channel
         self.PSU_Channel = PSU_Channel
 
-    def settings(self, param1, param2):
+    def settings(self, Instrument, param1, param2):
+        (
+            Read,
+            Apply,
+            Display,
+            Function,
+            Output,
+            Sense,
+            Configure,
+            Delay,
+            Trigger,
+            Sample,
+            Initiate,
+            Fetch,
+            Status,
+            Voltage,
+            Current,
+        ) = Dimport.getClasses(Instrument)
         Sense(self.DMM).setCurrentResDC("FAST")
         Configure(self.DMM).write("Current")
         Display(self.ELoad).displayState(self.ELoad_Channel)
@@ -549,8 +566,9 @@ class CurrentMeasurement:
         G = xlreport()
         G.run()
 
-    def executeCurrentMeasurement(
+    def executeCurrentMeasurementA(
         self,
+        Instrument,
         Error_Gain,
         Error_Offset,
         minCurrent,
@@ -574,6 +592,23 @@ class CurrentMeasurement:
     ):
         dataList = []
         infoList = []
+        (
+            Read,
+            Apply,
+            Display,
+            Function,
+            Output,
+            Sense,
+            Configure,
+            Delay,
+            Trigger,
+            Sample,
+            Initiate,
+            Fetch,
+            Status,
+            Voltage,
+            Current,
+        ) = Dimport.getClasses(Instrument)
         Configure(self.DMM).write("Current")
         Trigger(self.DMM).setSource("BUS")
         Sense(DMM).setCurrentResDC(setCurrent_Res)
@@ -631,6 +666,116 @@ class CurrentMeasurement:
                     elif status == 512.0:
                         dataList.insert(k, [V_fixed, float(Fetch(self.DMM).query())])
                         break
+                I += float(current_stepsize)
+                j += 1
+                k += 1
+
+            V_fixed += float(voltage_stepsize)
+            i += 1
+        Output(PSU).setOutputState("OFF")
+        Output(ELoad).setOutputStateC("OFF", ELoad_Channel)
+        return dataList, infoList
+
+    def executeCurrentMeasurementA(
+        self,
+        Instrument,
+        Error_Gain,
+        Error_Offset,
+        minCurrent,
+        maxCurrent,
+        current_stepsize,
+        minVoltage,
+        maxVoltage,
+        voltage_stepsize,
+        PSU,
+        DMM,
+        ELoad,
+        ELoad_Channel,
+        PSU_Channel,
+        setCurrent_Sense,
+        setCurrent_Res,
+        setMode,
+        Range,
+        Aperture,
+        AutoZero,
+        Terminal,
+        UpTime,
+        DownTime,
+    ):
+        dataList = []
+        infoList = []
+        (
+            Read,
+            Apply,
+            Display,
+            Function,
+            Output,
+            Sense,
+            Configure,
+            Delay,
+            Trigger,
+            Sample,
+            Initiate,
+            Fetch,
+            Status,
+            Voltage,
+            Current,
+        ) = Dimport.getClasses(Instrument)
+
+        Configure(self.DMM).write("Current")
+        Trigger(self.DMM).setSource("BUS")
+        Sense(DMM).setCurrentResDC(setCurrent_Res)
+        Display(ELoad).displayState(ELoad_Channel)
+        Function(ELoad).setMode(setMode, ELoad_Channel)
+        Voltage(PSU).setSenseMode(setCurrent_Sense, PSU_Channel)
+
+        Current(self.DMM).setNPLC(Aperture)
+        Current(self.DMM).setAutoZeroMode(AutoZero)
+        Current(self.DMM).setTerminal(Terminal)
+
+        if Range == "Auto":
+            Sense(self.DMM).setCurrentRangeDCAuto()
+        else:
+            Sense(self.DMM).setCurrentRangeDC(Range)
+        self.param1 = Error_Gain
+        self.param2 = Error_Offset
+
+        i = 0
+        j = 0
+        k = 0
+        V_fixed = float(minVoltage)
+        V = float(maxVoltage) + 1
+        I = float(minCurrent)
+        current_iter = (
+            (float(maxCurrent) - float(minCurrent)) / float(current_stepsize)
+        ) + 1
+        voltage_iter = (
+            (float(maxVoltage) - float(minVoltage)) / float(voltage_stepsize)
+        ) + 1
+        Output(ELoad).setOutputStateC("ON", ELoad_Channel)
+        Output(PSU).setOutputState("ON")
+
+        while i < voltage_iter:
+            Voltage(ELoad).setOutputVoltage(V_fixed - 0.001 * V_fixed, ELoad_Channel)
+            j = 0
+            I = float(minCurrent)
+            while j < current_iter:
+                Apply(PSU).write(PSU_Channel, V, I)
+                print("Voltage: ", V_fixed, "Current: ", I)
+                infoList.insert(k, [V_fixed, I, i])
+
+                WAI(self.PSU)
+                Delay(self.PSU).write(UpTime)
+                Initiate(self.DMM).initiate()
+                TRG(self.DMM)
+
+                temp_string = float(OPC(self.PSU).query())
+
+                if temp_string == 1:
+                    dataList.insert(k, [V_fixed, float(Fetch(self.DMM).query())])
+                    del temp_string
+
+                Delay(self.PSU).write(DownTime)
                 I += float(current_stepsize)
                 j += 1
                 k += 1
