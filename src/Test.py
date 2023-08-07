@@ -92,10 +92,10 @@ class VoltageMeasurement:
         self.AutoZero = AutoZero
         self.InputZ = InputZ
 
-    def execute(self):
+    def executeOLD(self):
         self.settings(0.00025, 0.0015)
         self.Current_Sweep(1, 2, 1)
-        self.Voltage_Sweep(1, 9, 0.5)
+        self.Voltage_Sweep(1, 10, 1)
         i = 0
         j = 0
         k = 0
@@ -116,13 +116,54 @@ class VoltageMeasurement:
                 Apply(self.PSU).write(self.PSU_Channel, V, I)
                 print("Voltage: ", V, "Current: ", I_fixed)
                 infoList.insert(k, [V, I_fixed, i])
+                temp_string = float(OPC(self.PSU).query())
+                if temp_string == 1:
+                    dataList.insert(k, [float(Read(self.DMM).query()), I_fixed])
+                    del temp_string
+                V += self.voltage_step_size
+                j += 1
+                k += 1
+            I_fixed += self.current_step_size
+            i += 1
+        Output(self.PSU).setOutputState("OFF")
+        Output(self.ELoad).setOutputStateC("OFF", self.ELoad_Channel)
+        data.instrumentData(self.PSU, self.DMM, self.ELoad)
+        D = data.datatoCSV_Accuracy(infoList, dataList)
+        E = data.datatoGraph(infoList, dataList)
+        E.scatterCompare("Voltage", self.param1, self.param2)
 
+        G = xlreport()
+        G.run()
+
+    def executeNEW(self):
+        self.settings(0.00035, 0.0015)
+        self.Current_Sweep(1, 2, 1)
+        self.Voltage_Sweep(1, 10, 1)
+        i = 0
+        j = 0
+        k = 0
+        I_fixed = self.minCurrent
+        V = self.minVoltage
+        I = self.maxCurrent + 1
+        Output(self.ELoad).setOutputStateC("ON", self.ELoad_Channel)
+        Output(self.PSU).setOutputState("ON")
+
+        while i < self.current_iter:
+            Current(self.ELoad).setOutputVoltage(
+                I_fixed - 0.001 * I_fixed, self.ELoad_Channel
+            )
+            j = 0
+            I = self.minVoltage
+            while j < self.voltage_iter:
+                Apply(self.PSU).write(self.PSU_Channel, V, I)
+                print("Voltage: ", V, "Current: ", I_fixed)
+                infoList.insert(k, [V, I_fixed, i])
                 WAI(self.PSU)
                 Initiate(self.DMM).initiate()
                 status = float(Status(self.DMM).operationCondition())
                 TRG(self.DMM)
 
-                while status == 8240.0 or 8208.0:
+                while 1:
                     status = float(Status(self.DMM).operationCondition())
 
                     if status == 8704.0:
@@ -139,14 +180,12 @@ class VoltageMeasurement:
 
             I_fixed += self.current_step_size
             i += 1
-
         Output(self.PSU).setOutputState("OFF")
         Output(self.ELoad).setOutputStateC("OFF", self.ELoad_Channel)
-
-        data.instrumentData(self.PSU, self.DMM, self.ELoad)
-        D = data.datatoCSV_Accuracy(infoList, dataList)
+        F = data.instrumentData(self.PSU, self.DMM, self.ELoad)
+        D = data.datatoCSV(infoList, dataList)
         E = data.datatoGraph(infoList, dataList)
-        E.scatterCompare("Voltage", self.param1, self.param2)
+        E.scatterCompare("Current", self.param1, self.param2)
 
         G = xlreport()
         G.run()
