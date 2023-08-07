@@ -9,24 +9,49 @@ sys.path.insert(
 )
 
 from IEEEStandard import OPC, WAI, TRG
-from Keysight import (
-    Read,
-    Apply,
-    Display,
-    Function,
-    Output,
-    Sense,
-    Voltage,
-    Current,
-    Configure,
-    Delay,
-    Trigger,
-    Sample,
-    Initiate,
-    Fetch,
-    Status,
-    Delay,
-)
+
+
+class Dimport:
+    def __init__():
+        pass
+
+    def getClasses(module_name):
+        module = __import__(module_name)
+        Read = getattr(module, "Read")
+        Apply = getattr(module, "Apply")
+        Display = getattr(module, "Display")
+        Function = getattr(module, "Function")
+        Output = getattr(module, "Output")
+        Sense = getattr(module, "Sense")
+        Configure = getattr(module, "Configure")
+        Delay = getattr(module, "Delay")
+        Trigger = getattr(module, "Trigger")
+        Sample = getattr(module, "Sample")
+        Initiate = getattr(module, "Initiate")
+        Fetch = getattr(module, "Fetch")
+        Status = getattr(module, "Status")
+        Voltage = getattr(module, "Voltage")
+        Current = getattr(module, "Current")
+
+        return (
+            Read,
+            Apply,
+            Display,
+            Function,
+            Output,
+            Sense,
+            Configure,
+            Delay,
+            Trigger,
+            Sample,
+            Initiate,
+            Fetch,
+            Status,
+            Voltage,
+            Current,
+        )
+
+
 from xlreport import xlreport
 
 infoList = []
@@ -62,7 +87,24 @@ class VoltageMeasurement:
         self.ELoad_Channel = ELoad_Channel
         self.PSU_Channel = PSU_Channel
 
-    def settings(self, param1, param2):
+    def settings(self, Instrument, param1, param2):
+        (
+            Read,
+            Apply,
+            Display,
+            Function,
+            Output,
+            Sense,
+            Configure,
+            Delay,
+            Trigger,
+            Sample,
+            Initiate,
+            Fetch,
+            Status,
+            Voltage,
+            Current,
+        ) = Dimport.getClasses(Instrument)
         Configure(self.DMM).write("VOLT")
         Sense(self.DMM).setVoltageResDC("FAST")
         Trigger(self.DMM).setSource("BUS")
@@ -190,8 +232,9 @@ class VoltageMeasurement:
         G = xlreport()
         G.run()
 
-    def executeVoltageMeasurement(
+    def executeVoltageMeasurementA(
         self,
+        Instrument,
         Error_Gain,
         Error_Offset,
         minCurrent,
@@ -217,6 +260,23 @@ class VoltageMeasurement:
     ):
         dataList = []
         infoList = []
+        (
+            Read,
+            Apply,
+            Display,
+            Function,
+            Output,
+            Sense,
+            Configure,
+            Delay,
+            Trigger,
+            Sample,
+            Initiate,
+            Fetch,
+            Status,
+            Voltage,
+            Current,
+        ) = Dimport.getClasses(Instrument)
         Configure(self.DMM).write("Voltage")
         Trigger(self.DMM).setSource("BUS")
         Sense(self.DMM).setVoltageResDC(setVoltage_Res)
@@ -289,23 +349,119 @@ class VoltageMeasurement:
         Output(ELoad).setOutputStateC("OFF", ELoad_Channel)
         return dataList, infoList
 
-    def test(self):
+    def executeVoltageMeasurementB(
+        self,
+        Instrument,
+        Error_Gain,
+        Error_Offset,
+        minCurrent,
+        maxCurrent,
+        current_stepsize,
+        minVoltage,
+        maxVoltage,
+        voltage_stepsize,
+        PSU,
+        DMM,
+        ELoad,
+        ELoad_Channel,
+        PSU_Channel,
+        setVoltage_Sense,
+        setVoltage_Res,
+        setMode,
+        Range,
+        Aperture,
+        AutoZero,
+        InputZ,
+        UpTime,
+        DownTime,
+    ):
+        dataList = []
+        infoList = []
+        (
+            Read,
+            Apply,
+            Display,
+            Function,
+            Output,
+            Sense,
+            Configure,
+            Delay,
+            Trigger,
+            Sample,
+            Initiate,
+            Fetch,
+            Status,
+            Voltage,
+            Current,
+        ) = Dimport.getClasses(Instrument)
+        Configure(self.DMM).write("Voltage")
         Trigger(self.DMM).setSource("BUS")
-        Initiate(self.DMM).initiate()
-        status = float(Status(self.DMM).operationCondition())
+        Sense(self.DMM).setVoltageResDC(setVoltage_Res)
+        Display(self.ELoad).displayState(ELoad_Channel)
+        Function(self.ELoad).setMode(setMode, ELoad_Channel)
+        Voltage(self.PSU).setSenseMode(setVoltage_Sense, PSU_Channel)
 
-        TRG(self.DMM)
-        print(status)
-        while 1:
-            status = float(Status(self.DMM).operationCondition())
-            print(status)
-            if status == 512.0:
-                print(Fetch(self.DMM).query())
-                break
+        Voltage(self.DMM).setNPLC(Aperture)
+        Voltage(self.DMM).setAutoZeroMode(AutoZero)
+        Voltage(self.DMM).setAutoImpedanceMode(InputZ)
 
-            elif status == 8704.0:
-                print(Fetch(self.DMM).query())
-                break
+        if Range == "Auto":
+            Sense(self.DMM).setVoltageRangeDCAuto()
+
+        else:
+            Sense(self.DMM).setVoltageRangeDC(Range)
+
+        self.param1 = Error_Gain
+        self.param2 = Error_Offset
+
+        i = 0
+        j = 0
+        k = 0
+        I_fixed = float(minCurrent)
+        V = float(minVoltage)
+        I = float(maxCurrent) + 1
+        current_iter = (
+            (float(maxCurrent) - float(minCurrent)) / float(current_stepsize)
+        ) + 1
+        voltage_iter = (
+            (float(maxVoltage) - float(minVoltage)) / float(voltage_stepsize)
+        ) + 1
+        Output(ELoad).setOutputStateC("ON", ELoad_Channel)
+        Output(PSU).setOutputState("ON")
+
+        while i < current_iter:
+            Current(ELoad).setOutputCurrent(I_fixed - 0.001 * I_fixed, ELoad_Channel)
+            j = 0
+            V = float(minVoltage)
+            while j < voltage_iter:
+                Apply(PSU).write(self.PSU_Channel, V, I)
+                print("Voltage: ", V, "Current: ", I_fixed)
+                infoList.insert(k, [V, I_fixed, i])
+                WAI(self.PSU)
+                Delay(self.PSU).write(UpTime)
+                Initiate(self.DMM).initiate()
+                TRG(self.DMM)
+
+                temp_string = float(OPC(self.PSU).query())
+
+                if temp_string == 1:
+                    dataList.insert(k, [float(Fetch(self.DMM).query()), I_fixed])
+                    del temp_string
+
+                Delay(self.PSU).write(DownTime)
+                V += float(voltage_stepsize)
+                j += 1
+                k += 1
+
+            I_fixed += float(current_stepsize)
+            i += 1
+
+        Output(PSU).setOutputState("OFF")
+        Output(ELoad).setOutputStateC("OFF", ELoad_Channel)
+        return dataList, infoList
+
+    def test(self):
+        Configure(self.DMM).write("CURR")
 
 
 class CurrentMeasurement:
