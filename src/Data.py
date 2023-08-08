@@ -8,7 +8,7 @@ sys.path.insert(
     r"C://Users//zhiywong//OneDrive - Keysight Technologies//Documents//GitHub//PyVisa//library",
 )
 from IEEEStandard import IDN
-from Subsystems import System
+from Keysight import System
 
 
 class datatoCSV_Accuracy(object):
