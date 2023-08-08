@@ -1,8 +1,7 @@
 import sys
-from PyQt5 import QtCore, QtWidgets
 from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget
-from PyQt5.QtGui import QPalette, QColor, QFont, QPixmap
-from PyQt5.QtCore import QProcess, Qt
+from PyQt5.QtGui import QFont, QPixmap
+from PyQt5.QtCore import Qt
 
 
 from PyQt5.QtWidgets import (
@@ -20,8 +19,6 @@ from PyQt5.QtWidgets import (
     QCheckBox,
     QGroupBox,
     QTextBrowser,
-    QRadioButton,
-    QDialogButtonBox,
     QMessageBox,
     QGridLayout,
 )
@@ -137,13 +134,8 @@ class Window(QMainWindow):
 class VoltageMeasurementDialog(QDialog):
     def __init__(self):
         super().__init__()
+
         self.setWindowTitle("Voltage Measurement")
-
-        # QBtn = QDialogButtonBox.Save | QDialogButtonBox.Cancel
-
-        # self.buttonBox = QDialogButtonBox(QBtn)
-        # self.buttonBox.accepted.connect(self.accept)
-        # self.buttonBox.rejected.connect(self.reject)
 
         QPushButton_Widget1 = QPushButton()
         QPushButton_Widget1.setText("Execute Test")
@@ -274,8 +266,6 @@ class VoltageMeasurementDialog(QDialog):
         layout1.addRow(QPushButton_Widget2)
         layout1.addRow(QPushButton_Widget1)
         layout1.addRow(self.OutputBox)
-
-        # layout1.addRow(self.buttonBox)
 
         # Default Values
         self.Error_Gain = ""
@@ -431,30 +421,6 @@ class VoltageMeasurementDialog(QDialog):
             "Measurement will start now , please do not close the main window until test is completed",
         )
 
-        my_dict = {
-            "Error Gain": [self.Error_Gain],
-            "Error_Offset": [self.Error_Offset],
-            "Minimum Current": [self.minCurrent],
-            "Maximum Current": [self.maxCurrent],
-            "Step Size (Current)": [self.current_step_size],
-            "Minimum Voltage": [self.minVoltage],
-            "Maximum Voltage": [self.maxVoltage],
-            "Step Size (Voltage)": [self.voltage_step_size],
-            "PSU Visa Address": [self.PSU],
-            "DMM Visa Address": [self.DMM],
-            "ELoad Visa Address": [self.ELoad],
-            "ELoad Channel": [self.ELoad_Channel],
-            "PSU Channel": [self.PSU_Channel],
-            "Voltage Sense": [self.VoltageSense],
-            "Voltage Resolution": [self.VoltageRes],
-            "Voltage Range": [AdvancedSettingsList[0]],
-            "NPLC Value": [AdvancedSettingsList[1]],
-            "Auto Zero": [AdvancedSettingsList[2]],
-            "Auto Input Impedance": [AdvancedSettingsList[3]],
-            "PSU Settling Time (UP)": [AdvancedSettingsList[4]],
-            "PSU Settling Time (DOWN)": [AdvancedSettingsList[5]],
-        }
-
         for i in [
             self.Error_Gain,
             self.Error_Offset,
@@ -483,93 +449,118 @@ class VoltageMeasurementDialog(QDialog):
                 )
                 break
         else:
-            if self.checkbox_data_Report == 2:
-                A = VisaResourceManager()
-                flag, args = A.openRM(self.ELoad, self.PSU, self.DMM)
+            A = VisaResourceManager()
+            flag, args = A.openRM(self.ELoad, self.PSU, self.DMM)
 
-                if flag == 0:
-                    string = ""
-                    for item in args:
-                        string = string + item
+            if flag == 0:
+                string = ""
+                for item in args:
+                    string = string + item
 
-                    QMessageBox.warning(self, "VISA IO ERROR", string)
+                QMessageBox.warning(self, "VISA IO ERROR", string)
+                exit()
+
+            VoltageMeasurement.settings(
+                self, self.DMM_Instrument, self.Error_Gain, self.Error_Offset
+            )
+            if self.DMM_Instrument == "Keysight":
+                try:
+                    (
+                        dataList,
+                        infoList,
+                    ) = VoltageMeasurement.executeVoltageMeasurementA(
+                        self,
+                        self.DMM_Instrument,
+                        self.Error_Gain,
+                        self.Error_Offset,
+                        self.minCurrent,
+                        self.maxCurrent,
+                        self.current_step_size,
+                        self.minVoltage,
+                        self.maxVoltage,
+                        self.voltage_step_size,
+                        self.PSU,
+                        self.DMM,
+                        self.ELoad,
+                        self.ELoad_Channel,
+                        self.PSU_Channel,
+                        self.VoltageSense,
+                        self.VoltageRes,
+                        self.setFunction,
+                        AdvancedSettingsList[0],
+                        AdvancedSettingsList[1],
+                        AdvancedSettingsList[2],
+                        AdvancedSettingsList[3],
+                        AdvancedSettingsList[4],
+                        AdvancedSettingsList[5],
+                    )
+
+                except Exception as e:
+                    QMessageBox.warning(self, "Error", str(e))
                     exit()
 
-                VoltageMeasurement.settings(
-                    self, self.DMM_Instrument, self.Error_Gain, self.Error_Offset
-                )
-                if self.DMM_Instrument == "Keysight":
-                    try:
-                        (
-                            dataList,
-                            infoList,
-                        ) = VoltageMeasurement.executeVoltageMeasurementA(
-                            self,
-                            self.DMM_Instrument,
-                            self.Error_Gain,
-                            self.Error_Offset,
-                            self.minCurrent,
-                            self.maxCurrent,
-                            self.current_step_size,
-                            self.minVoltage,
-                            self.maxVoltage,
-                            self.voltage_step_size,
-                            self.PSU,
-                            self.DMM,
-                            self.ELoad,
-                            self.ELoad_Channel,
-                            self.PSU_Channel,
-                            self.VoltageSense,
-                            self.VoltageRes,
-                            self.setFunction,
-                            AdvancedSettingsList[0],
-                            AdvancedSettingsList[1],
-                            AdvancedSettingsList[2],
-                            AdvancedSettingsList[3],
-                            AdvancedSettingsList[4],
-                            AdvancedSettingsList[5],
-                        )
+            elif self.DMM_Instrument == "Keithley":
+                try:
+                    (
+                        dataList,
+                        infoList,
+                    ) = VoltageMeasurement.executeVoltageMeasurementB(
+                        self,
+                        self.DMM_Instrument,
+                        self.Error_Gain,
+                        self.Error_Offset,
+                        self.minCurrent,
+                        self.maxCurrent,
+                        self.current_step_size,
+                        self.minVoltage,
+                        self.maxVoltage,
+                        self.voltage_step_size,
+                        self.PSU,
+                        self.DMM,
+                        self.ELoad,
+                        self.ELoad_Channel,
+                        self.PSU_Channel,
+                        self.VoltageSense,
+                        self.VoltageRes,
+                        self.setFunction,
+                        AdvancedSettingsList[0],
+                        AdvancedSettingsList[1],
+                        AdvancedSettingsList[2],
+                        AdvancedSettingsList[3],
+                        AdvancedSettingsList[4],
+                        AdvancedSettingsList[5],
+                    )
+                except Exception as e:
+                    QMessageBox.warning(self, e)
+                    exit()
+            self.OutputBox.append(my_result.getvalue())
+            self.OutputBox.append("Measurement is complete !")
 
-                    except Exception as e:
-                        QMessageBox.warning(self, "Error", str(e))
-                        exit()
+            if self.checkbox_data_Report == 2:
+                my_dict = {
+                    "Error Gain": [self.Error_Gain],
+                    "Error_Offset": [self.Error_Offset],
+                    "Minimum Current": [self.minCurrent],
+                    "Maximum Current": [self.maxCurrent],
+                    "Step Size (Current)": [self.current_step_size],
+                    "Minimum Voltage": [self.minVoltage],
+                    "Maximum Voltage": [self.maxVoltage],
+                    "Step Size (Voltage)": [self.voltage_step_size],
+                    "PSU Visa Address": [self.PSU],
+                    "DMM Visa Address": [self.DMM],
+                    "ELoad Visa Address": [self.ELoad],
+                    "ELoad Channel": [self.ELoad_Channel],
+                    "PSU Channel": [self.PSU_Channel],
+                    "Voltage Sense": [self.VoltageSense],
+                    "Voltage Resolution": [self.VoltageRes],
+                    "Voltage Range": [AdvancedSettingsList[0]],
+                    "NPLC Value": [AdvancedSettingsList[1]],
+                    "Auto Zero": [AdvancedSettingsList[2]],
+                    "Auto Input Impedance": [AdvancedSettingsList[3]],
+                    "PSU Settling Time (UP)": [AdvancedSettingsList[4]],
+                    "PSU Settling Time (DOWN)": [AdvancedSettingsList[5]],
+                }
 
-                elif self.DMM_Instrument == "Keithley":
-                    try:
-                        (
-                            dataList,
-                            infoList,
-                        ) = VoltageMeasurement.executeVoltageMeasurementB(
-                            self,
-                            self.DMM_Instrument,
-                            self.Error_Gain,
-                            self.Error_Offset,
-                            self.minCurrent,
-                            self.maxCurrent,
-                            self.current_step_size,
-                            self.minVoltage,
-                            self.maxVoltage,
-                            self.voltage_step_size,
-                            self.PSU,
-                            self.DMM,
-                            self.ELoad,
-                            self.ELoad_Channel,
-                            self.PSU_Channel,
-                            self.VoltageSense,
-                            self.VoltageRes,
-                            self.setFunction,
-                            AdvancedSettingsList[0],
-                            AdvancedSettingsList[1],
-                            AdvancedSettingsList[2],
-                            AdvancedSettingsList[3],
-                            AdvancedSettingsList[4],
-                            AdvancedSettingsList[5],
-                        )
-                    except Exception as e:
-                        QMessageBox.warning(self, e)
-                        exit()
-                self.OutputBox.append(my_result.getvalue())
-                self.OutputBox.append("Measurement is complete !")
                 instrumentData(self.PSU, self.DMM, self.ELoad)
                 datatoCSV_Accuracy(infoList, dataList)
                 datatoGraph(infoList, dataList)
@@ -581,54 +572,16 @@ class VoltageMeasurementDialog(QDialog):
                 df = pd.DataFrame.from_dict(my_dict, orient="index")
                 df.to_csv("csv/config.csv")
 
-                if self.checkbox_data_Image == 2:
-                    dlg = image_Window()
-                    dlg.exec()
-
-            elif self.checkbox_data_Report == 0:
-                VoltageMeasurement.settings(self, self.Error_Gain, self.Error_Offset)
-                dataList, infoList = VoltageMeasurement.executeVoltageMeasurement(
-                    self,
-                    self.Error_Gain,
-                    self.Error_Offset,
-                    self.minCurrent,
-                    self.maxCurrent,
-                    self.current_step_size,
-                    self.minVoltage,
-                    self.maxVoltage,
-                    self.voltage_step_size,
-                    self.PSU,
-                    self.DMM,
-                    self.ELoad,
-                    self.ELoad_Channel,
-                    self.PSU_Channel,
-                    self.VoltageSense,
-                    self.VoltageRes,
-                    self.setFunction,
-                    AdvancedSettingsList[0],
-                    AdvancedSettingsList[1],
-                    AdvancedSettingsList[2],
-                    AdvancedSettingsList[3],
-                    AdvancedSettingsList[4],
-                    AdvancedSettingsList[5],
-                )
-                self.OutputBox.append(my_result.getvalue())
-                self.OutputBox.append("Measurement is complete !")
-                if self.checkbox_data_Image == 2:
-                    dlg = image_Window()
-                    dlg.exec()
+            if self.checkbox_data_Image == 2:
+                dlg = image_Window()
+                dlg.exec()
 
 
 class CurrentMeasurementDialog(QDialog):
     def __init__(self):
         super().__init__()
+
         self.setWindowTitle("Current Measurement")
-
-        # QBtn = QDialogButtonBox.Save | QDialogButtonBox.Cancel
-
-        # self.buttonBox = QDialogButtonBox(QBtn)
-        # self.buttonBox.accepted.connect(self.accept)
-        # self.buttonBox.rejected.connect(self.reject)
 
         QPushButton_Widget1 = QPushButton()
         QPushButton_Widget1.setText("Execute Test")
@@ -660,13 +613,15 @@ class CurrentMeasurementDialog(QDialog):
         QLabel_PSU_VisaAddress = QLabel()
         QLabel_DMM_VisaAddress = QLabel()
         QLabel_ELoad_VisaAddress = QLabel()
+        QLabel_DMM_Instrument = QLabel()
         QLabel_PSU_VisaAddress.setText("Visa Address (PSU):")
         QLabel_DMM_VisaAddress.setText("Visa Address (DMM):")
         QLabel_ELoad_VisaAddress.setText("Visa Address (ELoad):")
-
+        QLabel_DMM_Instrument.setText("Instrument Type (DMM):")
         QLineEdit_PSU_VisaAddress = QLineEdit()
         QLineEdit_DMM_VisaAddress = QLineEdit()
         QLineEdit_ELoad_VisaAddress = QLineEdit()
+        QComboBox_DMM_Instrument = QComboBox()
 
         # General Settings
         QLabel_Voltage_Res = QLabel()
@@ -703,9 +658,11 @@ class CurrentMeasurementDialog(QDialog):
                 "Resistance Priority",
             ]
         )
+        QComboBox_DMM_Instrument.addItems(["Keysight", "Keithley"])
         QComboBox_set_Function.setEnabled(False)
         QComboBox_Voltage_Sense.addItems(["2 Wire", "4 Wire"])
         QComboBox_Range.addItems(["Auto", "10mA", "100mA", "1A", "3A"])
+
         # Current Sweep
         QLabel_minCurrent = QLabel()
         QLabel_maxCurrent = QLabel()
@@ -737,6 +694,7 @@ class CurrentMeasurementDialog(QDialog):
         layout1.addRow(QLabel_PSU_VisaAddress, QLineEdit_PSU_VisaAddress)
         layout1.addRow(QLabel_DMM_VisaAddress, QLineEdit_DMM_VisaAddress)
         layout1.addRow(QLabel_ELoad_VisaAddress, QLineEdit_ELoad_VisaAddress)
+        layout1.addRow(QLabel_DMM_Instrument, QComboBox_DMM_Instrument)
         layout1.addRow(Desp2)
         layout1.addRow(QLabel_ELoad_Display_Channel, QLineEdit_ELoad_Display_Channel)
         layout1.addRow(QLabel_PSU_Display_Channel, QLineEdit_PSU_Display_Channel)
@@ -757,7 +715,7 @@ class CurrentMeasurementDialog(QDialog):
         layout1.addRow(QPushButton_Widget2)
         layout1.addRow(QPushButton_Widget1)
         layout1.addRow(self.OutputBox)
-        # layout1.addRow(self.buttonBox)
+
         # Default Values
         self.Error_Gain = ""
         self.Error_Offset = ""
@@ -772,7 +730,7 @@ class CurrentMeasurementDialog(QDialog):
         self.ELoad = ""
         self.ELoad_Channel = ""
         self.PSU_Channel = ""
-
+        self.DMM_Instrument = "Keysight"
         self.setFunction = "Voltage"
         self.CurrentRes = "SLOW"
         self.CurrentSense = "INT"
@@ -810,10 +768,14 @@ class CurrentMeasurementDialog(QDialog):
         QComboBox_Voltage_Sense.currentTextChanged.connect(
             self.set_VoltageSense_changed
         )
+        QComboBox_DMM_Instrument.currentTextChanged.connect(self.DMM_Instrument_changed)
         QCheckBox_Report_Widget.stateChanged.connect(self.checkbox_state_Report)
         QCheckBox_Image_Widget.stateChanged.connect(self.checkbox_state_Image)
         QPushButton_Widget1.clicked.connect(self.executeTest)
         QPushButton_Widget2.clicked.connect(self.openDialog)
+
+    def DMM_Instrument_changed(self, s):
+        self.DMM_Instrument = s
 
     def PSU_VisaAddress_changed(self, s):
         self.PSU = s
@@ -908,32 +870,9 @@ class CurrentMeasurementDialog(QDialog):
         QMessageBox.warning(
             self,
             "In Progress",
-            "Measurement will start now , please do not close the main window until test is completed",
+            "Measurement will start soon , please do not close the main window until test is completed",
         )
-        my_dict = {
-            "Error Gain": [self.Error_Gain],
-            "Error_Offset": [self.Error_Offset],
-            "Minimum Current": [self.minCurrent],
-            "Maximum Current": [self.maxCurrent],
-            "Step Size (Current)": [self.current_step_size],
-            "Minimum Voltage": [self.minVoltage],
-            "Maximum Voltage": [self.maxVoltage],
-            "Step Size (Voltage)": [self.voltage_step_size],
-            "PSU Visa Address": [self.PSU],
-            "DMM Visa Address": [self.DMM],
-            "ELoad Visa Address": [self.ELoad],
-            "ELoad Channel": [self.ELoad_Channel],
-            "PSU Channel": [self.PSU_Channel],
-            "Current Sense": [self.CurrentSense],
-            "Current Resolution": [self.CurrentRes],
-            "Current Range": [AdvancedSettingsList[0]],
-            "NPLC Value": [AdvancedSettingsList[1]],
-            "Auto Zero": [AdvancedSettingsList[2]],
-            "Terminal": [AdvancedSettingsList[3]],
-            "PSU Settling Time (UP)": [AdvancedSettingsList[4]],
-            "PSU Settling Time (DOWN)": [AdvancedSettingsList[5]],
-        }
-        print(AdvancedSettingsList)
+
         for i in [
             self.Error_Gain,
             self.Error_Offset,
@@ -966,47 +905,117 @@ class CurrentMeasurementDialog(QDialog):
                 break
 
         else:
-            if self.checkbox_data_Report == 2:
-                A = VisaResourceManager()
-                flag, args = A.openRM(self.ELoad, self.PSU, self.DMM)
+            A = VisaResourceManager()
+            flag, args = A.openRM(self.ELoad, self.PSU, self.DMM)
 
-                if flag == 0:
-                    string = ""
-                    for item in args:
-                        string = string + item
+            if flag == 0:
+                string = ""
+                for item in args:
+                    string = string + item
 
-                    QMessageBox.warning(self, "VISA IO ERROR", string)
+                QMessageBox.warning(self, "VISA IO ERROR", string)
+                exit()
+            CurrentMeasurement.settings(self, self.Error_Gain, self.Error_Offset)
+
+            if self.DMM_Instrument == "Keysight":
+                try:
+                    (
+                        dataList,
+                        infoList,
+                    ) = CurrentMeasurement.executeCurrentMeasurementA(
+                        self,
+                        self.DMM_Instrument,
+                        self.Error_Gain,
+                        self.Error_Offset,
+                        self.minCurrent,
+                        self.maxCurrent,
+                        self.current_step_size,
+                        self.minVoltage,
+                        self.maxVoltage,
+                        self.voltage_step_size,
+                        self.PSU,
+                        self.DMM,
+                        self.ELoad,
+                        self.ELoad_Channel,
+                        self.PSU_Channel,
+                        self.VoltageSense,
+                        self.VoltageRes,
+                        self.setFunction,
+                        self.CurrentRange,
+                        AdvancedSettingsList[0],
+                        AdvancedSettingsList[1],
+                        AdvancedSettingsList[2],
+                        AdvancedSettingsList[3],
+                        AdvancedSettingsList[4],
+                        AdvancedSettingsList[5],
+                    )
+
+                except Exception as e:
+                    QMessageBox.warning(self, "Error", str(e))
                     exit()
-                CurrentMeasurement.settings(self, self.Error_Gain, self.Error_Offset)
-                dataList, infoList = CurrentMeasurement.executeCurrentMeasurement(
-                    self,
-                    self.Error_Gain,
-                    self.Error_Offset,
-                    self.minCurrent,
-                    self.maxCurrent,
-                    self.current_step_size,
-                    self.minVoltage,
-                    self.maxVoltage,
-                    self.voltage_step_size,
-                    self.PSU,
-                    self.DMM,
-                    self.ELoad,
-                    self.ELoad_Channel,
-                    self.PSU_Channel,
-                    self.VoltageSense,
-                    self.VoltageRes,
-                    self.setFunction,
-                    self.CurrentRange,
-                    AdvancedSettingsList[0],
-                    AdvancedSettingsList[1],
-                    AdvancedSettingsList[2],
-                    AdvancedSettingsList[3],
-                    AdvancedSettingsList[4],
-                    AdvancedSettingsList[5],
-                )
 
-                self.OutputBox.append(my_result.getvalue())
-                self.OutputBox.append("Measurement is complete !")
+            elif self.DMM_Instrument == "Keithley":
+                try:
+                    (
+                        dataList,
+                        infoList,
+                    ) = CurrentMeasurement.executeCurrentMeasurementB(
+                        self,
+                        self.DMM_Instrument,
+                        self.Error_Gain,
+                        self.Error_Offset,
+                        self.minCurrent,
+                        self.maxCurrent,
+                        self.current_step_size,
+                        self.minVoltage,
+                        self.maxVoltage,
+                        self.voltage_step_size,
+                        self.PSU,
+                        self.DMM,
+                        self.ELoad,
+                        self.ELoad_Channel,
+                        self.PSU_Channel,
+                        self.VoltageSense,
+                        self.VoltageRes,
+                        self.setFunction,
+                        AdvancedSettingsList[0],
+                        AdvancedSettingsList[1],
+                        AdvancedSettingsList[2],
+                        AdvancedSettingsList[3],
+                        AdvancedSettingsList[4],
+                        AdvancedSettingsList[5],
+                    )
+                except Exception as e:
+                    QMessageBox.warning(self, e)
+                    exit()
+
+            self.OutputBox.append(my_result.getvalue())
+            self.OutputBox.append("Measurement is complete !")
+
+            if self.checkbox_data_Report == 2:
+                my_dict = {
+                    "Error Gain": [self.Error_Gain],
+                    "Error_Offset": [self.Error_Offset],
+                    "Minimum Current": [self.minCurrent],
+                    "Maximum Current": [self.maxCurrent],
+                    "Step Size (Current)": [self.current_step_size],
+                    "Minimum Voltage": [self.minVoltage],
+                    "Maximum Voltage": [self.maxVoltage],
+                    "Step Size (Voltage)": [self.voltage_step_size],
+                    "PSU Visa Address": [self.PSU],
+                    "DMM Visa Address": [self.DMM],
+                    "ELoad Visa Address": [self.ELoad],
+                    "ELoad Channel": [self.ELoad_Channel],
+                    "PSU Channel": [self.PSU_Channel],
+                    "Current Sense": [self.CurrentSense],
+                    "Current Resolution": [self.CurrentRes],
+                    "Current Range": [AdvancedSettingsList[0]],
+                    "NPLC Value": [AdvancedSettingsList[1]],
+                    "Auto Zero": [AdvancedSettingsList[2]],
+                    "Terminal": [AdvancedSettingsList[3]],
+                    "PSU Settling Time (UP)": [AdvancedSettingsList[4]],
+                    "PSU Settling Time (DOWN)": [AdvancedSettingsList[5]],
+                }
                 instrumentData(self.PSU, self.DMM, self.ELoad)
                 datatoCSV_Accuracy(infoList, dataList)
                 datatoGraph(infoList, dataList)
@@ -1018,42 +1027,10 @@ class CurrentMeasurementDialog(QDialog):
                 A.run()
                 df = pd.DataFrame.from_dict(my_dict, orient="index")
                 df.to_csv("csv/config.csv")
-                if self.checkbox_data_Image == 2:
-                    dlg = image_Window()
-                    dlg.exec()
 
-            elif self.checkbox_data_Report == 0:
-                CurrentMeasurement.settings(self, self.Error_Gain, self.Error_Offset)
-                dataList, infoList = CurrentMeasurement.executeCurrentMeasurement(
-                    self,
-                    self.Error_Gain,
-                    self.Error_Offset,
-                    self.minCurrent,
-                    self.maxCurrent,
-                    self.current_step_size,
-                    self.minVoltage,
-                    self.maxVoltage,
-                    self.voltage_step_size,
-                    self.PSU,
-                    self.DMM,
-                    self.ELoad,
-                    self.ELoad_Channel,
-                    self.PSU_Channel,
-                    self.VoltageSense,
-                    self.VoltageRes,
-                    self.setFunction,
-                    AdvancedSettingsList[0],
-                    AdvancedSettingsList[1],
-                    AdvancedSettingsList[2],
-                    AdvancedSettingsList[3],
-                    AdvancedSettingsList[4],
-                    AdvancedSettingsList[5],
-                )
-                self.OutputBox.append(my_result.getvalue())
-                self.OutputBox.append("Measurement is complete !")
-                if self.checkbox_data_Image == 2:
-                    dlg = image_Window()
-                    dlg.exec()
+            if self.checkbox_data_Image == 2:
+                dlg = image_Window()
+                dlg.exec()
 
 
 class AdvancedSetting_Voltage(QDialog):
