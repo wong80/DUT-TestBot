@@ -136,7 +136,7 @@ class Window(QMainWindow):
             dlg.exec()
 
         elif self.CurrentTab == 2:
-            dlg = LoadRegulationDialog()
+            dlg = CV_LoadRegulationDialog()
             dlg.exec()
 
 
@@ -1109,32 +1109,32 @@ class AdvancedSetting_Voltage(QDialog):
     def RangeChanged(self, s):
         self.Range = s
         VoltageMeasurementDialog.setRange(self, self.Range)
-        LoadRegulationDialog.setRange(self, self.Range)
+        CV_LoadRegulationDialog.setRange(self, self.Range)
 
     def ApertureChanged(self, s):
         self.Aperture = s
         VoltageMeasurementDialog.setAperture(self, self.Aperture)
-        LoadRegulationDialog.setAperture(self, self.Aperture)
+        CV_LoadRegulationDialog.setAperture(self, self.Aperture)
 
     def AutoZeroChanged(self, s):
         self.AutoZero = s
         VoltageMeasurementDialog.setAutoZero(self, self.AutoZero)
-        LoadRegulationDialog.setAutoZero(self, self.AutoZero)
+        CV_LoadRegulationDialog.setAutoZero(self, self.AutoZero)
 
     def InputZChanged(self, s):
         self.inputZ = s
         VoltageMeasurementDialog.setInputZ(self, self.inputZ)
-        LoadRegulationDialog.setInputZ(self, self.inputZ)
+        CV_LoadRegulationDialog.setInputZ(self, self.inputZ)
 
     def UpTimeChanged(self, s):
         self.UpTime = s
         VoltageMeasurementDialog.setUpTime(self, self.UpTime)
-        LoadRegulationDialog.setUpTime(self, self.UpTime)
+        CV_LoadRegulationDialog.setUpTime(self, self.UpTime)
 
     def DownTimeChanged(self, s):
         self.DownTime = s
         VoltageMeasurementDialog.setDownTime(self, self.DownTime)
-        LoadRegulationDialog.setDownTime(self, self.DownTime)
+        CV_LoadRegulationDialog.setDownTime(self, self.DownTime)
 
 
 class AdvancedSetting_Current(QDialog):
@@ -1245,11 +1245,11 @@ class image_Window(QDialog):
         self.show()
 
 
-class LoadRegulationDialog(QDialog):
+class CV_LoadRegulationDialog(QDialog):
     def __init__(self):
         super().__init__()
 
-        self.setWindowTitle("Load Regulation")
+        self.setWindowTitle("Load Regulation (CV)")
 
         QPushButton_Widget1 = QPushButton()
         QPushButton_Widget1.setText("Execute Test")
@@ -1540,32 +1540,431 @@ class LoadRegulationDialog(QDialog):
                 QMessageBox.warning(self, "VISA IO ERROR", string)
                 exit()
 
-            LoadRegulation.executeLoadRegulationB(
-                self,
-                self.DMM_Instrument,
-                self.Error_Gain,
-                self.Error_Offset,
-                self.Voltage_Rating,
-                self.Current_Rating,
-                self.Power_Rating,
-                self.PSU,
-                self.DMM,
-                self.ELoad,
-                self.ELoad_Channel,
-                self.PSU_Channel,
-                self.VoltageSense,
-                self.VoltageRes,
-                self.setFunction,
-                AdvancedSettingsList[0],
-                AdvancedSettingsList[1],
-                AdvancedSettingsList[2],
-                AdvancedSettingsList[3],
-                AdvancedSettingsList[4],
-                AdvancedSettingsList[5],
-            )
-            # if self.DMM_Instrument == "Keysight":
-            self.OutputBox.append(my_result.getvalue())
-            self.OutputBox.append("Measurement is complete !")
+            if self.DMM_Instrument == "Keysight":
+                try:
+                    LoadRegulation.executeCV_LoadRegulationB(
+                        self,
+                        self.DMM_Instrument,
+                        self.Error_Gain,
+                        self.Error_Offset,
+                        self.Voltage_Rating,
+                        self.Current_Rating,
+                        self.Power_Rating,
+                        self.PSU,
+                        self.DMM,
+                        self.ELoad,
+                        self.ELoad_Channel,
+                        self.PSU_Channel,
+                        self.VoltageSense,
+                        self.VoltageRes,
+                        self.setFunction,
+                        AdvancedSettingsList[0],
+                        AdvancedSettingsList[1],
+                        AdvancedSettingsList[2],
+                        AdvancedSettingsList[3],
+                        AdvancedSettingsList[4],
+                        AdvancedSettingsList[5],
+                    )
+
+                except Exception as e:
+                    QMessageBox.warning(self, "Error", str(e))
+                    exit()
+
+            elif self.DMM_Instrument == "Keithley":
+                try:
+                    LoadRegulation.executeCV_LoadRegulationA(
+                        self,
+                        self.DMM_Instrument,
+                        self.Error_Gain,
+                        self.Error_Offset,
+                        self.Voltage_Rating,
+                        self.Current_Rating,
+                        self.Power_Rating,
+                        self.PSU,
+                        self.DMM,
+                        self.ELoad,
+                        self.ELoad_Channel,
+                        self.PSU_Channel,
+                        self.VoltageSense,
+                        self.VoltageRes,
+                        self.setFunction,
+                        AdvancedSettingsList[0],
+                        AdvancedSettingsList[1],
+                        AdvancedSettingsList[2],
+                        AdvancedSettingsList[3],
+                        AdvancedSettingsList[4],
+                        AdvancedSettingsList[5],
+                    )
+
+                except Exception as e:
+                    QMessageBox.warning(self, "Error", str(e))
+                    exit()
+
+                self.OutputBox.append(my_result.getvalue())
+                self.OutputBox.append("Measurement is complete !")
+
+    def openDialog(self):
+        dlg = AdvancedSetting_Voltage()
+        dlg.exec()
+
+
+class CC_LoadRegulationDialog(QDialog):
+    def __init__(self):
+        super().__init__()
+
+        self.setWindowTitle("Load Regulation (CC)")
+
+        QPushButton_Widget1 = QPushButton()
+        QPushButton_Widget1.setText("Execute Test")
+        QPushButton_Widget2 = QPushButton()
+        QPushButton_Widget2.setText("Advanced Settings")
+        QCheckBox_Report_Widget = QCheckBox()
+        QCheckBox_Report_Widget.setText("Generate Excel Report")
+        QCheckBox_Report_Widget.setCheckState(Qt.Checked)
+        QCheckBox_Image_Widget = QCheckBox()
+        QCheckBox_Image_Widget.setText("Show Graph")
+        QCheckBox_Image_Widget.setCheckState(Qt.Checked)
+        layout1 = QFormLayout()
+        self.OutputBox = QTextBrowser()
+
+        self.OutputBox.append(my_result.getvalue())
+        Desp1 = QLabel()
+        Desp2 = QLabel()
+        Desp3 = QLabel()
+        Desp4 = QLabel()
+        Desp1.setFont(desp_font)
+        Desp2.setFont(desp_font)
+        Desp3.setFont(desp_font)
+        Desp4.setFont(desp_font)
+
+        Desp1.setText("Connections:")
+        Desp2.setText("General Settings:")
+        Desp3.setText("Specification:")
+
+        # Connections
+        QLabel_PSU_VisaAddress = QLabel()
+        QLabel_DMM_VisaAddress = QLabel()
+        QLabel_ELoad_VisaAddress = QLabel()
+        QLabel_DMM_Instrument = QLabel()
+        QLabel_PSU_VisaAddress.setText("Visa Address (PSU):")
+        QLabel_DMM_VisaAddress.setText("Visa Address (DMM):")
+        QLabel_ELoad_VisaAddress.setText("Visa Address (ELoad):")
+        QLabel_DMM_Instrument.setText("Instrument Type (DMM):")
+
+        QLineEdit_PSU_VisaAddress = QLineEdit()
+        QLineEdit_DMM_VisaAddress = QLineEdit()
+        QLineEdit_ELoad_VisaAddress = QLineEdit()
+        QComboBox_DMM_Instrument = QComboBox()
+
+        QComboBox_DMM_Instrument.addItems(["Keysight", "Keithley"])
+
+        # General Settings
+        QLabel_ELoad_Display_Channel = QLabel()
+        QLabel_PSU_Display_Channel = QLabel()
+        QLabel_set_Function = QLabel()
+        QLabel_Voltage_Sense = QLabel()
+        QLabel_Power_Rating = QLabel()
+        QLabel_Max_Voltage = QLabel()
+        QLabel_Max_Current = QLabel()
+        QLabel_Error_Gain = QLabel()
+        QLabel_Error_Offset = QLabel()
+
+        QLabel_ELoad_Display_Channel.setText("Display Channel (Eload):")
+        QLabel_PSU_Display_Channel.setText("Display Channel (PSU):")
+        QLabel_set_Function.setText("Mode(Eload):")
+        QLabel_Voltage_Sense.setText("Voltage Sense:")
+        QLabel_Power_Rating.setText("Power Rating (W):")
+        QLabel_Max_Voltage.setText("Maximum Voltage (V):")
+        QLabel_Max_Current.setText("Maximum Current (A):")
+        QLabel_Error_Gain.setText("Desired Specification (Gain): ")
+        QLabel_Error_Offset.setText("Desired Specification (Offset): ")
+
+        QLineEdit_ELoad_Display_Channel = QLineEdit()
+        QLineEdit_PSU_Display_Channel = QLineEdit()
+        QComboBox_Voltage_Sense = QComboBox()
+        QComboBox_set_Function = QComboBox()
+        QLineEdit_Power_Rating = QLineEdit()
+        QLineEdit_Max_Voltage = QLineEdit()
+        QLineEdit_Max_Current = QLineEdit()
+        QLineEdit_Error_Gain = QLineEdit()
+        QLineEdit_Error_Offset = QLineEdit()
+        QComboBox_set_Function.addItems(
+            [
+                "Current Priority",
+                "Voltage Priority",
+                "Resistance Priority",
+            ]
+        )
+        QComboBox_set_Function.setEnabled(False)
+        QComboBox_Voltage_Sense.addItems(["2 Wire", "4 Wire"])
+
+        layout1.addRow(Desp1)
+        layout1.addRow(QLabel_PSU_VisaAddress, QLineEdit_PSU_VisaAddress)
+        layout1.addRow(QLabel_DMM_VisaAddress, QLineEdit_DMM_VisaAddress)
+        layout1.addRow(QLabel_ELoad_VisaAddress, QLineEdit_ELoad_VisaAddress)
+        layout1.addRow(QLabel_DMM_Instrument, QComboBox_DMM_Instrument)
+        layout1.addRow(Desp2)
+        layout1.addRow(QLabel_ELoad_Display_Channel, QLineEdit_ELoad_Display_Channel)
+        layout1.addRow(QLabel_PSU_Display_Channel, QLineEdit_PSU_Display_Channel)
+        layout1.addRow(QLabel_set_Function, QComboBox_set_Function)
+        layout1.addRow(QLabel_Voltage_Sense, QComboBox_Voltage_Sense)
+        layout1.addRow(Desp3)
+        layout1.addRow(QLabel_Power_Rating, QLineEdit_Power_Rating)
+        layout1.addRow(QLabel_Max_Voltage, QLineEdit_Max_Voltage)
+        layout1.addRow(QLabel_Max_Current, QLineEdit_Max_Current)
+        layout1.addRow(QLabel_Error_Gain, QLineEdit_Error_Gain)
+        layout1.addRow(QLabel_Error_Offset, QLineEdit_Error_Offset)
+        layout1.addRow(QPushButton_Widget2)
+        layout1.addRow(QPushButton_Widget1)
+        layout1.addRow(self.OutputBox)
+        self.setLayout(layout1)
+
+        # Default Values
+        self.Power_Rating = ""
+        self.Current_Rating = ""
+        self.Voltage_Rating = ""
+        self.PSU = ""
+        self.DMM = ""
+        self.ELoad = ""
+        self.ELoad_Channel = ""
+        self.PSU_Channel = ""
+        self.DMM_Instrument = "Keysight"
+
+        self.setFunction = "Current"
+        self.VoltageRes = "SLOW"
+        self.VoltageSense = "INT"
+        self.checkbox_data_Report = 2
+        self.checkbox_data_Image = 2
+        self.Range = "Auto"
+        self.Aperture = "10"
+        self.AutoZero = "ON"
+        self.inputZ = "ON"
+        self.UpTime = "50"
+        self.DownTime = "50"
+
+        AdvancedSettingsList.append(self.Range)
+        AdvancedSettingsList.append(self.Aperture)
+        AdvancedSettingsList.append(self.AutoZero)
+        AdvancedSettingsList.append(self.inputZ)
+        AdvancedSettingsList.append(self.UpTime)
+        AdvancedSettingsList.append(self.DownTime)
+        QLineEdit_PSU_VisaAddress.textEdited.connect(self.PSU_VisaAddress_changed)
+        QLineEdit_DMM_VisaAddress.textEdited.connect(self.DMM_VisaAddress_changed)
+        QLineEdit_ELoad_VisaAddress.textEdited.connect(self.ELoad_VisaAddress_changed)
+        QLineEdit_ELoad_Display_Channel.textEdited.connect(self.ELoad_Channel_changed)
+        QLineEdit_PSU_Display_Channel.textEdited.connect(self.PSU_Channel_changed)
+        QLineEdit_Power_Rating.textEdited.connect(self.Power_Rating_changed)
+        QLineEdit_Max_Current.textEdited.connect(self.Max_Current_changed)
+        QLineEdit_Max_Voltage.textEdited.connect(self.Max_Voltage_changed)
+        QLineEdit_Error_Gain.textEdited.connect(self.Error_Gain_changed)
+        QLineEdit_Error_Offset.textEdited.connect(self.Error_Offset_changed)
+        QComboBox_set_Function.currentTextChanged.connect(self.set_Function_changed)
+        QComboBox_Voltage_Sense.currentTextChanged.connect(
+            self.set_VoltageSense_changed
+        )
+        QComboBox_DMM_Instrument.currentTextChanged.connect(self.DMM_Instrument_changed)
+        # QCheckBox_Report_Widget.stateChanged.connect(self.checkbox_state_Report)
+        # QCheckBox_Image_Widget.stateChanged.connect(self.checkbox_state_Image)
+        QPushButton_Widget1.clicked.connect(self.executeTest)
+        QPushButton_Widget2.clicked.connect(self.openDialog)
+
+    def RangeChanged(self, s):
+        AdvancedSettingsList[0] = s
+
+    def ApertureChanged(self, s):
+        AdvancedSettingsList[1] = s
+
+    def AutoZeroChanged(self, s):
+        AdvancedSettingsList[2] = s
+
+    def InputZChanged(self, s):
+        AdvancedSettingsList[3] = s
+
+    def UpTimeChanged(self, s):
+        AdvancedSettingsList[4] = s
+
+    def DownTimeChanged(self, s):
+        AdvancedSettingsList[5] = s
+
+    def Error_Gain_changed(self, s):
+        self.Error_Gain = s
+
+    def Error_Offset_changed(self, s):
+        self.Error_Offset = s
+
+    def Power_Rating_changed(self, s):
+        self.Power_Rating = s
+
+    def Max_Current_changed(self, s):
+        self.Current_Rating = s
+
+    def Max_Voltage_changed(self, s):
+        self.Voltage_Rating = s
+
+    def DMM_Instrument_changed(self, s):
+        self.DMM_Instrument = s
+
+    def PSU_VisaAddress_changed(self, s):
+        self.PSU = s
+
+    def DMM_VisaAddress_changed(self, s):
+        self.DMM = s
+
+    def ELoad_VisaAddress_changed(self, s):
+        self.ELoad = s
+
+    def ELoad_Channel_changed(self, s):
+        self.ELoad_Channel = s
+
+    def PSU_Channel_changed(self, s):
+        self.PSU_Channel = s
+
+    def set_Function_changed(self, s):
+        if s == "Voltage Priority":
+            self.setFunction = "Voltage"
+
+        elif s == "Current Priority":
+            self.setFunction = "Current"
+
+        elif s == "Resistance Priority":
+            self.setFunction = "Resistance"
+
+    def set_VoltageRes_changed(self, s):
+        self.VoltageRes = s
+
+    def set_VoltageSense_changed(self, s):
+        if s == "2 Wire":
+            self.VoltageSense = "INT"
+        elif s == "4 Wire":
+            self.VoltageSense = "EXT"
+
+    def setRange(self, value):
+        AdvancedSettingsList[0] = value
+
+    def setAperture(self, value):
+        AdvancedSettingsList[1] = value
+
+    def setAutoZero(self, value):
+        AdvancedSettingsList[2] = value
+
+    def setInputZ(self, value):
+        AdvancedSettingsList[3] = value
+
+    def setUpTime(self, value):
+        AdvancedSettingsList[4] = value
+
+    def setDownTime(self, value):
+        AdvancedSettingsList[5] = value
+
+    def executeTest(self):
+        QMessageBox.warning(
+            self,
+            "In Progress",
+            "Measurement will start now , please do not close the main window until test is completed",
+        )
+
+        for i in [
+            self,
+            self.DMM_Instrument,
+            self.Error_Gain,
+            self.Error_Offset,
+            self.Voltage_Rating,
+            self.Current_Rating,
+            self.Power_Rating,
+            self.PSU,
+            self.DMM,
+            self.ELoad,
+            self.ELoad_Channel,
+            self.PSU_Channel,
+            self.VoltageSense,
+            self.VoltageRes,
+            self.setFunction,
+            AdvancedSettingsList[0],
+            AdvancedSettingsList[1],
+            AdvancedSettingsList[2],
+            AdvancedSettingsList[3],
+            AdvancedSettingsList[4],
+            AdvancedSettingsList[5],
+        ]:
+            if i == "":
+                QMessageBox.warning(
+                    self, "Error", "One of the parameters are not filled in"
+                )
+                break
+        else:
+            A = VisaResourceManager()
+            flag, args = A.openRM(self.ELoad, self.PSU, self.DMM)
+
+            if flag == 0:
+                string = ""
+                for item in args:
+                    string = string + item
+
+                QMessageBox.warning(self, "VISA IO ERROR", string)
+                exit()
+
+            if self.DMM_Instrument == "Keysight":
+                try:
+                    LoadRegulation.executeCV_LoadRegulationB(
+                        self,
+                        self.DMM_Instrument,
+                        self.Error_Gain,
+                        self.Error_Offset,
+                        self.Voltage_Rating,
+                        self.Current_Rating,
+                        self.Power_Rating,
+                        self.PSU,
+                        self.DMM,
+                        self.ELoad,
+                        self.ELoad_Channel,
+                        self.PSU_Channel,
+                        self.VoltageSense,
+                        self.VoltageRes,
+                        self.setFunction,
+                        AdvancedSettingsList[0],
+                        AdvancedSettingsList[1],
+                        AdvancedSettingsList[2],
+                        AdvancedSettingsList[3],
+                        AdvancedSettingsList[4],
+                        AdvancedSettingsList[5],
+                    )
+
+                except Exception as e:
+                    QMessageBox.warning(self, "Error", str(e))
+                    exit()
+
+            elif self.DMM_Instrument == "Keithley":
+                try:
+                    LoadRegulation.executeCV_LoadRegulationA(
+                        self,
+                        self.DMM_Instrument,
+                        self.Error_Gain,
+                        self.Error_Offset,
+                        self.Voltage_Rating,
+                        self.Current_Rating,
+                        self.Power_Rating,
+                        self.PSU,
+                        self.DMM,
+                        self.ELoad,
+                        self.ELoad_Channel,
+                        self.PSU_Channel,
+                        self.VoltageSense,
+                        self.VoltageRes,
+                        self.setFunction,
+                        AdvancedSettingsList[0],
+                        AdvancedSettingsList[1],
+                        AdvancedSettingsList[2],
+                        AdvancedSettingsList[3],
+                        AdvancedSettingsList[4],
+                        AdvancedSettingsList[5],
+                    )
+
+                except Exception as e:
+                    QMessageBox.warning(self, "Error", str(e))
+                    exit()
+
+                self.OutputBox.append(my_result.getvalue())
+                self.OutputBox.append("Measurement is complete !")
 
     def openDialog(self):
         dlg = AdvancedSetting_Voltage()
