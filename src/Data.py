@@ -78,13 +78,11 @@ class datatoCSV_Regulation(object):
         self.Load_Measured = pd.Series(self.column(dataList, 1))
 
         self.Voltage_Error = V_NL - self.Voltage_Measured
-        self.Voltage_Regulation = (
-            (V_NL - self.Voltage_Error) / self.Voltage_Measured
-        ) * 100
+        self.Voltage_Regulation = ((V_NL - self.Voltage_Error) / self.V_NL) * 100
         self.Voltage_Regulation_ErrorBoundary = (V_rating * param1) + param2
         self.Voltage_Regulation_Boundary = (
-            V_rating - self.Voltage_Regulation_ErrorBoundary
-        )
+            (V_rating - self.Voltage_Regulation_ErrorBoundary) / self.V_NL
+        ) * 100
 
         self.condition = self.Voltage_Regulation > self.Voltage_Regulation_Boundary
 
@@ -97,7 +95,7 @@ class datatoCSV_Regulation(object):
         self.Voltage_RegulationF = self.Voltage_Regulation.to_frame(
             name="Voltage Regulation(%)"
         )
-
+        print(self.Voltage_Regulation_Boundary)
         self.conditionF = self.condition.to_frame(name="Condition")
 
         self.z = self.condition.to_numpy()
@@ -122,7 +120,7 @@ class datatoCSV_Regulation(object):
 
         plt.scatter(
             self.Current_Programmed,
-            self.Voltage_Measured,
+            self.Voltage_Regulation,
             color=self.colour_condition,
             s=self.size_condition,
             alpha=self.alpha_condition,
@@ -136,7 +134,7 @@ class datatoCSV_Regulation(object):
 
         plt.plot(
             self.Current_Programmed,
-            self.Voltage_Measured,
+            self.Voltage_Regulation,
             label="Voltage Regulation(%)",
             color="blue",
             linewidth=1,
