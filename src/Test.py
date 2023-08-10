@@ -11,6 +11,24 @@ sys.path.insert(
 from IEEEStandard import OPC, WAI, TRG
 
 
+from Keysight import (
+    Read,
+    Apply,
+    Display,
+    Function,
+    Output,
+    Sense,
+    Voltage,
+    Current,
+    Configure,
+    Delay,
+    Trigger,
+    Sample,
+    Initiate,
+    Fetch,
+)
+
+
 class Dimport:
     def __init__():
         pass
@@ -676,7 +694,7 @@ class CurrentMeasurement:
         Output(ELoad).setOutputStateC("OFF", ELoad_Channel)
         return dataList, infoList
 
-    def executeCurrentMeasurementA(
+    def executeCurrentMeasurementB(
         self,
         Instrument,
         Error_Gain,
@@ -796,6 +814,8 @@ class LoadRegulation:
         self.PSU_Channel = PSU_Channel
 
     def settings(self, param1, param2):
+        Configure(self.DMM).write("Voltage")
+        Trigger(self.DMM).setSource("BUS")
         Sense(self.DMM).setVoltageResDC("FAST")
         Display(self.ELoad).displayState(self.ELoad_Channel)
         Function(self.ELoad).setMode("Current", self.ELoad_Channel)
@@ -816,57 +836,453 @@ class LoadRegulation:
         self.current_iter = ((maxCurrent - minCurrent) / step_size) + 1
 
     def execute(self):
-        self.settings(0.0001, 0.002)
-        self.specifications(30, 20, 200)
-        self.Current_Sweep(0.25, 6, 0.25)
-        iter = 0
-        k = 0
-        I_max = self.maxCurrent + 0.1
-        V = self.V_rating
-        I_min = self.minCurrent
+        # Fixed Settings
+        Configure(self.DMM).write("Voltage")
+        Trigger(self.DMM).setSource("BUS")
+        Display(self.ELoad).displayState(self.ELoad_Channel)
+        Function(self.ELoad).setMode("Current", self.ELoad_Channel)
+        Voltage(self.PSU).setSenseMode("EXT", 1)
+        V_Rating = 30
+        I_Rating = 20
+        P_Rating = 200
+
+        I_Max = P_Rating / V_Rating
+        Apply(self.PSU).write(self.PSU_Channel, V_Rating, I_Rating)
         Output(self.PSU).setOutputState("ON")
-        Apply(self.PSU).write(self.PSU_Channel, V, I_max)
 
-        V_NL = float(Read(self.DMM).query())
+        # Reading for No Load Voltage
 
-        while iter < self.current_iter:
-            Current(self.ELoad).setOutputCurrent(I_min, self.ELoad_Channel)
-            Output(self.ELoad).setOutputStateC("ON", self.ELoad_Channel)
-            temp_string = float(OPC(self.ELoad).query())
-            print("Current : ", I_min, "Load :", I_min * V)
-            infoList.insert(k, [I_min, I_min * V])
+        WAI(self.PSU)
+        Initiate(self.DMM).initiate()
+        TRG(self.DMM)
+        V_NL = float(Fetch(self.DMM).query())
 
-            if temp_string == 1:
-                dataList.insert(k, [float(Read(self.DMM).query()), I_min * V])
-                del temp_string
-
-            I_min += self.current_step_size
-            k += 1
-            iter += 1
+        Current(self.ELoad).setOutputCurrent(I_Max, self.ELoad_Channel)
+        Output(self.ELoad).setOutputStateC("ON", self.ELoad_Channel)
+        Initiate(self.DMM).initiate()
+        TRG(self.DMM)
+        WAI(self.ELoad)
+        temp_string = float(OPC(self.ELoad).query())
+        if temp_string == 1:
+            V_FL = float(Fetch(self.DMM).query())
+            del temp_string
 
         Output(self.ELoad).setOutputStateC("OFF", self.ELoad_Channel)
         Output(self.PSU).setOutputState("OFF")
-        D = data.datatoCSV_Regulation(
-            infoList, dataList, self.V_rating, self.param1, self.param2, V_NL
+        print(V_NL, V_FL)
+
+        Voltage_Regulation = ((V_NL - V_FL) / V_FL) * 100
+        print(30 * 0.0001 + 0.002)
+        print(Voltage_Regulation)
+
+    def executeCV_LoadRegulationA(
+        self,
+        Instrument,
+        Error_Gain,
+        Error_Offset,
+        V_Rating,
+        I_Rating,
+        P_Rating,
+        PSU,
+        DMM,
+        ELoad,
+        ELoad_Channel,
+        PSU_Channel,
+        setVoltage_Sense,
+        setVoltage_Res,
+        setMode,
+        Range,
+        Aperture,
+        AutoZero,
+        InputZ,
+        UpTime,
+        DownTime,
+    ):
+        (
+            Read,
+            Apply,
+            Display,
+            Function,
+            Output,
+            Sense,
+            Configure,
+            Delay,
+            Trigger,
+            Sample,
+            Initiate,
+            Fetch,
+            Status,
+            Voltage,
+            Current,
+        ) = Dimport.getClasses(Instrument)
+        # Fixed Settings
+        Configure(DMM).write("Voltage")
+        Trigger(DMM).setSource("BUS")
+        Display(ELoad).displayState(ELoad_Channel)
+        Function(ELoad).setMode(setMode, ELoad_Channel)
+        Voltage(PSU).setSenseMode(setVoltage_Sense, 1)
+        Voltage(self.DMM).setNPLC(Aperture)
+        Voltage(self.DMM).setAutoZeroMode(AutoZero)
+        Voltage(self.DMM).setAutoImpedanceMode(InputZ)
+
+        if Range == "Auto":
+            Sense(self.DMM).setVoltageRangeDCAuto()
+
+        else:
+            Sense(self.DMM).setVoltageRangeDC(Range)
+
+        self.V_Rating = float(V_Rating)
+        self.I_Rating = float(I_Rating)
+        self.P_Rating = float(P_Rating)
+        self.param1 = float(Error_Gain)
+        self.param2 = float(Error_Offset)
+
+        I_Max = self.P_Rating / self.V_Rating
+        Apply(PSU).write(self.PSU_Channel, self.V_Rating, self.I_Rating)
+        Output(PSU).setOutputState("ON")
+
+        # Reading for No Load Voltage
+
+        WAI(PSU)
+        Initiate(DMM).initiate()
+        TRG(DMM)
+        Delay(self.PSU).write(UpTime)
+        V_NL = float(Fetch(DMM).query())
+        Delay(self.PSU).write(DownTime)
+        Current(ELoad).setOutputCurrent(I_Max, ELoad_Channel)
+        Output(ELoad).setOutputStateC("ON", ELoad_Channel)
+        Initiate(DMM).initiate()
+        TRG(self.DMM)
+        WAI(self.ELoad)
+        Delay(self.PSU).write(UpTime)
+        temp_string = float(OPC(self.ELoad).query())
+        if temp_string == 1:
+            V_FL = float(Fetch(self.DMM).query())
+            del temp_string
+
+        Delay(self.PSU).write(DownTime)
+        print("V_NL: ", V_NL, "V_FL: ", V_FL)
+        Output(self.ELoad).setOutputStateC("OFF", ELoad_Channel)
+        Output(self.PSU).setOutputState("OFF")
+        Voltage_Regulation = ((V_NL - V_FL) / V_FL) * 100
+        Desired_Voltage_Regulation = 30 * self.param1 + self.param2
+        print("Desired Voltage Regulation (CV): (%)", Desired_Voltage_Regulation)
+        print("Calculated Voltage Regulation (CV): (%)", round(Voltage_Regulation, 4))
+
+    def executeCV_LoadRegulationB(
+        self,
+        Instrument,
+        Error_Gain,
+        Error_Offset,
+        V_Rating,
+        I_Rating,
+        P_Rating,
+        PSU,
+        DMM,
+        ELoad,
+        ELoad_Channel,
+        PSU_Channel,
+        setVoltage_Sense,
+        setVoltage_Res,
+        setMode,
+        Range,
+        Aperture,
+        AutoZero,
+        InputZ,
+        UpTime,
+        DownTime,
+    ):
+        (
+            Read,
+            Apply,
+            Display,
+            Function,
+            Output,
+            Sense,
+            Configure,
+            Delay,
+            Trigger,
+            Sample,
+            Initiate,
+            Fetch,
+            Status,
+            Voltage,
+            Current,
+        ) = Dimport.getClasses(Instrument)
+        # Fixed Settings
+        Configure(DMM).write("Voltage")
+        Trigger(DMM).setSource("BUS")
+        Display(ELoad).displayState(ELoad_Channel)
+        Function(ELoad).setMode(setMode, ELoad_Channel)
+        Voltage(PSU).setSenseMode(setVoltage_Sense, 1)
+        Voltage(self.DMM).setNPLC(Aperture)
+        Voltage(self.DMM).setAutoZeroMode(AutoZero)
+        Voltage(self.DMM).setAutoImpedanceMode(InputZ)
+
+        if Range == "Auto":
+            Sense(self.DMM).setVoltageRangeDCAuto()
+
+        else:
+            Sense(self.DMM).setVoltageRangeDC(Range)
+
+        self.V_Rating = float(V_Rating)
+        self.I_Rating = float(I_Rating)
+        self.P_Rating = float(P_Rating)
+        self.param1 = float(Error_Gain)
+        self.param2 = float(Error_Offset)
+
+        I_Max = self.P_Rating / self.V_Rating
+        Apply(PSU).write(self.PSU_Channel, self.V_Rating, self.I_Rating)
+        Output(PSU).setOutputState("ON")
+
+        # Reading for No Load Voltage
+
+        WAI(PSU)
+        Initiate(DMM).initiate()
+        status = float(Status(self.DMM).operationCondition())
+        TRG(self.DMM)
+        while 1:
+            status = float(Status(self.DMM).operationCondition())
+
+            if status == 8704.0:
+                V_NL = float(Fetch(self.DMM).query())
+                break
+
+            elif status == 512.0:
+                V_NL = float(Fetch(self.DMM).query())
+                break
+        Delay(self.PSU).write(DownTime)
+        Current(ELoad).setOutputCurrent(I_Max, ELoad_Channel)
+        Output(ELoad).setOutputStateC("ON", ELoad_Channel)
+
+        WAI(self.ELoad)
+        Initiate(DMM).initiate()
+        status = float(Status(self.DMM).operationCondition())
+        TRG(self.DMM)
+        Delay(self.PSU).write(UpTime)
+        while 1:
+            status = float(Status(self.DMM).operationCondition())
+
+            if status == 8704.0:
+                V_FL = float(Fetch(self.DMM).query())
+                break
+
+            elif status == 512.0:
+                V_FL = float(Fetch(self.DMM).query())
+                break
+
+        Delay(self.PSU).write(DownTime)
+        print("V_NL: ", V_NL, "V_FL: ", V_FL)
+        Output(self.ELoad).setOutputStateC("OFF", ELoad_Channel)
+        Output(self.PSU).setOutputState("OFF")
+        Voltage_Regulation = ((V_NL - V_FL) / V_FL) * 100
+        Desired_Voltage_Regulation = 30 * self.param1 + self.param2
+        print("Desired Load Regulation (CV): (%)", Desired_Voltage_Regulation)
+        print(
+            "Calculated Load Voltage Regulation (CV): (%)", round(Voltage_Regulation, 4)
         )
 
+    def executeCC_LoadRegulationA(
+        self,
+        Instrument,
+        Error_Gain,
+        Error_Offset,
+        V_Rating,
+        I_Rating,
+        P_Rating,
+        PSU,
+        DMM,
+        ELoad,
+        ELoad_Channel,
+        PSU_Channel,
+        setCurrent_Sense,
+        setVoltage_Res,
+        setMode,
+        Range,
+        Aperture,
+        AutoZero,
+        Terminal,
+        UpTime,
+        DownTime,
+    ):
+        (
+            Read,
+            Apply,
+            Display,
+            Function,
+            Output,
+            Sense,
+            Configure,
+            Delay,
+            Trigger,
+            Sample,
+            Initiate,
+            Fetch,
+            Status,
+            Voltage,
+            Current,
+        ) = Dimport.getClasses(Instrument)
+        # Fixed Settings
+        Configure(DMM).write("Current")
+        Trigger(DMM).setSource("BUS")
+        Display(ELoad).displayState(ELoad_Channel)
+        Function(ELoad).setMode(setMode, ELoad_Channel)
+        Voltage(PSU).setSenseMode(setCurrent_Sense, PSU_Channel)
+        Current(self.DMM).setNPLC(Aperture)
+        Current(self.DMM).setAutoZeroMode(AutoZero)
+        Current(self.DMM).setTerminal(Terminal)
 
-class DataBuffer:
-    def __init__(self, ADDR1, ADDR2, ADDR3, ELoad_Channel, PSU_Channel):
-        self.ELoad = ADDR1
-        self.PSU = ADDR2
-        self.DMM = ADDR3
-        self.ELoad_Channel = ELoad_Channel
-        self.PSU_Channel = PSU_Channel
+        if Range == "Auto":
+            Sense(self.DMM).setCurrentRangeDCAuto()
 
-    def run(self):
-        Trigger(self.DMM).setSource("BUS")
-        Trigger(self.DMM).setTriggerDelay(4)
-        Trigger(self.DMM).setCount(4)
-        Sample(self.DMM).setSampleCount(30)
-        Initiate(self.DMM).initiate()
+        else:
+            Sense(self.DMM).setCurrentRangeDC(Range)
+
+        self.V_Rating = float(V_Rating)
+        self.I_Rating = float(I_Rating)
+        self.P_Rating = float(P_Rating)
+        self.param1 = float(Error_Gain)
+        self.param2 = float(Error_Offset)
+
+        V_Max = self.P_Rating / self.I_Rating
+        Apply(PSU).write(self.PSU_Channel, self.V_Rating, self.I_Rating)
+        Output(PSU).setOutputState("ON")
+
+        # Reading for No Load Voltage
+
+        WAI(PSU)
+        Initiate(DMM).initiate()
+        TRG(DMM)
+        Delay(self.PSU).write(UpTime)
+        I_NL = float(Fetch(DMM).query())
+        Delay(self.PSU).write(DownTime)
+        Voltage(ELoad).setOutputVoltage(V_Max, ELoad_Channel)
+        Output(ELoad).setOutputStateC("ON", ELoad_Channel)
+        Initiate(DMM).initiate()
         TRG(self.DMM)
-        print(Fetch(self.DMM).query())
-        # Delay(self.DMM, 1000)
-        # print(Read(self.DMM).query())
-        print(data(self.DMM).data())
+        WAI(self.ELoad)
+        Delay(self.PSU).write(UpTime)
+        temp_string = float(OPC(self.ELoad).query())
+        if temp_string == 1:
+            I_FL = float(Fetch(self.DMM).query())
+            del temp_string
+
+        Delay(self.PSU).write(DownTime)
+        print("I_NL: ", I_NL, "I_FL: ", I_FL)
+        Output(self.ELoad).setOutputStateC("OFF", ELoad_Channel)
+        Output(self.PSU).setOutputState("OFF")
+        Voltage_Regulation = ((I_NL - I_FL) / I_FL) * 100
+        Desired_Voltage_Regulation = 30 * self.param1 + self.param2
+        print("Desired Load Regulation(CC): (%)", Desired_Voltage_Regulation)
+        print("Calculated Load Regulation(CC): (%)", round(Voltage_Regulation, 4))
+
+    def executeCC_LoadRegulationB(
+        self,
+        Instrument,
+        Error_Gain,
+        Error_Offset,
+        V_Rating,
+        I_Rating,
+        P_Rating,
+        PSU,
+        DMM,
+        ELoad,
+        ELoad_Channel,
+        PSU_Channel,
+        setCurrent_Sense,
+        setVoltage_Res,
+        setMode,
+        Range,
+        Aperture,
+        AutoZero,
+        Terminal,
+        UpTime,
+        DownTime,
+    ):
+        (
+            Read,
+            Apply,
+            Display,
+            Function,
+            Output,
+            Sense,
+            Configure,
+            Delay,
+            Trigger,
+            Sample,
+            Initiate,
+            Fetch,
+            Status,
+            Voltage,
+            Current,
+        ) = Dimport.getClasses(Instrument)
+        # Fixed Settings
+        Configure(DMM).write("Current")
+        Trigger(DMM).setSource("BUS")
+        Display(ELoad).displayState(ELoad_Channel)
+        Function(ELoad).setMode(setMode, ELoad_Channel)
+        Voltage(PSU).setSenseMode(setCurrent_Sense, PSU_Channel)
+        Current(self.DMM).setNPLC(Aperture)
+        Current(self.DMM).setAutoZeroMode(AutoZero)
+        Current(self.DMM).setTerminal(Terminal)
+
+        if Range == "Auto":
+            Sense(self.DMM).setCurrentRangeDCAuto()
+
+        else:
+            Sense(self.DMM).setCurrentRangeDC(Range)
+
+        self.V_Rating = float(V_Rating)
+        self.I_Rating = float(I_Rating)
+        self.P_Rating = float(P_Rating)
+        self.param1 = float(Error_Gain)
+        self.param2 = float(Error_Offset)
+
+        V_Max = self.P_Rating / self.I_Rating
+        Apply(PSU).write(self.PSU_Channel, self.V_Rating, self.I_Rating)
+        Output(PSU).setOutputState("ON")
+
+        # Reading for No Load Voltage
+
+        WAI(PSU)
+        Initiate(DMM).initiate()
+        status = float(Status(self.DMM).operationCondition())
+        TRG(self.DMM)
+        while 1:
+            status = float(Status(self.DMM).operationCondition())
+
+            if status == 8704.0:
+                I_NL = float(Fetch(self.DMM).query())
+                break
+
+            elif status == 512.0:
+                I_NL = float(Fetch(self.DMM).query())
+                break
+        Delay(self.PSU).write(DownTime)
+        Current(ELoad).setOutputCurrent(V_Max, ELoad_Channel)
+        Output(ELoad).setOutputStateC("ON", ELoad_Channel)
+
+        WAI(self.ELoad)
+        Initiate(DMM).initiate()
+        status = float(Status(self.DMM).operationCondition())
+        TRG(self.DMM)
+        Delay(self.PSU).write(UpTime)
+        while 1:
+            status = float(Status(self.DMM).operationCondition())
+
+            if status == 8704.0:
+                I_FL = float(Fetch(self.DMM).query())
+                break
+
+            elif status == 512.0:
+                I_FL = float(Fetch(self.DMM).query())
+                break
+
+        Delay(self.PSU).write(DownTime)
+        print("I_NL: ", I_NL, "I_FL: ", I_FL)
+        Output(self.ELoad).setOutputStateC("OFF", ELoad_Channel)
+        Output(self.PSU).setOutputState("OFF")
+        Voltage_Regulation = ((I_NL - I_FL) / I_FL) * 100
+        Desired_Voltage_Regulation = 30 * self.param1 + self.param2
+        print("Desired Load Regulation (CC): (%)", Desired_Voltage_Regulation)
+        print("Calculated Load Regulation (CC): (%)", round(Voltage_Regulation, 4))
