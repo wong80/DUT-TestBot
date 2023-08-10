@@ -1,7 +1,7 @@
 import sys
 from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget
 from PyQt5.QtGui import QFont, QPixmap
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QSize
 
 
 from PyQt5.QtWidgets import (
@@ -48,44 +48,70 @@ class tab(QTabWidget):
         super(tab, self).__init__(parent)
         self.tab_VoltageAccuracy = QWidget()
         self.tab_CurrentAccuracy = QWidget()
-        self.tab_LoadRegulation = QWidget()
+        self.tab_LoadRegulationCV = QWidget()
+        self.tab_LoadRegulationCC = QWidget()
 
         self.addTab(self.tab_VoltageAccuracy, "Voltage Accuracy")
         self.addTab(self.tab_CurrentAccuracy, "Current Accuracy")
-        self.addTab(self.tab_LoadRegulation, "Load Regulation")
+        self.addTab(self.tab_LoadRegulationCV, "Load Regulation (CV)")
+        self.addTab(self.tab_LoadRegulationCC, "Load Regulation (CC)")
+
         self.VoltageAccuracyUI()
         self.CurrentAccuracyUI()
-        self.LoadRegulationUI()
+        self.CV_LoadRegulationUI()
+        self.CC_LoadRegulationUI()
 
     def VoltageAccuracyUI(self):
-        pixmap_VoltageAccuracy = QPixmap("GUI\img\Voltage Accuracy.PNG")
+        pixmap_VoltageAccuracy = QPixmap("GUI/img/1.png")
+        pixmap_VoltageAccuracy = pixmap_VoltageAccuracy.scaled(
+            800, 600, Qt.KeepAspectRatio, Qt.FastTransformation
+        )
         label_VoltageAccuracy = QLabel()
         label_VoltageAccuracy.setPixmap(pixmap_VoltageAccuracy)
         layout = QVBoxLayout()
         layout.addWidget(label_VoltageAccuracy)
-        layout.addWidget(QLabel("To measure the programable error of output voltage"))
+        layout.addWidget(QLabel("To measure the voltage programmable error of DUT"))
         self.setTabText(0, "Voltage Accuracy")
         self.tab_VoltageAccuracy.setLayout(layout)
 
     def CurrentAccuracyUI(self):
-        pixmap_CurrentAccuracy = QPixmap("GUI\img\Voltage Accuracy.PNG")
+        pixmap_CurrentAccuracy = QPixmap("GUI/img/2.png")
+        pixmap_CurrentAccuracy = pixmap_CurrentAccuracy.scaled(
+            800, 600, Qt.KeepAspectRatio, Qt.FastTransformation
+        )
         label_CurrentAccuracy = QLabel()
         label_CurrentAccuracy.setPixmap(pixmap_CurrentAccuracy)
         layout = QVBoxLayout()
         layout.addWidget(label_CurrentAccuracy)
-        layout.addWidget(QLabel("To measure the programm error of output current"))
+        layout.addWidget(QLabel("To measure the current programmable error of DUT"))
         self.setTabText(1, "Current Accuracy")
         self.tab_CurrentAccuracy.setLayout(layout)
 
-    def LoadRegulationUI(self):
-        pixmap_LoadRegulation = QPixmap("GUI\img\Load Regulation.PNG")
-        label_LoadRegulation = QLabel()
-        label_LoadRegulation.setPixmap(pixmap_LoadRegulation)
+    def CV_LoadRegulationUI(self):
+        pixmap_LoadRegulationCV = QPixmap("GUI/img/3.png")
+        pixmap_LoadRegulationCV = pixmap_LoadRegulationCV.scaled(
+            800, 600, Qt.KeepAspectRatio, Qt.FastTransformation
+        )
+        label_LoadRegulationCV = QLabel()
+        label_LoadRegulationCV.setPixmap(pixmap_LoadRegulationCV)
         layout = QVBoxLayout()
-        layout.addWidget(label_LoadRegulation)
-        layout.addWidget(QLabel("Load Regulation"))
-        self.setTabText(2, "Load Regulation")
-        self.tab_LoadRegulation.setLayout(layout)
+        layout.addWidget(label_LoadRegulationCV)
+        layout.addWidget(QLabel("To measure the Load Regulation of DUT under CV mode"))
+        self.setTabText(2, "Load Regulation (CV)")
+        self.tab_LoadRegulationCV.setLayout(layout)
+
+    def CC_LoadRegulationUI(self):
+        pixmap_LoadRegulationCC = QPixmap("GUI/img/4.png")
+        pixmap_LoadRegulationCC = pixmap_LoadRegulationCC.scaled(
+            800, 550, Qt.KeepAspectRatio, Qt.FastTransformation
+        )
+        label_LoadRegulationCC = QLabel()
+        label_LoadRegulationCC.setPixmap(pixmap_LoadRegulationCC)
+        layout = QVBoxLayout()
+        layout.addWidget(label_LoadRegulationCC)
+        layout.addWidget(QLabel("To measure the Load Regulation of DUT under CC mode"))
+        self.setTabText(3, "Load Regulation (CC)")
+        self.tab_LoadRegulationCC.setLayout(layout)
 
     def currentTabChanged(self, s):
         self.CurrentTab = s
@@ -103,6 +129,7 @@ class Window(QMainWindow):
         mainLayout = QVBoxLayout()
         layout1 = QHBoxLayout()
 
+        self.setFixedSize(QSize(1000, 600))
         QLabel_Widget = QLabel()
         QLabel_Widget.setText("Choose Test:")
 
@@ -137,6 +164,10 @@ class Window(QMainWindow):
 
         elif self.CurrentTab == 2:
             dlg = CV_LoadRegulationDialog()
+            dlg.exec()
+
+        elif self.CurrentTab == 3:
+            dlg = CC_LoadRegulationDialog()
             dlg.exec()
 
 
@@ -1205,18 +1236,22 @@ class AdvancedSetting_Current(QDialog):
     def RangeChanged(self, s):
         self.Range = s
         CurrentMeasurementDialog.setRange(self, self.Range)
+        CC_LoadRegulationDialog.setRange(self, self.Range)
 
     def ApertureChanged(self, s):
         self.Aperture = s
         CurrentMeasurementDialog.setAperture(self, self.Aperture)
+        CC_LoadRegulationDialog.setAperture(self, self.Aperture)
 
     def AutoZeroChanged(self, s):
         self.AutoZero = s
         CurrentMeasurementDialog.setAutoZero(self, self.AutoZero)
+        CC_LoadRegulationDialog.setAutoZero(self, self.AutoZero)
 
     def TerminalChanged(self, s):
         self.Terminal = s
         CurrentMeasurementDialog.setTerminal(self, self.Terminal)
+        CC_LoadRegulationDialog.setTerminal(self, self.Terminal)
         if self.Terminal == "10A":
             self.QComboBox_Range.setEnabled(False)
 
@@ -1226,10 +1261,12 @@ class AdvancedSetting_Current(QDialog):
     def UpTimeChanged(self, s):
         self.UpTime = s
         CurrentMeasurementDialog.setUpTime(self, self.UpTime)
+        CC_LoadRegulationDialog.setUpTime(self, self.UpTime)
 
     def DownTimeChanged(self, s):
         self.DownTime = s
         CurrentMeasurementDialog.setDownTime(self, self.DownTime)
+        CC_LoadRegulationDialog.setDownTime(self, self.DownTime)
 
 
 class image_Window(QDialog):
@@ -1730,7 +1767,7 @@ class CC_LoadRegulationDialog(QDialog):
         self.PSU_Channel = ""
         self.DMM_Instrument = "Keysight"
 
-        self.setFunction = "Current"
+        self.setFunction = "Voltage"
         self.VoltageRes = "SLOW"
         self.VoltageSense = "INT"
         self.checkbox_data_Report = 2
@@ -1738,14 +1775,14 @@ class CC_LoadRegulationDialog(QDialog):
         self.Range = "Auto"
         self.Aperture = "10"
         self.AutoZero = "ON"
-        self.inputZ = "ON"
+        self.Terminal = "3A"
         self.UpTime = "50"
         self.DownTime = "50"
 
         AdvancedSettingsList.append(self.Range)
         AdvancedSettingsList.append(self.Aperture)
         AdvancedSettingsList.append(self.AutoZero)
-        AdvancedSettingsList.append(self.inputZ)
+        AdvancedSettingsList.append(self.Terminal)
         AdvancedSettingsList.append(self.UpTime)
         AdvancedSettingsList.append(self.DownTime)
         QLineEdit_PSU_VisaAddress.textEdited.connect(self.PSU_VisaAddress_changed)
@@ -1767,24 +1804,6 @@ class CC_LoadRegulationDialog(QDialog):
         # QCheckBox_Image_Widget.stateChanged.connect(self.checkbox_state_Image)
         QPushButton_Widget1.clicked.connect(self.executeTest)
         QPushButton_Widget2.clicked.connect(self.openDialog)
-
-    def RangeChanged(self, s):
-        AdvancedSettingsList[0] = s
-
-    def ApertureChanged(self, s):
-        AdvancedSettingsList[1] = s
-
-    def AutoZeroChanged(self, s):
-        AdvancedSettingsList[2] = s
-
-    def InputZChanged(self, s):
-        AdvancedSettingsList[3] = s
-
-    def UpTimeChanged(self, s):
-        AdvancedSettingsList[4] = s
-
-    def DownTimeChanged(self, s):
-        AdvancedSettingsList[5] = s
 
     def Error_Gain_changed(self, s):
         self.Error_Gain = s
@@ -1847,7 +1866,7 @@ class CC_LoadRegulationDialog(QDialog):
     def setAutoZero(self, value):
         AdvancedSettingsList[2] = value
 
-    def setInputZ(self, value):
+    def setTerminal(self, value):
         AdvancedSettingsList[3] = value
 
     def setUpTime(self, value):
@@ -1905,7 +1924,7 @@ class CC_LoadRegulationDialog(QDialog):
 
             if self.DMM_Instrument == "Keysight":
                 try:
-                    LoadRegulation.executeCV_LoadRegulationB(
+                    LoadRegulation.executeCC_LoadRegulationB(
                         self,
                         self.DMM_Instrument,
                         self.Error_Gain,
@@ -1935,7 +1954,7 @@ class CC_LoadRegulationDialog(QDialog):
 
             elif self.DMM_Instrument == "Keithley":
                 try:
-                    LoadRegulation.executeCV_LoadRegulationA(
+                    LoadRegulation.executeCC_LoadRegulationA(
                         self,
                         self.DMM_Instrument,
                         self.Error_Gain,
@@ -1967,7 +1986,7 @@ class CC_LoadRegulationDialog(QDialog):
                 self.OutputBox.append("Measurement is complete !")
 
     def openDialog(self):
-        dlg = AdvancedSetting_Voltage()
+        dlg = AdvancedSetting_Current()
         dlg.exec()
 
 
