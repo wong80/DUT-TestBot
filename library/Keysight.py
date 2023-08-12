@@ -26,13 +26,13 @@ class Abort(Subsystem):
         super().__init__(VISA_ADDRESS)
 
     def abort_acquire(self, Channel_Number):
-        self.instr.write("ABOR:ACQ+(@" + str(Channel_Number) + ")")
+        self.instr.write(f"ABOR:ACQ (@{Channel_Number})")
 
     def abort_dlog(self):
         self.instr.write("ABOR:DLOG")
 
     def abort(self, Channel_Number):
-        self.instr.write("ABOR (@" + str(Channel_Number) + ")")
+        self.instr.write(f"ABOR (@{Channel_Number})")
 
 
 class Apply(Subsystem):
@@ -40,9 +40,7 @@ class Apply(Subsystem):
         super().__init__(VISA_ADDRESS)
 
     def write(self, Channel_Number, Voltage, Current):
-        self.instr.write(
-            "APPL CH" + str(Channel_Number) + "," + str(Voltage) + "," + str(Current)
-        )
+        self.instr.write(f"APPL CH {Channel_Number},{Voltage},{Current}")
 
 
 class Current(Subsystem):
@@ -50,97 +48,91 @@ class Current(Subsystem):
         super().__init__(VISA_ADDRESS)
 
     def setOutputCurrent(self, Current, ChannelNumber):
-        self.instr.write("CURR " + str(Current) + ",(@" + str(ChannelNumber) + ")")
+        self.instr.write(f"CURR {Current},(@{ChannelNumber})")
 
     def OutputCurrentStepSize(self, Current, ChannelNumber):
-        self.instr.write("CURR:STEP " + str(Current) + ",(@" + str(ChannelNumber) + ")")
+        self.instr.write(f"CURR:STEP {Current},(@{ChannelNumber})")
 
     def setTriggeredCurrent(self, Current, ChannelNumber):
-        self.instr.write("CURR:TRIG " + str(Current) + ",(@" + str(ChannelNumber) + ")")
+        self.instr.write(f"CURR:TRIG {Current},(@{ChannelNumber})")
 
     def setCurrentLimit(self, Current, ChannelNumber):
-        self.instr.write("CURR:LIM " + str(Current) + ",(@" + str(ChannelNumber) + ")")
+        self.instr.write(f"CURR:TRIG {Current},(@{ChannelNumber})")
 
     def setCurrentMode(self, Mode, ChannelNumber):
-        self.instr.write("CURR:MODE " + Mode + ",(@" + str(ChannelNumber) + ")")
+        
+        self.instr.write(f"CURR:MODE {Mode},(@{ChannelNumber})")
 
     def CLECurrentProtection(self, ChannelNumber):
-        self.instr.write("CURR:PROT:CLE (@" + str(ChannelNumber) + ")")
+        self.instr.write(f"CURR:PROT:CLE (@{ChannelNumber})")
 
     def setProtectionDelay(self, delay_time, ChannelNumber):
         self.instr.write(
-            "CURR:PROT:DEL " + str(delay_time) + ",(@" + str(ChannelNumber) + ")"
+                    f"CURR:PROT:DEL {delay_time},(@{ChannelNumber})"
         )
 
     def enableCurrentProtection(self, state, ChannelNumber):
         self.instr.write(
-            "CURR:PROT:STAT " + str(state) + ",(@" + str(ChannelNumber) + ")"
+            f"CURR:PROT:STAT {state},(@{ChannelNumber})"
         )
 
     def queryCurrentTrip(self):
         return self.instr.query("CURR:PROT:TRIP?")
 
     def setCurrentRange(self, range, ChannelNumber):
-        self.instr.write("CURR:RANG " + str(range) + ",(@" + str(ChannelNumber) + ")")
+        self.instr.write(f"CURR:RANG {range},(@{ChannelNumber})")
 
     def enableLowRangeCurrent(self, mode):
-        self.instr.write("CURR:SENS:LOW " + str(mode))
-
+        self.instr.write(f"CURR:SENS:LOW {mode}")
+        
     def setPositiveSlew(self, Current, ChannelNumber):
-        self.instr.write("CURR:SLEW " + str(Current) + ",(@" + str(ChannelNumber) + ")")
+        self.instr.write(f"CURR:SLEW {Current},(@{ChannelNumber})")
 
     def setNegativeSlew(self, Current, ChannelNumber):
         self.instr.write(
-            "CURR:SLEW:NEG " + str(Current) + ",(@" + str(ChannelNumber) + ")"
+            f"CURR:SLEW:NEG {Current},(@{ChannelNumber})"
         )
 
     def setTransInput(self, Current, ChannelNumber):
-        self.instr.write("CURR:TLEV " + str(Current) + ",(@" + str(ChannelNumber) + ")")
-
+        self.instr.write(f"CURR:TLEV {Current},(@{ChannelNumber})")
+        
     def setTerminal(self, terminal):
-        self.instr.write("CURR:TERM " + str(terminal))
+        self.instr.write(f"CURR:TERM {terminal}")
 
     def setApertureTime(self, seconds):
-        self.instr.write("CURR:DC:APER " + str(seconds))
+        self.instr.write(f"CURR:DC:APER {seconds}")
 
     def setNPLC(self, value):
-        self.instr.write("CURR:DC:NPLC " + str(value))
+        self.instr.write(f"CURR:DC:NPLC {value}")
 
     def setAutoZeroMode(self, mode):
-        self.instr.write("CURR:ZERO:AUTO " + str(mode))
+        self.instr.write(f"CURR:ZERO:AUTO {mode}")
 
 
 class Calculate(Subsystem):
     def __init__(self, VISA_ADDRESS):
         super().__init__(VISA_ADDRESS)
 
-    def function(self, *args):
-        if len(*args) == 1:
-            self.instr.write("CALC:FUNC " + self.strtoargs(args))
+    def function(self, mode):
+        self.instr.write(f"CALC:FUNC {mode}")
 
-    def state(self, *args):
-        if len(*args) == 1:
-            self.instr.write("CALC:STAT " + self.strtoargs(args))
+    def state(self, mode):
+        self.instr.write(f"CALC:STAT {mode}")
 
-    def limit_lower(self, *args):
-        if len(*args) == 1:
-            self.instr.write("CALC:LIM:LOW " + self.strtoargs(args))
+    def limit_lower(self, value):
+        self.instr.write(f"CALC:LIM:LOW {value}")
 
-    def limit_lower(self, *args):
-        if len(*args) == 1:
-            self.instr.write("CALC:LIM:UPP " + self.strtoargs(args))
+    def limit_upper(self, value):
+        self.instr.write(f"CALC:LIM:UPP {value}")
 
-    def Average(self, *args):
-        if len(*args) == 1:
-            self.instr.write("CALC:AVER:" + self.strtoargs(args) + "?")
+    def Average(self, value):
+        return self.instr.query(f"CALC:AVER: {value}?")
 
-    def DBref(self, *args):
-        if len(*args) == 1:
-            self.instr.write("CALC:DB:REF " + self.strtoargs(args))
+    def DBref(self, value):
+        self.instr.write(f"CALC:DBV:REF {value}")
 
-    def offset(self, *args):
-        if len(*args) == 1:
-            self.instr.write("CALC:NULL:OFFS " + self.strtoargs(args))
+    def offset(self, value):
+        self.instr.write(f"CALC:NULL:OFFS {value}")
 
     def query(self, ans):
         return self.instr.query(ans)
@@ -157,19 +149,19 @@ class Calibration(Subsystem):
         return self.instr.query("CAL:COUN?")
 
     def setSecureCode(self, new_code):
-        self.instr.write("CAL:SEC:CODE " + self.strtoargs(new_code))
+        self.instr.write(f"CAL:SEC:CODE {new_code}")
 
     def setSecureState(self, state):
-        self.instr.write("CAL:SEC:STAT " + self.strtoargs(state))
+        self.instr.write(f"CAL:SEC:STAT {state}")
 
     def querySecureState(self):
         return self.instr.query("CAL:SEC:STAT?")
 
     def calibrationString(self, string):
-        self.instr.write('CAL:STR "' + self.strtoargs(string) + '"')
+        self.instr.write(f'CAL:STR "' + {string} + '"')
 
     def calibrationValue(self, value):
-        self.instr.write("CAL:VAL " + self.strtoargs(value))
+        self.instr.write(f"CAL:VAL {value}")
 
     def calibrationStore(self):
         self.instr.write("CAL:STOR")
@@ -181,42 +173,24 @@ class Configure(Subsystem):
 
     def write(self, *args):
         if len(args) == 1:
-            self.instr.write("CONF:" + self.strtoargs(args))
+            self.instr.write(f"CONF:{args[0]}")
 
         elif len(args) == 2:
-            self.instr.write(
-                "CONF:" + self.strtoargs(args[0]) + ":" + self.strtoargs(args[1])
-            )
+            self.instr.write(f"CONF:{args[0]}:{args[1]}")
 
         elif len(args) == 3:
-            self.instr.write(
-                "CONF:"
-                + self.strtoargs(args[0])
-                + ":"
-                + self.strtoargs(args[1])
-                + ":"
-                + self.strtoargs(args[2])
-            )
+            self.instr.write(f"CONF:{args[0]}:{args[1]}:{args[2]}")
+
 
     def query(self, *args):
         if len(args) == 1:
-            return self.instr.query("CONF:" + self.strtoargs(args) + "?")
-
+            return self.instr.query(f"CONF: {args[0]}?")
+        
         elif len(args) == 2:
-            return self.instr.query(
-                "CONF:" + self.strtoargs(args[0]) + ":" + self.strtoargs(args[1]) + "?"
-            )
-
+            return self.instr.query(f"CONF: {args[0]}:{args[1]}?")
+            
         elif len(args) == 3:
-            return self.instr.query(
-                "CONF:"
-                + self.strtoargs(args[0])
-                + ":"
-                + self.strtoargs(args[1])
-                + ":"
-                + self.strtoargs(args[2])
-                + "?"
-            )
+            return self.instr.query(f"CONF: {args[0]}:{args[1]}:{args[2]}?")
 
 
 class Data(Subsystem):
@@ -227,7 +201,7 @@ class Data(Subsystem):
         return self.instr.query("DATA:DATA? NVMEM")
 
     def delete(self):
-        self.instr.query("DATA:DEL NVMEM")
+        return self.instr.query("DATA:DEL NVMEM")
 
     def last(self):
         return self.instr.query("DATA:LAST?")
@@ -241,10 +215,10 @@ class Display(Subsystem):
         super().__init__(VISA_ADDRESS)
 
     def displayState(self, state):
-        self.instr.write("DISP:CHAN " + str(state))
+        self.instr.write(f"DISP:CHAN {state}")
 
     def displayText(self, string):
-        self.instr.write('DISP:TEXT "' + str(string) + '"')
+        self.instr.write(f'DISP:TEXT "{string}"')
 
     def clearDisplayText(self):
         self.instr.write("DISP:TEXT:CLE")
@@ -255,7 +229,7 @@ class Emul(Subsystem):
         super().__init__(VISA_ADDRESS)
 
     def Emulate(self, mode):
-        self.instr.write("EMUL " + str(mode))
+        self.instr.write(f"EMUL {mode}")
 
 
 class Fetch(Subsystem):
@@ -267,20 +241,10 @@ class Fetch(Subsystem):
 
     def query2(self, ChannelNumber, *args):
         if len(args) == 1:
-            return self.instr.query(
-                "FETC:" + self.strtoargs(args) + "? (@" + str(ChannelNumber) + ")"
-            )
-
+            return self.instr.query(f"FETC:{args[0]}? (@{ChannelNumber})")
+        
         elif len(args) == 2:
-            return self.instr.query(
-                "FETC:"
-                + self.strtoargs(args[0])
-                + ":"
-                + self.strtoargs(args[1])
-                + "? (@"
-                + str(ChannelNumber)
-                + ")"
-            )
+            return self.instr.query(f"FETC:{args[0]}:{args[1]}? (@{ChannelNumber})")
 
 
 class Function(Subsystem):
@@ -288,8 +252,7 @@ class Function(Subsystem):
         super().__init__(VISA_ADDRESS)
 
     def setMode(self, MODE, ChannelNumber):
-        self.instr.write("FUNC " + str(MODE) + ",(@" + str(ChannelNumber) + ")")
-
+        self.instr.write(f"FUNC {MODE} ,(@{ChannelNumber})")
 
 class Format(Subsystem):
     def __init__(self, VISA_ADDRESS):
@@ -298,10 +261,8 @@ class Format(Subsystem):
     def query(self):
         return self.instr.query("*FORM:OUTP?")
 
-    def write(self, *args):
-        if len(*args) == 0:
-            self.instr.write("FORM:OUTP " + self.strtoargs(args))
-
+    def write(self, mode):
+        self.instr.write(f"FORM:OUTP {mode}")
 
 class Initiate(Subsystem):
     def __init__(self, VISA_ADDRESS):
@@ -311,57 +272,52 @@ class Initiate(Subsystem):
         self.instr.write("INIT")
 
     def initiateAcquire(self, ChannelNumber):
-        self.instr.write("INIT:ACQ (@" + str(ChannelNumber) + ")")
+        self.instr.write(f"INIT:ACQ (@{ChannelNumber})")
+
 
     def initiateDLog(self, filename):
-        self.instr.write("INIT:DLOG " + str(filename))
+        self.instr.write(f"INIT:DLOG {filename}")
 
     def initiateContinuous(self, state, ChannelNumber):
-        self.instr.write(
-            "INIT:CONT:TRAN " + str(state) + ",(@" + str(ChannelNumber) + ")"
-        )
-
+        self.instr.write(f"INIT:CONT:TRAN {state},(@{ChannelNumber})")
 
 class Output(Subsystem):
     def __init__(self, VISA_ADDRESS):
         super().__init__(VISA_ADDRESS)
 
     def setOutputState(self, state):
-        self.instr.write("OUTP " + str(state))
+        self.instr.write(f"OUTP {state}")
 
     def setOutputStateC(self, state, ChannelNumber):
-        self.instr.write("OUTP " + str(state) + ",(@" + str(ChannelNumber) + ")")
+        self.instr.write(f"OUTP {state},(@{ChannelNumber})")
+
 
     def coupleChannel(self, ChannelNumber):
-        self.instr.write("OUTP:COUP:CHAN CH" + str(ChannelNumber))
+        self.instr.write(f"OUTP:COUP:CHAN CH{ChannelNumber}")
 
     def setDelayOn(self, delay_time, ChannelNumber):
-        self.instr.write(
-            "OUTP:DEL:FALL " + str(delay_time) + ",(@" + str(ChannelNumber) + ")"
-        )
+        self.instr.write(f"OUTP:DEL:FALL {delay_time},(@{ChannelNumber})")
 
     def setDelayOff(self, delay_time, ChannelNumber):
-        self.instr.write(
-            "OUTP:DEL:RISE " + str(delay_time) + ",(@" + str(ChannelNumber) + ")"
-        )
+        self.instr.write(f"OUTP:DEL:RISE {delay_time},(@{ChannelNumber})")
 
     def setOutputMode(self, Mode, ChannelNumber):
-        self.instr.write("OUTP:PMOD " + str(Mode) + ",(@" + str(ChannelNumber) + ")")
+        self.instr.write(f"OUTP:PMOD {Mode},(@{ChannelNumber})")
 
     def setInhibMode(self, Mode):
-        self.instr.write("OUTP:INH:MODE " + str(Mode))
+        self.instr.write(f"OUTP:INH:MODE {Mode}")
 
     def setPowerOnState(self, state):
-        self.instr.write("OUTP:PON:STAT " + str(state))
+        self.instr.write(f"OUTP:PON:STAT " + str(state))
 
     def clearLatchProtection(self, ChannelNumber):
-        self.instr.write("INP:PRO:CLE (@" + str(ChannelNumber) + ")")
+        self.instr.write(f"INP:PRO:CLE (@{ChannelNumber})")
 
     def setRelayState(self, state):
-        self.instr.write("OUTP:REL " + str(state))
+        self.instr.write(f"OUTP:REL {state}")
 
     def shortInput(self, state):
-        self.instr.write("INP:SHOR " + str(state))
+        self.instr.write(f"INP:SHOR {state}")
 
 
 class List(Subsystem):
@@ -369,13 +325,14 @@ class List(Subsystem):
         super().__init__(VISA_ADDRESS)
 
     def setListCount(self, range, ChannelNumber):
-        self.instr.write("LIST:COUN " + str(range) + ",(@" + str(ChannelNumber) + ")")
+        self.instr.write(f"LIST:COUN {range},(@{ChannelNumber})")
+
 
     def setCurrentList(self, list, ChannelNumber):
-        self.instr.write("LIST:CURR " + str(list) + ",(@" + str(ChannelNumber) + ")")
+        self.instr.write(f"LIST:CURR {list},(@{ChannelNumber})")
 
     def queryCurrentPoints(self, ChannelNumber):
-        self.instr.write("LIST:CURR:POIN? (@)" + str(ChannelNumber) + ")")
+        self.instr.write(f"LIST:CURR:POIN? (@{ChannelNumber})")
 
 
 class LXI(Subsystem):
@@ -383,13 +340,13 @@ class LXI(Subsystem):
         super().__init__(VISA_ADDRESS)
 
     def setIdentityState(self, state):
-        self.instr.write("LXI:IDEN " + self.strtoargs(state))
+        self.instr.write(f"LXI:IDEN {state}")
 
     def queryIdentityState(self):
         return self.instr.query("LXI:IDEN?")
 
     def setMDNS(self, state):
-        self.instr.write("LXI:MDNS:ENAB" + self.strtoargs(state))
+        self.instr.write(f"LXI:MDNS:ENAB{state}")
 
     def queryMDNShost(self):
         return self.instr.query("LXI:MDNS:ENAB?")
@@ -398,7 +355,7 @@ class LXI(Subsystem):
         return self.instr.query("LXI:MDNS:HNAM:RES?")
 
     def setMDNSName(self, name):
-        self.instr.write('LXI:MDNS:SNAM:DES "' + self.strtoargs(name) + '"')
+        self.instr.write(f'LXI:MDNS:SNAM:DES "{name}"')
 
     def queryMDNSName(self):
         return self.instr.query("LXI:MDNS:SNAM:DES?")
@@ -418,42 +375,26 @@ class Measure(Subsystem):
         super().__init__(VISA_ADDRESS)
 
     def singleChannelQuery(self, *args):
+        
         if len(args) == 1:
-            return self.instr.query("MEAS:" + self.strtoargs(args) + "?")
+            return self.instr.query(f"MEAS:{args[0]}?")
 
         elif len(args) == 2:
-            return self.instr.query(
-                "MEAS:" + self.strtoargs(args[0]) + ":" + self.strtoargs(args[1]) + "?"
-            )
+            return self.instr.query(f"MEAS:{args[0]}:{args[1]}?")
+
 
         elif len(args) == 3:
-            return self.instr.query(
-                "MEAS:"
-                + self.strtoargs(args[0])
-                + ":"
-                + self.strtoargs(args[1])
-                + ":"
-                + self.strtoargs(args[2])
-                + "?"
-            )
+            return self.instr.query(f"MEAS:{args[0]}:{args[1]}:{args[2]}?")
 
     def multipleChannelQuery(self, ChannelNumber, *args):
         if len(args) == 1:
-            return self.instr.query(
-                "MEAS:" + self.strtoargs(args) + "? " + "(@" + str(ChannelNumber) + ")"
-            )
+
+            return self.instr.query(f"MEAS:{args}? (@{ChannelNumber})")
 
         elif len(args) == 2:
-            return self.instr.query(
-                "MEAS:"
-                + self.strtoargs(args[0])
-                + ":"
-                + self.strtoargs(args[1])
-                + "? "
-                + "(@"
-                + str(ChannelNumber)
-                + ")"
-            )
+
+            return self.instr.query(f"MEAS:{args[0]}:{args[1]}?(@{ChannelNumber})")
+
 
 
 class Memory(Subsystem):
@@ -462,25 +403,17 @@ class Memory(Subsystem):
 
     def write(self, *args):
         if len(args) == 1:
-            self.instr.write("MEM:STAT:" + self.strtoargs(args))
+            self.instr.write(f"MEM:STAT:{args}")
 
         elif len(args) == 2:
-            self.instr.write(
-                "MEM:STAT:" + self.strtoargs(args[0]) + ":" + self.strtoargs(args[1])
-            )
+            self.instr.write(f"MEM:STAT:{args[0]}:{args[1]}")
 
     def query(self, *args):
         if len(args) == 1:
-            return self.instr.query("MEM:STAT:" + self.strtoargs(args) + "?")
+            return self.instr.query(f"MEM:STAT:{args}?")
 
         elif len(args) == 2:
-            return self.instr.query(
-                "MEM:STAT:"
-                + self.strtoargs(args[0])
-                + ":"
-                + self.strtoargs(args[1])
-                + "?"
-            )
+            return self.instr.query(f"MEM:STAT:{args[0]}:{args[1]}?")
 
 
 class MMemory(Subsystem):
@@ -488,7 +421,7 @@ class MMemory(Subsystem):
         super().__init__(VISA_ADDRESS)
 
     def exportData(self, filename):
-        self.instr.write("MMEM:EXP:DLOG " + str(filename))
+        self.instr.write(f"MMEM:EXP:DLOG {filename}")
 
 
 class Power(Subsystem):
