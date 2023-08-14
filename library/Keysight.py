@@ -886,24 +886,35 @@ class OSC(Subsystem):
     def __init__(self, VISA_ADDRESS):
         super().__init__(VISA_ADDRESS)
 
-    def setup(self):
-        self.instr.write("*RST")
-        self.instr.write("CHANNEL1:COUPLING AC")
-        self.instr.write("TRIGGER:MODE EDGE")
-        self.instr.write("TRIGGER:EDGE:SOURCE CHANNEL1")
-        self.instr.write("TRIGGER:EDGE:COUPLING AC")
-        self.instr.write("TRIGGER:EDGE:SLOPE ALTERNATE")
-        self.instr.write("TRIGGER:SWEEP NORM")
-        self.instr.write("TIMEBASE:MAIN:SCALE 2e-6")
-        self.instr.write("CHANNEL1:SCALE 1")
+    def setChannelCoupling(self, ChannelNumber, Mode):
+        self.instr.write(f"CHANNEL{ChannelNumber}:COUPLING {Mode}")
 
-    def standby(self):
-        sleep(1)
+    def setTriggerMode(self, Mode):
+        self.instr.write(f"TRIGGER:MODE {Mode}")
+
+    def setTriggerSource(self, ChannelNumber):
+        self.instr.write(f"TRIGGER:EDGE:SOURCE CHANNEL{ChannelNumber}")
+
+    def setTriggerCoupling(self, mode):
+        self.instr.write(f"TRIGGER:EDGE:COUPLING {mode}")
+
+    def setTriggerSweepMode(self, mode):
+        self.instr.write(f"TRIGGER:SWEEP {mode}")
+
+    def setTriggerSlope(self, mode):
+        self.instr.write(f"TRIGGER:EDGE:SLOPE {mode}")
+
+    def setTimeScale(self, value):
+        self.instr.write(f"TRIGGER:MAIN:SCALE {value}")
+
+    def setVerticalScale(self, value, ChannelNumber):
+        self.instr.write(f"CHANNEL{ChannelNumber}:SCALE{value}")
+
+    def setSingleMode(self):
         self.instr.write("SINGLE")
-        self.instr.write("*WAI")
 
-    def readRiseTime(self):
-        print("Rise Time:", self.instr.query("MEASURE:RISETIME? CHANNEL1"))
+    def getRiseTime(self, ChannelNumber):
+        return self.instr.query(f"MEASURE:RISETIME? CHANNEL{ChannelNumber}")
 
-    def readFallTime(self):
-        print("Fall Time:", self.instr.query("MEASURE:FALLTIME? CHANNEL1"))
+    def getFallTime(self, ChannelNumber):
+        return self.instr.query(f"MEASURE:FALLTIME? CHANNEL{ChannelNumber}")
