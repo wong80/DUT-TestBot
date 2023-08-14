@@ -1,7 +1,7 @@
 import pyvisa
 import sys
 import data
-
+from time import sleep
 
 sys.path.insert(
     1,
@@ -26,6 +26,7 @@ from Keysight import (
     Sample,
     Initiate,
     Fetch,
+    OSC,
 )
 
 
@@ -1286,3 +1287,30 @@ class LoadRegulation:
         Desired_Voltage_Regulation = 30 * self.param1 + self.param2
         print("Desired Load Regulation (CC): (%)", Desired_Voltage_Regulation)
         print("Calculated Load Regulation (CC): (%)", round(Voltage_Regulation, 4))
+
+
+class RiseFallTime:
+    def __init__(self, ADDR1, ADDR2, ADDR3, ELoad_Channel, PSU_Channel):
+        self.ELoad = ADDR1
+        self.PSU = ADDR2
+        self.OSC = ADDR3
+        self.ELoad_Channel = ELoad_Channel
+        self.PSU_Channel = PSU_Channel
+
+    def test(self):
+        OSC(self.OSC).setup()
+        Display(self.ELoad).displayState(self.ELoad_Channel)
+        Function(self.ELoad).setMode("Current", self.ELoad_Channel)
+        Voltage(self.PSU).setSenseMode("EXT", 1)
+        Apply(self.PSU).write(self.PSU_Channel, 30, 20)
+        Output(self.PSU).setOutputState("ON")
+        Current(self.ELoad).setOutputCurrent(6.66, self.ELoad_Channel)
+        Output(self.ELoad).setOutputStateC("ON", self.ELoad_Channel)
+        OSC(self.OSC).standby()
+        Output(self.ELoad).setOutputStateC("OFF", self.ELoad_Channel)
+        OSC(self.OSC).readRiseTime()
+        OSC(self.OSC).standby()
+        Output(self.ELoad).setOutputStateC("ON", self.ELoad_Channel)
+        OSC(self.OSC).readFallTime()
+        Output(self.ELoad).setOutputStateC("OFF", self.ELoad_Channel)
+        Output(self.PSU).setOutputState("OFF")
