@@ -1,4 +1,5 @@
 import pyvisa
+from time import sleep
 
 
 class Subsystem(object):
@@ -40,7 +41,7 @@ class Apply(Subsystem):
         super().__init__(VISA_ADDRESS)
 
     def write(self, Channel_Number, Voltage, Current):
-        self.instr.write(f"APPL CH {Channel_Number},{Voltage},{Current}")
+        self.instr.write(f"APPL CH{Channel_Number},{Voltage},{Current}")
 
 
 class Current(Subsystem):
@@ -60,21 +61,16 @@ class Current(Subsystem):
         self.instr.write(f"CURR:TRIG {Current},(@{ChannelNumber})")
 
     def setCurrentMode(self, Mode, ChannelNumber):
-        
         self.instr.write(f"CURR:MODE {Mode},(@{ChannelNumber})")
 
     def CLECurrentProtection(self, ChannelNumber):
         self.instr.write(f"CURR:PROT:CLE (@{ChannelNumber})")
 
     def setProtectionDelay(self, delay_time, ChannelNumber):
-        self.instr.write(
-                    f"CURR:PROT:DEL {delay_time},(@{ChannelNumber})"
-        )
+        self.instr.write(f"CURR:PROT:DEL {delay_time},(@{ChannelNumber})")
 
     def enableCurrentProtection(self, state, ChannelNumber):
-        self.instr.write(
-            f"CURR:PROT:STAT {state},(@{ChannelNumber})"
-        )
+        self.instr.write(f"CURR:PROT:STAT {state},(@{ChannelNumber})")
 
     def queryCurrentTrip(self):
         return self.instr.query("CURR:PROT:TRIP?")
@@ -84,18 +80,16 @@ class Current(Subsystem):
 
     def enableLowRangeCurrent(self, mode):
         self.instr.write(f"CURR:SENS:LOW {mode}")
-        
+
     def setPositiveSlew(self, Current, ChannelNumber):
         self.instr.write(f"CURR:SLEW {Current},(@{ChannelNumber})")
 
     def setNegativeSlew(self, Current, ChannelNumber):
-        self.instr.write(
-            f"CURR:SLEW:NEG {Current},(@{ChannelNumber})"
-        )
+        self.instr.write(f"CURR:SLEW:NEG {Current},(@{ChannelNumber})")
 
     def setTransInput(self, Current, ChannelNumber):
         self.instr.write(f"CURR:TLEV {Current},(@{ChannelNumber})")
-        
+
     def setTerminal(self, terminal):
         self.instr.write(f"CURR:TERM {terminal}")
 
@@ -181,14 +175,13 @@ class Configure(Subsystem):
         elif len(args) == 3:
             self.instr.write(f"CONF:{args[0]}:{args[1]}:{args[2]}")
 
-
     def query(self, *args):
         if len(args) == 1:
             return self.instr.query(f"CONF: {args[0]}?")
-        
+
         elif len(args) == 2:
             return self.instr.query(f"CONF: {args[0]}:{args[1]}?")
-            
+
         elif len(args) == 3:
             return self.instr.query(f"CONF: {args[0]}:{args[1]}:{args[2]}?")
 
@@ -242,7 +235,7 @@ class Fetch(Subsystem):
     def query2(self, ChannelNumber, *args):
         if len(args) == 1:
             return self.instr.query(f"FETC:{args[0]}? (@{ChannelNumber})")
-        
+
         elif len(args) == 2:
             return self.instr.query(f"FETC:{args[0]}:{args[1]}? (@{ChannelNumber})")
 
@@ -254,6 +247,7 @@ class Function(Subsystem):
     def setMode(self, MODE, ChannelNumber):
         self.instr.write(f"FUNC {MODE} ,(@{ChannelNumber})")
 
+
 class Format(Subsystem):
     def __init__(self, VISA_ADDRESS):
         super().__init__(VISA_ADDRESS)
@@ -263,6 +257,7 @@ class Format(Subsystem):
 
     def write(self, mode):
         self.instr.write(f"FORM:OUTP {mode}")
+
 
 class Initiate(Subsystem):
     def __init__(self, VISA_ADDRESS):
@@ -274,12 +269,12 @@ class Initiate(Subsystem):
     def initiateAcquire(self, ChannelNumber):
         self.instr.write(f"INIT:ACQ (@{ChannelNumber})")
 
-
     def initiateDLog(self, filename):
         self.instr.write(f"INIT:DLOG {filename}")
 
     def initiateContinuous(self, state, ChannelNumber):
         self.instr.write(f"INIT:CONT:TRAN {state},(@{ChannelNumber})")
+
 
 class Output(Subsystem):
     def __init__(self, VISA_ADDRESS):
@@ -290,7 +285,6 @@ class Output(Subsystem):
 
     def setOutputStateC(self, state, ChannelNumber):
         self.instr.write(f"OUTP {state},(@{ChannelNumber})")
-
 
     def coupleChannel(self, ChannelNumber):
         self.instr.write(f"OUTP:COUP:CHAN CH{ChannelNumber}")
@@ -326,7 +320,6 @@ class List(Subsystem):
 
     def setListCount(self, range, ChannelNumber):
         self.instr.write(f"LIST:COUN {range},(@{ChannelNumber})")
-
 
     def setCurrentList(self, list, ChannelNumber):
         self.instr.write(f"LIST:CURR {list},(@{ChannelNumber})")
@@ -375,26 +368,21 @@ class Measure(Subsystem):
         super().__init__(VISA_ADDRESS)
 
     def singleChannelQuery(self, *args):
-        
         if len(args) == 1:
             return self.instr.query(f"MEAS:{args[0]}?")
 
         elif len(args) == 2:
             return self.instr.query(f"MEAS:{args[0]}:{args[1]}?")
 
-
         elif len(args) == 3:
             return self.instr.query(f"MEAS:{args[0]}:{args[1]}:{args[2]}?")
 
     def multipleChannelQuery(self, ChannelNumber, *args):
         if len(args) == 1:
-
             return self.instr.query(f"MEAS:{args}? (@{ChannelNumber})")
 
         elif len(args) == 2:
-
             return self.instr.query(f"MEAS:{args[0]}:{args[1]}?(@{ChannelNumber})")
-
 
 
 class Memory(Subsystem):
@@ -431,13 +419,11 @@ class Power(Subsystem):
     def setInputPower(self, value, ChannelNumber):
         self.instr.write(f"POW {value}(@{ChannelNumber})")
 
-
     def setTrigPower(self, value, ChannelNumber):
         self.instr.write(f"POW:TRIG {value}(@{ChannelNumber})")
 
     def setPowerMode(self, mode, ChannelNumber):
         self.instr.write(f"POW:MODE {mode}(@{ChannelNumber})")
-
 
     def setProtectionDelay(self, delaytime, ChannelNumber):
         self.instr.write(f"POW:PROT:DEL {delaytime},(@{ChannelNumber})")
@@ -465,6 +451,7 @@ class Power(Subsystem):
 
     def setNegativeSlewOverride(self, state, ChannelNumber):
         self.instr.write(f"POW:SLEW:NEG:MAX {state},(@{ChannelNumber})")
+
 
 class Read(Subsystem):
     def __init__(self, VISA_ADDRESS):
@@ -519,6 +506,7 @@ class Resistance(Subsystem):
     def setNegativeSlewOverride(self, state, ChannelNumber):
         self.instr.write(f"RES:SLEW:NEG:MAX {state},(@{ChannelNumber})")
 
+
 class Sample(Subsystem):
     def __init__(self, VISA_ADDRESS):
         super().__init__(VISA_ADDRESS)
@@ -547,7 +535,7 @@ class Sense(Subsystem):
         self.instr.write(f"VOLT:RES {string}")
 
     def setVoltageRangeAC(self, range):
-        self.instr.write(f"VOLT:AC:RANG {range}" )
+        self.instr.write(f"VOLT:AC:RANG {range}")
 
     def setVoltageResAC(self, string):
         self.instr.write(f"VOLT:AC:RES {string}")
@@ -571,7 +559,7 @@ class Sense(Subsystem):
         self.instr.write(f"RES:RANG {range}")
 
     def setResistanceRes(self, string):
-        self.instr.write(f"RES:RES {string}" )
+        self.instr.write(f"RES:RES {string}")
 
     def setResistanceOCompensated(self, string):
         self.instr.write(f"RES:OCOM {string}")
@@ -580,7 +568,7 @@ class Sense(Subsystem):
         self.instr.write(f"FRES:RANG {range}")
 
     def setFResistanceRes(self, string):
-        self.instr.write(f"FRES:RES {string}" )
+        self.instr.write(f"FRES:RES {string}")
 
     def setFResistanceOCompensated(self, string):
         self.instr.write(f"FRES:OCOM {string}")
@@ -616,7 +604,7 @@ class Sense(Subsystem):
         self.instr.write(f"SENS:DLOG:PER {time}")
 
     def setSampleDuration(self, time):
-        self.instr.write(f"SENS:DLOG:TIME {time}" )
+        self.instr.write(f"SENS:DLOG:TIME {time}")
 
     def enableCurrentMeasurement(self, state, ChannelNumber):
         self.instr.write(f"SENS:FUNC:CURR {state},(@{ChannelNumber})")
@@ -629,10 +617,10 @@ class Sense(Subsystem):
 
     def specifyOffsetSweepPoint(self, data_points, ChannelNumber):
         self.instr.write(f"SENS:SWE:OFFS:POIN {data_points},(@{ChannelNumber})")
-        
+
     def specifyIntervalPoints(self, time, ChannelNumber):
         self.instr.write(f"SENS:TINT {time},(@{ChannelNumber})")
-        
+
 
 class Status(Subsystem):
     def __init__(self, VISA_ADDRESS):
@@ -741,7 +729,6 @@ class System(Subsystem):
     def setTime(self, hh, mm, ss):
         self.instr.write(f"SYST:TIME {hh},{mm},{ss}")
 
-
     def queryTime(self):
         return self.instr.query("SYST:TIME?")
 
@@ -768,6 +755,7 @@ class Transient(Subsystem):
     def setTransientPulseWidth(self, value, ChannelNumber):
         self.instr.write(f"TRAN:TWID {value},(@{ChannelNumber})")
 
+
 class Trigger(Subsystem):
     def __init__(self, VISA_ADDRESS):
         super().__init__(VISA_ADDRESS)
@@ -792,11 +780,10 @@ class Trigger(Subsystem):
 
     def setCurrentSlope(self, state, ChannelNumber):
         self.instr.write(f"TRIG:ACQ:CURR:SLOP {state},(@{ChannelNumber})")
-        
-    def setTriggeredVoltage(self, value, ChannelNumber):
 
+    def setTriggeredVoltage(self, value, ChannelNumber):
         self.instr.write(f"TRIG:ACQ:VOLT {value},(@{ChannelNumber})")
-        
+
     def setVoltageSlope(self, state, ChannelNumber):
         self.instr.write(f"TRIG:ACQ:VOLT:SLOP {state},(@{ChannelNumber})")
 
@@ -857,6 +844,7 @@ class Voltage(Subsystem):
 
     def setTransInput(self, Current, ChannelNumber):
         self.instr.write(f"VOLT:TLEV {Current},(@{ChannelNumber})")
+
     def setSlewTracking(self, mode, ChannelNumber):
         self.instr.write(f"VOLT:SLEW COUP {mode},(@{ChannelNumber})")
 
@@ -891,4 +879,31 @@ class Voltage(Subsystem):
         self.instr.write(f"VOLT:ZERO:AUTO {mode}")
 
     def setAutoImpedanceMode(self, mode):
-        self.instr.write(f"VOLT:IMP:AUTO {mode}")
+        self.instr.write("VOLT:IMP:AUTO " + str(mode))
+
+
+class OSC(Subsystem):
+    def __init__(self, VISA_ADDRESS):
+        super().__init__(VISA_ADDRESS)
+
+    def setup(self):
+        self.instr.write("*RST")
+        self.instr.write("CHANNEL1:COUPLING AC")
+        self.instr.write("TRIGGER:MODE EDGE")
+        self.instr.write("TRIGGER:EDGE:SOURCE CHANNEL1")
+        self.instr.write("TRIGGER:EDGE:COUPLING AC")
+        self.instr.write("TRIGGER:EDGE:SLOPE ALTERNATE")
+        self.instr.write("TRIGGER:SWEEP NORM")
+        self.instr.write("TIMEBASE:MAIN:SCALE 2e-6")
+        self.instr.write("CHANNEL1:SCALE 1")
+
+    def standby(self):
+        sleep(1)
+        self.instr.write("SINGLE")
+        self.instr.write("*WAI")
+
+    def readRiseTime(self):
+        print("Rise Time:", self.instr.query("MEASURE:RISETIME? CHANNEL1"))
+
+    def readFallTime(self):
+        print("Fall Time:", self.instr.query("MEASURE:FALLTIME? CHANNEL1"))
