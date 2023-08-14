@@ -1298,7 +1298,14 @@ class RiseFallTime:
         self.PSU_Channel = PSU_Channel
 
     def test(self):
-        OSC(self.OSC).setup()
+        OSC(self.OSC).setChannelCoupling(1, "AC")
+        OSC(self.OSC).setTriggerMode("EDGE")
+        OSC(self.OSC).setTriggerCoupling("AC")
+        OSC(self.OSC).setTriggerSweepMode("NORM")
+        OSC(self.OSC).setTriggerSlope("ALTERNATE")
+        OSC(self.OSC).setTimeScale("2e-6")
+        OSC(self.OSC).setVerticalScale(1, 1)
+
         Display(self.ELoad).displayState(self.ELoad_Channel)
         Function(self.ELoad).setMode("Current", self.ELoad_Channel)
         Voltage(self.PSU).setSenseMode("EXT", 1)
@@ -1306,11 +1313,70 @@ class RiseFallTime:
         Output(self.PSU).setOutputState("ON")
         Current(self.ELoad).setOutputCurrent(6.66, self.ELoad_Channel)
         Output(self.ELoad).setOutputStateC("ON", self.ELoad_Channel)
-        OSC(self.OSC).standby()
+
+        OSC(self.OSC).setSingleMode()
+        WAI(self.OSC)
         Output(self.ELoad).setOutputStateC("OFF", self.ELoad_Channel)
-        OSC(self.OSC).readRiseTime()
-        OSC(self.OSC).standby()
+
+        print("Rise Time:", OSC(self.OSC).getRiseTime(1))
+
+        OSC(self.OSC).setSingleMode()
+        WAI(self.OSC)
         Output(self.ELoad).setOutputStateC("ON", self.ELoad_Channel)
-        OSC(self.OSC).readFallTime()
+
+        print("Rise Time:", OSC(self.OSC).getFallTime(1))
+
         Output(self.ELoad).setOutputStateC("OFF", self.ELoad_Channel)
         Output(self.PSU).setOutputState("OFF")
+
+    def execute(
+        self,
+        ELoad,
+        PSU,
+        OSC,
+        ELoad_Channel,
+        PSU_Channel,
+        OSC_Channel,
+        setMode,
+        setVoltageSense,
+        V_rating,
+        I_rating,
+        P_rating,
+        Channel_CouplingMode,
+        Trigger_Mode,
+        Trigger_CouplingMode,
+        Trigger_SweepMode,
+        Trigger_SlopeMode,
+        TimeScale,
+        VerticalScale,
+    ):
+        OSC(OSC).setChannelCoupling(OSC_Channel, Channel_CouplingMode)
+        OSC(OSC).setTriggerMode(Trigger_Mode)
+        OSC(OSC).setTriggerCoupling(Trigger_CouplingMode)
+        OSC(OSC).setTriggerSweepMode(Trigger_SweepMode)
+        OSC(OSC).setTriggerSlope(Trigger_SlopeMode)
+        OSC(OSC).setTimeScale(TimeScale)
+        OSC(OSC).setVerticalScale(VerticalScale, OSC_Channel)
+
+        Display(ELoad).displayState(ELoad_Channel)
+        Function(ELoad).setMode(setMode, ELoad_Channel)
+        Voltage(PSU).setSenseMode(setVoltageSense, PSU_Channel)
+        Apply(PSU).write(PSU_Channel, V_rating, I_rating)
+        Output(PSU).setOutputState("ON")
+        Current(ELoad).setOutputCurrent(P_rating / V_rating, ELoad_Channel)
+        Output(ELoad).setOutputStateC("ON", ELoad_Channel)
+
+        OSC(OSC).setSingleMode()
+        WAI(OSC)
+        Output(ELoad).setOutputStateC("OFF", ELoad_Channel)
+
+        print("Rise Time:", OSC(OSC).getRiseTime(OSC_Channel))
+
+        OSC(OSC).setSingleMode()
+        WAI(OSC)
+        Output(ELoad).setOutputStateC("ON", ELoad_Channel)
+
+        print("Rise Time:", OSC(OSC).getFallTime(OSC_Channel))
+
+        Output(ELoad).setOutputStateC("OFF", ELoad_Channel)
+        Output(PSU).setOutputState("OFF")
