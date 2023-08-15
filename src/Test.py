@@ -1298,14 +1298,16 @@ class RiseFallTime:
         self.PSU_Channel = PSU_Channel
 
     def test(self):
+        RST(self.OSC)
         Oscilloscope(self.OSC).setChannelCoupling(1, "AC")
         Oscilloscope(self.OSC).setTriggerMode("EDGE")
         Oscilloscope(self.OSC).setTriggerCoupling("AC")
         Oscilloscope(self.OSC).setTriggerSweepMode("NORM")
         Oscilloscope(self.OSC).setTriggerSlope("ALTERNATE")
+        Oscilloscope(self.OSC).setTriggerSource("1")
         Oscilloscope(self.OSC).setTimeScale("5e-6")
         Oscilloscope(self.OSC).setVerticalScale(1, 1)
-
+        Oscilloscope(self.OSC).setTriggerEdgeLevel(1)
         Display(self.ELoad).displayState(self.ELoad_Channel)
         Function(self.ELoad).setMode("Current", self.ELoad_Channel)
         Voltage(self.PSU).setSenseMode("EXT", 1)
@@ -1367,7 +1369,9 @@ class RiseFallTime:
         Oscilloscope(OSC).setTriggerSweepMode(Trigger_SweepMode)
         Oscilloscope(OSC).setTriggerSlope(Trigger_SlopeMode)
         Oscilloscope(OSC).setTimeScale(TimeScale)
+        Oscilloscope(self.OSC).setTriggerSource(OSC_Channel)
         Oscilloscope(OSC).setVerticalScale(VerticalScale, OSC_Channel)
+        Oscilloscope(self.OSC).setTriggerEdgeLevel(OSC_Channel)
 
         Display(ELoad).displayState(ELoad_Channel)
         Function(ELoad).setMode(setMode, ELoad_Channel)
