@@ -26,7 +26,7 @@ from Keysight import (
     Sample,
     Initiate,
     Fetch,
-    OSC,
+    Oscilloscope,
 )
 
 
@@ -1298,13 +1298,13 @@ class RiseFallTime:
         self.PSU_Channel = PSU_Channel
 
     def test(self):
-        OSC(self.OSC).setChannelCoupling(1, "AC")
-        OSC(self.OSC).setTriggerMode("EDGE")
-        OSC(self.OSC).setTriggerCoupling("AC")
-        OSC(self.OSC).setTriggerSweepMode("NORM")
-        OSC(self.OSC).setTriggerSlope("ALTERNATE")
-        OSC(self.OSC).setTimeScale("2e-6")
-        OSC(self.OSC).setVerticalScale(1, 1)
+        Oscilloscope(self.OSC).setChannelCoupling(1, "AC")
+        Oscilloscope(self.OSC).setTriggerMode("EDGE")
+        Oscilloscope(self.OSC).setTriggerCoupling("AC")
+        Oscilloscope(self.OSC).setTriggerSweepMode("NORM")
+        Oscilloscope(self.OSC).setTriggerSlope("ALTERNATE")
+        Oscilloscope(self.OSC).setTimeScale("2e-6")
+        Oscilloscope(self.OSC).setVerticalScale(1, 1)
 
         Display(self.ELoad).displayState(self.ELoad_Channel)
         Function(self.ELoad).setMode("Current", self.ELoad_Channel)
@@ -1314,17 +1314,19 @@ class RiseFallTime:
         Current(self.ELoad).setOutputCurrent(6.66, self.ELoad_Channel)
         Output(self.ELoad).setOutputStateC("ON", self.ELoad_Channel)
 
-        OSC(self.OSC).setSingleMode()
+        Oscilloscope(self.OSC).setSingleMode()
         WAI(self.OSC)
         Output(self.ELoad).setOutputStateC("OFF", self.ELoad_Channel)
+        print("When Load is Removed")
+        print("Rise Time:", Oscilloscope(self.OSC).getRiseTime(1))
+        print("Fall Time:", Oscilloscope(self.OSC).getFallTime(1))
 
-        print("Rise Time:", OSC(self.OSC).getRiseTime(1))
-
-        OSC(self.OSC).setSingleMode()
+        Oscilloscope(self.OSC).setSingleMode()
         WAI(self.OSC)
         Output(self.ELoad).setOutputStateC("ON", self.ELoad_Channel)
-
-        print("Rise Time:", OSC(self.OSC).getFallTime(1))
+        print("When Load is Added")
+        print("Rise Time:", Oscilloscope(self.OSC).getRiseTime(1))
+        print("Fall Time:", Oscilloscope(self.OSC).getFallTime(1))
 
         Output(self.ELoad).setOutputStateC("OFF", self.ELoad_Channel)
         Output(self.PSU).setOutputState("OFF")
@@ -1350,33 +1352,39 @@ class RiseFallTime:
         TimeScale,
         VerticalScale,
     ):
-        OSC(OSC).setChannelCoupling(OSC_Channel, Channel_CouplingMode)
-        OSC(OSC).setTriggerMode(Trigger_Mode)
-        OSC(OSC).setTriggerCoupling(Trigger_CouplingMode)
-        OSC(OSC).setTriggerSweepMode(Trigger_SweepMode)
-        OSC(OSC).setTriggerSlope(Trigger_SlopeMode)
-        OSC(OSC).setTimeScale(TimeScale)
-        OSC(OSC).setVerticalScale(VerticalScale, OSC_Channel)
+        I_Max = float(P_rating) / float(V_rating)
+        Oscilloscope(OSC).setChannelCoupling(OSC_Channel, Channel_CouplingMode)
+        Oscilloscope(OSC).setTriggerMode(Trigger_Mode)
+        Oscilloscope(OSC).setTriggerCoupling(Trigger_CouplingMode)
+        Oscilloscope(OSC).setTriggerSweepMode(Trigger_SweepMode)
+        Oscilloscope(OSC).setTriggerSlope(Trigger_SlopeMode)
+        Oscilloscope(OSC).setTimeScale(TimeScale)
+        Oscilloscope(OSC).setVerticalScale(VerticalScale, OSC_Channel)
 
         Display(ELoad).displayState(ELoad_Channel)
         Function(ELoad).setMode(setMode, ELoad_Channel)
         Voltage(PSU).setSenseMode(setVoltageSense, PSU_Channel)
         Apply(PSU).write(PSU_Channel, V_rating, I_rating)
         Output(PSU).setOutputState("ON")
-        Current(ELoad).setOutputCurrent(P_rating / V_rating, ELoad_Channel)
+        Current(ELoad).setOutputCurrent(I_Max, ELoad_Channel)
         Output(ELoad).setOutputStateC("ON", ELoad_Channel)
 
-        OSC(OSC).setSingleMode()
+        Oscilloscope(OSC).setSingleMode()
         WAI(OSC)
         Output(ELoad).setOutputStateC("OFF", ELoad_Channel)
 
-        print("Rise Time:", OSC(OSC).getRiseTime(OSC_Channel))
+        print("Rise Time:", Oscilloscope(OSC).getRiseTime(OSC_Channel))
+        print("Fall Time:", Oscilloscope(OSC).getFallTime(OSC_Channel))
 
-        OSC(OSC).setSingleMode()
+        Oscilloscope(OSC).setSingleMode()
         WAI(OSC)
         Output(ELoad).setOutputStateC("ON", ELoad_Channel)
 
-        print("Rise Time:", OSC(OSC).getFallTime(OSC_Channel))
+        print("Rise Time:", Oscilloscope(OSC).getRiseTime(OSC_Channel))
+        print("Fall Time:", Oscilloscope(OSC).getFallTime(OSC_Channel))
 
         Output(ELoad).setOutputStateC("OFF", ELoad_Channel)
         Output(PSU).setOutputState("OFF")
+
+    def saveimg(self):
+        Oscilloscope(self.OSC).saveimg()
