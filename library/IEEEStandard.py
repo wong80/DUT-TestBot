@@ -70,7 +70,7 @@ class RST(IEEE_488):
     def __init__(self, VISA_ADDRESS):
         super().__init__(VISA_ADDRESS)
 
-        return self.instr.query("*RST?")
+        self.instr.write("*RST")
 
 
 class PSC(IEEE_488):
