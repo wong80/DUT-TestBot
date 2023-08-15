@@ -8,7 +8,7 @@ sys.path.insert(
     r"C://Users//zhiywong//OneDrive - Keysight Technologies//Documents//GitHub//PyVisa//library",
 )
 
-from IEEEStandard import OPC, WAI, TRG
+from IEEEStandard import OPC, WAI, TRG, RST
 
 
 from Keysight import (
@@ -1303,7 +1303,7 @@ class RiseFallTime:
         Oscilloscope(self.OSC).setTriggerCoupling("AC")
         Oscilloscope(self.OSC).setTriggerSweepMode("NORM")
         Oscilloscope(self.OSC).setTriggerSlope("ALTERNATE")
-        Oscilloscope(self.OSC).setTimeScale("2e-6")
+        Oscilloscope(self.OSC).setTimeScale("5e-6")
         Oscilloscope(self.OSC).setVerticalScale(1, 1)
 
         Display(self.ELoad).displayState(self.ELoad_Channel)
@@ -1317,16 +1317,24 @@ class RiseFallTime:
         Oscilloscope(self.OSC).setSingleMode()
         WAI(self.OSC)
         Output(self.ELoad).setOutputStateC("OFF", self.ELoad_Channel)
+
         print("When Load is Removed")
-        print("Rise Time:", Oscilloscope(self.OSC).getRiseTime(1))
-        print("Fall Time:", Oscilloscope(self.OSC).getFallTime(1))
+        RiseTime1 = float(Oscilloscope(self.OSC).getRiseTime(1))
+        FallTime1 = float(Oscilloscope(self.OSC).getFallTime(1))
+        print(f"Rise Time: {RiseTime1}s")
+        print(f"Fall Time: {FallTime1}s")
+        print(f"Total Transient Time: {RiseTime1+ FallTime1}s")
 
         Oscilloscope(self.OSC).setSingleMode()
         WAI(self.OSC)
         Output(self.ELoad).setOutputStateC("ON", self.ELoad_Channel)
+
         print("When Load is Added")
-        print("Rise Time:", Oscilloscope(self.OSC).getRiseTime(1))
-        print("Fall Time:", Oscilloscope(self.OSC).getFallTime(1))
+        RiseTime2 = float(Oscilloscope(self.OSC).getRiseTime(1))
+        FallTime2 = float(Oscilloscope(self.OSC).getFallTime(1))
+        print(f"Rise Time: {RiseTime2}s")
+        print(f"Fall Time: {FallTime2}s")
+        print(f"Total Transient Time: {RiseTime2 +FallTime2}s")
 
         Output(self.ELoad).setOutputStateC("OFF", self.ELoad_Channel)
         Output(self.PSU).setOutputState("OFF")
@@ -1373,16 +1381,23 @@ class RiseFallTime:
         WAI(OSC)
         Output(ELoad).setOutputStateC("OFF", ELoad_Channel)
 
-        print("Rise Time:", Oscilloscope(OSC).getRiseTime(OSC_Channel))
-        print("Fall Time:", Oscilloscope(OSC).getFallTime(OSC_Channel))
+        print("When Load is Removed")
+        RiseTime1 = float(Oscilloscope(self.OSC).getRiseTime(1))
+        FallTime1 = float(Oscilloscope(self.OSC).getFallTime(1))
+        print(f"Rise Time: {RiseTime1}s")
+        print(f"Fall Time: {FallTime1}s")
+        print(f"Total Transient Time: {RiseTime1+ FallTime1}s")
 
         Oscilloscope(OSC).setSingleMode()
         WAI(OSC)
         Output(ELoad).setOutputStateC("ON", ELoad_Channel)
 
-        print("Rise Time:", Oscilloscope(OSC).getRiseTime(OSC_Channel))
-        print("Fall Time:", Oscilloscope(OSC).getFallTime(OSC_Channel))
-
+        print("When Load is Added")
+        RiseTime2 = float(Oscilloscope(self.OSC).getRiseTime(1))
+        FallTime2 = float(Oscilloscope(self.OSC).getFallTime(1))
+        print(f"Rise Time: {RiseTime2}s")
+        print(f"Fall Time: {FallTime2}s")
+        print(f"Total Transient Time: {RiseTime2 +FallTime2}s")
         Output(ELoad).setOutputStateC("OFF", ELoad_Channel)
         Output(PSU).setOutputState("OFF")
 
