@@ -1,5 +1,7 @@
 import pyvisa
 from time import sleep
+import sys
+from matplotlib import pyplot as plt
 
 
 class Subsystem(object):
@@ -882,7 +884,7 @@ class Voltage(Subsystem):
         self.instr.write("VOLT:IMP:AUTO " + str(mode))
 
 
-class OSC(Subsystem):
+class Oscilloscope(Subsystem):
     def __init__(self, VISA_ADDRESS):
         super().__init__(VISA_ADDRESS)
 
@@ -905,10 +907,10 @@ class OSC(Subsystem):
         self.instr.write(f"TRIGGER:EDGE:SLOPE {mode}")
 
     def setTimeScale(self, value):
-        self.instr.write(f"TRIGGER:MAIN:SCALE {value}")
+        self.instr.write(f"TIMEBASE:MAIN:SCALE {value}")
 
     def setVerticalScale(self, value, ChannelNumber):
-        self.instr.write(f"CHANNEL{ChannelNumber}:SCALE{value}")
+        self.instr.write(f"CHANNEL{ChannelNumber}:SCALE {value}")
 
     def setSingleMode(self):
         self.instr.write("SINGLE")
@@ -918,3 +920,17 @@ class OSC(Subsystem):
 
     def getFallTime(self, ChannelNumber):
         return self.instr.query(f"MEASURE:FALLTIME? CHANNEL{ChannelNumber}")
+
+    def saveimg(self):
+        sDisplay = self.instr.query_binary_values("DISPLAY:DATA? BMP,SCREEN,COLOR")
+
+        # plt.plot(sDisplay)
+        # plt.show()
+        # print(sDisplay)
+        # f = open("screen_image.png", "wb")
+
+        # f.write(sDisplay)
+
+        # f.close()
+
+        # print("Screen image written to screen_image.png.")
