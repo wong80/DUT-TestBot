@@ -34,6 +34,7 @@ from Test import (
     CurrentMeasurement,
     VisaResourceManager,
     LoadRegulation,
+    RiseFallTime,
 )
 from data import *
 from xlreport import xlreport
@@ -2110,11 +2111,17 @@ class TransientRecoveryTime(QDialog):
         QLineEdit_TimeScale = QLineEdit()
         QLineEdit_VerticalScale = QLineEdit()
 
-        QComboBox_Channel_CouplingMode.addItems(["DC", "AC"])
+        QComboBox_Channel_CouplingMode.addItems(["AC", "DC"])
         QComboBox_Trigger_Mode.addItems(["EDGE", "IIC", "EBUR"])
-        QComboBox_Trigger_CouplingMode.addItems(["DC", "AC"])
-        QComboBox_Trigger_SweepMode.addItems(["AUTO", "NORMAL"])
-        QComboBox_Trigger_SlopeMode.addItems(["NEG", "POS", "ALT", "EITH"])
+        QComboBox_Trigger_CouplingMode.addItems(["AC", "DC"])
+        QComboBox_Trigger_SweepMode.addItems(["NORMAL", "AUTO"])
+        QComboBox_Trigger_SlopeMode.addItems(["ALT", "POS", "NEG", "EITH"])
+
+        QComboBox_Channel_CouplingMode.setEnabled(False)
+        QComboBox_Trigger_Mode.setEnabled(False)
+        QComboBox_Trigger_CouplingMode.setEnabled(False)
+        QComboBox_Trigger_SweepMode.setEnabled(False)
+        QComboBox_Trigger_SlopeMode.setEnabled(False)
 
         layout1.addRow(Desp1)
         layout1.addRow(QLabel_PSU_VisaAddress, QLineEdit_PSU_VisaAddress)
@@ -2192,8 +2199,82 @@ class TransientRecoveryTime(QDialog):
         QLineEdit_TimeScale.textEdited.connect(self.TimeScale_changed)
         QLineEdit_VerticalScale.textEdited.connect(self.VerticalScale_changed)
 
-    def executeTest():
-        pass
+    def executeTest(self):
+        QMessageBox.warning(
+            self,
+            "In Progress",
+            "Measurement will start now , please do not close the main window until test is completed",
+        )
+
+        for i in [
+            self,
+            self.PSU,
+            self.OSC,
+            self.ELoad,
+            self.Voltage_Rating,
+            self.Current_Rating,
+            self.Power_Rating,
+            self.PSU_Channel,
+            self.OSC_Channel,
+            self.ELoad_Channel,
+            self.VoltageSense,
+            self.setFunction,
+            self.Channel_CouplingMode,
+            self.Trigger_CouplingMode,
+            self.Trigger_Mode,
+            self.Trigger_SweepMode,
+            self.Trigger_SlopeMode,
+            self.TimeScale,
+            self.VerticalScale,
+        ]:
+            if i == "":
+                QMessageBox.warning(
+                    self, "Error", "One of the parameters are not filled in"
+                )
+                break
+
+        else:
+            A = VisaResourceManager()
+            flag, args = A.openRM(self.ELoad, self.PSU, self.OSC)
+
+            if flag == 0:
+                string = ""
+                for item in args:
+                    string = string + item
+
+                QMessageBox.warning(self, "VISA IO ERROR", string)
+                exit()
+
+            try:
+                RiseFallTime.execute(
+                    self,
+                    self.ELoad,
+                    self.PSU,
+                    self.OSC,
+                    self.ELoad_Channel,
+                    self.PSU_Channel,
+                    self.OSC_Channel,
+                    self.setFunction,
+                    self.VoltageSense,
+                    self.Voltage_Rating,
+                    self.Current_Rating,
+                    self.Power_Rating,
+                    self.Channel_CouplingMode,
+                    self.Trigger_Mode,
+                    self.Trigger_CouplingMode,
+                    self.Trigger_SweepMode,
+                    self.Trigger_SlopeMode,
+                    self.TimeScale,
+                    self.VerticalScale,
+                )
+
+            except Exception as e:
+                print(e)
+                QMessageBox.warning(self, "Error", str(e))
+                exit()
+
+            self.OutputBox.append(my_result.getvalue())
+            self.OutputBox.append("Measurement is complete !")
 
     def Channel_CouplingMode_changed(self, s):
         self.Channel_CouplingMode = s
