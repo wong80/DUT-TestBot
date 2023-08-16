@@ -924,16 +924,20 @@ class Oscilloscope(Subsystem):
     def getFallTime(self, ChannelNumber):
         return self.instr.query(f"MEASURE:FALLTIME? CHANNEL{ChannelNumber}")
 
-    def saveimg(self):
-        sDisplay = self.instr.query_binary_values("DISPLAY:DATA? BMP,SCREEN,COLOR")
+    def setTriggerHFReject(self, mode):
+        self.instr.write(f"TRIGGER:HFREJECT {mode}")
 
-        # plt.plot(sDisplay)
-        # plt.show()
-        # print(sDisplay)
-        # f = open("screen_image.png", "wb")
+    def setTriggerNoiseReject(self, mode):
+        self.instr.write(f"TRIGGER:NREJECT {mode}")
 
-        # f.write(sDisplay)
+    def getMaximumVoltage(self):
+        return self.instr.query("MEASURE:VMAX?")
 
-        # f.close()
+    def setUpperLimit(self, value):
+        self.instr.write(f"MEASURE:UPPER {value}")
 
-        # print("Screen image written to screen_image.png.")
+    def setLowerLimit(self, value):
+        self.instr.write(f"MEASURE:LOWER {value}")
+
+    def setThresholdMode(self, mode):
+        self.instr.write(f"MEASURE:THRESHOLDS {mode}")
