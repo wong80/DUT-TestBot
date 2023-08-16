@@ -2058,6 +2058,8 @@ class TransientRecoveryTime(QDialog):
         QLabel_Power_Rating = QLabel()
         QLabel_Max_Voltage = QLabel()
         QLabel_Max_Current = QLabel()
+        QLabel_I_Step = QLabel()
+        QLabel_V_Settling_Band = QLabel()
 
         QLabel_ELoad_Display_Channel.setText("Display Channel (Eload):")
         QLabel_PSU_Display_Channel.setText("Display Channel (PSU):")
@@ -2067,6 +2069,8 @@ class TransientRecoveryTime(QDialog):
         QLabel_Power_Rating.setText("Power Rating (W):")
         QLabel_Max_Voltage.setText("Maximum Voltage (V):")
         QLabel_Max_Current.setText("Maximum Current (A):")
+        QLabel_I_Step.setText("Step Current (A):")
+        QLabel_V_Settling_Band.setText("Settling Band Voltage (V):")
 
         QLineEdit_ELoad_Display_Channel = QLineEdit()
         QLineEdit_PSU_Display_Channel = QLineEdit()
@@ -2076,6 +2080,8 @@ class TransientRecoveryTime(QDialog):
         QLineEdit_Power_Rating = QLineEdit()
         QLineEdit_Max_Voltage = QLineEdit()
         QLineEdit_Max_Current = QLineEdit()
+        QLineEdit_I_Step = QLineEdit()
+        QLineEdit_V_Settling_Band = QLineEdit()
         QComboBox_set_Function.addItems(
             [
                 "Current Priority",
@@ -2101,7 +2107,7 @@ class TransientRecoveryTime(QDialog):
         QLabel_Trigger_SweepMode.setText("Trigger Sweep Mode:")
         QLabel_Trigger_SlopeMode.setText("Trigger Slope Mode:")
         QLabel_TimeScale.setText("Time Scale:")
-        QLabel_VerticalScale.setText("Vertical Scale")
+        QLabel_VerticalScale.setText("Vertical Scale:")
 
         QComboBox_Channel_CouplingMode = QComboBox()
         QComboBox_Trigger_Mode = QComboBox()
@@ -2137,6 +2143,8 @@ class TransientRecoveryTime(QDialog):
         layout1.addRow(QLabel_Power_Rating, QLineEdit_Power_Rating)
         layout1.addRow(QLabel_Max_Voltage, QLineEdit_Max_Voltage)
         layout1.addRow(QLabel_Max_Current, QLineEdit_Max_Current)
+        layout1.addRow(QLabel_I_Step, QLineEdit_I_Step)
+        layout1.addRow(QLabel_V_Settling_Band, QLineEdit_V_Settling_Band)
         layout1.addRow(Desp4)
         layout1.addRow(QLabel_Channel_CouplingMode, QComboBox_Channel_CouplingMode)
         layout1.addRow(QLabel_Trigger_CouplingMode, QComboBox_Trigger_CouplingMode)
@@ -2168,8 +2176,12 @@ class TransientRecoveryTime(QDialog):
         self.Trigger_SlopeMode = "ALTERNATE"
         self.TimeScale = "5"
         self.VerticalScale = "1e-5"
+        self.I_Step = ""
+        self.V_Settling_Band = ""
 
         QPushButton_Widget.clicked.connect(self.executeTest)
+        QLineEdit_I_Step.textEdited.connect(self.I_Step_changed)
+        QLineEdit_V_Settling_Band.textEdited.connect(self.V_Settling_Band_changed)
         QLineEdit_PSU_VisaAddress.textEdited.connect(self.PSU_VisaAddress_changed)
         QLineEdit_OSC_VisaAddress.textEdited.connect(self.OSC_VisaAddress_changed)
         QLineEdit_ELoad_VisaAddress.textEdited.connect(self.ELoad_VisaAddress_changed)
@@ -2199,6 +2211,12 @@ class TransientRecoveryTime(QDialog):
         QLineEdit_TimeScale.textEdited.connect(self.TimeScale_changed)
         QLineEdit_VerticalScale.textEdited.connect(self.VerticalScale_changed)
 
+    def I_Step_changed(self, s):
+        self.I_Step = s
+
+    def V_Settling_Band_changed(self, s):
+        self.V_Settling_Band = s
+
     def executeTest(self):
         QMessageBox.warning(
             self,
@@ -2213,7 +2231,6 @@ class TransientRecoveryTime(QDialog):
             self.ELoad,
             self.Voltage_Rating,
             self.Current_Rating,
-            self.Power_Rating,
             self.PSU_Channel,
             self.OSC_Channel,
             self.ELoad_Channel,
@@ -2226,6 +2243,8 @@ class TransientRecoveryTime(QDialog):
             self.Trigger_SlopeMode,
             self.TimeScale,
             self.VerticalScale,
+            self.I_Step,
+            self.V_Settling_Band,
         ]:
             if i == "":
                 QMessageBox.warning(
@@ -2258,7 +2277,6 @@ class TransientRecoveryTime(QDialog):
                     self.VoltageSense,
                     self.Voltage_Rating,
                     self.Current_Rating,
-                    self.Power_Rating,
                     self.Channel_CouplingMode,
                     self.Trigger_Mode,
                     self.Trigger_CouplingMode,
@@ -2266,6 +2284,8 @@ class TransientRecoveryTime(QDialog):
                     self.Trigger_SlopeMode,
                     self.TimeScale,
                     self.VerticalScale,
+                    self.I_Step,
+                    self.V_Settling_Band,
                 )
 
             except Exception as e:
