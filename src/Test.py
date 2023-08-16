@@ -1303,11 +1303,13 @@ class RiseFallTime:
         Oscilloscope(self.OSC).setTriggerMode("EDGE")
         Oscilloscope(self.OSC).setTriggerCoupling("AC")
         Oscilloscope(self.OSC).setTriggerSweepMode("NORM")
-        Oscilloscope(self.OSC).setTriggerSlope("ALTERNATE")
+        Oscilloscope(self.OSC).setTriggerSlope("RISE")
         Oscilloscope(self.OSC).setTriggerSource("1")
-        Oscilloscope(self.OSC).setTimeScale("5e-6")
+        Oscilloscope(self.OSC).setTimeScale("10e-6")
         Oscilloscope(self.OSC).setVerticalScale(1, 1)
         Oscilloscope(self.OSC).setTriggerEdgeLevel(1)
+        Oscilloscope(self.OSC).setTriggerHFReject(1)
+        Oscilloscope(self.OSC).setTriggerNoiseReject(1)
         Display(self.ELoad).displayState(self.ELoad_Channel)
         Function(self.ELoad).setMode("Current", self.ELoad_Channel)
         Voltage(self.PSU).setSenseMode("EXT", 1)
@@ -1318,27 +1320,24 @@ class RiseFallTime:
 
         Oscilloscope(self.OSC).setSingleMode()
         WAI(self.OSC)
+        sleep(1)
         Output(self.ELoad).setOutputStateC("OFF", self.ELoad_Channel)
-
-        print("When Load is Removed")
-        RiseTime1 = float(Oscilloscope(self.OSC).getRiseTime(1))
-        FallTime1 = float(Oscilloscope(self.OSC).getFallTime(1))
-        print(f"Rise Time: {RiseTime1}s")
-        print(f"Fall Time: {FallTime1}s")
-        print(f"Total Transient Time: {RiseTime1+ FallTime1}s")
-
-        Oscilloscope(self.OSC).setSingleMode()
         WAI(self.OSC)
-        Output(self.ELoad).setOutputStateC("ON", self.ELoad_Channel)
+        V_max = float(Oscilloscope(self.OSC).getMaximumVoltage())
+        Oscilloscope(self.OSC).setThresholdMode("Voltage")
+        Oscilloscope(self.OSC).setUpperLimit(0.99 * V_max)
+        Oscilloscope(self.OSC).setLowerLimit(0)
+        rise_time = float(Oscilloscope(self.OSC).getRiseTime(1))
 
-        print("When Load is Added")
-        RiseTime2 = float(Oscilloscope(self.OSC).getRiseTime(1))
-        FallTime2 = float(Oscilloscope(self.OSC).getFallTime(1))
-        print(f"Rise Time: {RiseTime2}s")
-        print(f"Fall Time: {FallTime2}s")
-        print(f"Total Transient Time: {RiseTime2 +FallTime2}s")
+        Oscilloscope(self.OSC).setLowerLimit("15e-3")
+        fall_time = float(Oscilloscope(self.OSC).getFallTime(1))
+
+        print(
+            f"Total Transient Time with Voltage Settling Band of 15mV, {rise_time+fall_time}s"
+        )
 
         Output(self.ELoad).setOutputStateC("OFF", self.ELoad_Channel)
+
         Output(self.PSU).setOutputState("OFF")
 
     def execute(
@@ -1353,7 +1352,6 @@ class RiseFallTime:
         setVoltageSense,
         V_rating,
         I_rating,
-        P_rating,
         Channel_CouplingMode,
         Trigger_Mode,
         Trigger_CouplingMode,
@@ -1361,8 +1359,9 @@ class RiseFallTime:
         Trigger_SlopeMode,
         TimeScale,
         VerticalScale,
+        I_Step,
+        V_settling_band,
     ):
-        I_Max = float(P_rating) / float(V_rating)
         Oscilloscope(OSC).setChannelCoupling(OSC_Channel, Channel_CouplingMode)
         Oscilloscope(OSC).setTriggerMode(Trigger_Mode)
         Oscilloscope(OSC).setTriggerCoupling(Trigger_CouplingMode)
@@ -1372,38 +1371,53 @@ class RiseFallTime:
         Oscilloscope(self.OSC).setTriggerSource(OSC_Channel)
         Oscilloscope(OSC).setVerticalScale(VerticalScale, OSC_Channel)
         Oscilloscope(self.OSC).setTriggerEdgeLevel(OSC_Channel)
+        Oscilloscope(self.OSC).setTriggerHFReject(1)
+        Oscilloscope(self.OSC).setTriggerNoiseReject(1)
 
         Display(ELoad).displayState(ELoad_Channel)
         Function(ELoad).setMode(setMode, ELoad_Channel)
         Voltage(PSU).setSenseMode(setVoltageSense, PSU_Channel)
         Apply(PSU).write(PSU_Channel, V_rating, I_rating)
         Output(PSU).setOutputState("ON")
-        Current(ELoad).setOutputCurrent(I_Max, ELoad_Channel)
+        Current(ELoad).setOutputCurrent(I_Step, ELoad_Channel)
         Output(ELoad).setOutputStateC("ON", ELoad_Channel)
 
         Oscilloscope(OSC).setSingleMode()
         WAI(OSC)
+        sleep(1)
         Output(ELoad).setOutputStateC("OFF", ELoad_Channel)
+        WAI(self.OSC)
 
-        print("When Load is Removed")
-        RiseTime1 = float(Oscilloscope(self.OSC).getRiseTime(1))
-        FallTime1 = float(Oscilloscope(self.OSC).getFallTime(1))
-        print(f"Rise Time: {RiseTime1}s")
-        print(f"Fall Time: {FallTime1}s")
-        print(f"Total Transient Time: {RiseTime1+ FallTime1}s")
+        V_max = float(Oscilloscope(OSC).getMaximumVoltage())
+        Oscilloscope(self.OSC).setThresholdMode("Voltage")
+        Oscilloscope(self.OSC).setUpperLimit(0.99 * V_max)
+        Oscilloscope(self.OSC).setLowerLimit(0)
+        rise_time = float(Oscilloscope(OSC).getRiseTime(1))
 
-        Oscilloscope(OSC).setSingleMode()
-        WAI(OSC)
-        Output(ELoad).setOutputStateC("ON", ELoad_Channel)
+        Oscilloscope(self.OSC).setLowerLimit(V_settling_band)
+        fall_time = float(Oscilloscope(OSC).getFallTime(1))
 
-        print("When Load is Added")
-        RiseTime2 = float(Oscilloscope(self.OSC).getRiseTime(1))
-        FallTime2 = float(Oscilloscope(self.OSC).getFallTime(1))
-        print(f"Rise Time: {RiseTime2}s")
-        print(f"Fall Time: {FallTime2}s")
-        print(f"Total Transient Time: {RiseTime2 +FallTime2}s")
-        Output(ELoad).setOutputStateC("OFF", ELoad_Channel)
-        Output(PSU).setOutputState("OFF")
+        print(
+            f"Total Transient Time with Voltage Settling Band of 15mV, {rise_time+fall_time}s"
+        )
+
+        Output(self.ELoad).setOutputStateC("OFF", self.ELoad_Channel)
+
+        Output(self.PSU).setOutputState("OFF")
 
     def saveimg(self):
         Oscilloscope(self.OSC).saveimg()
+
+    def calc(self):
+        V_max = float(Oscilloscope(self.OSC).getMaximumVoltage())
+        Oscilloscope(self.OSC).setThresholdMode("Voltage")
+        Oscilloscope(self.OSC).setUpperLimit(0.99 * V_max)
+        Oscilloscope(self.OSC).setLowerLimit(0)
+        rise_time = float(Oscilloscope(self.OSC).getRiseTime(1))
+
+        Oscilloscope(self.OSC).setLowerLimit("15e-3")
+        fall_time = float(Oscilloscope(self.OSC).getFallTime(1))
+
+        print(
+            f"Total Transient Time with Voltage Settling Band of 15mV, {rise_time+fall_time}s"
+        )
