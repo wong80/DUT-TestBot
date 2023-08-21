@@ -897,8 +897,8 @@ class Oscilloscope(Subsystem):
     def setTriggerSource(self, ChannelNumber):
         self.instr.write(f"TRIGGER:EDGE:SOURCE CHANNEL{ChannelNumber}")
 
-    def setTriggerEdgeLevel(self, ChannelNumber):
-        self.instr.write(f"TRIGGER:EDGE:LEVEL 0,CHANNEL{ChannelNumber}")
+    def setTriggerEdgeLevel(self, value, ChannelNumber):
+        self.instr.write(f"TRIGGER:EDGE:LEVEL {value},CHANNEL{ChannelNumber}")
 
     def setTriggerCoupling(self, mode):
         self.instr.write(f"TRIGGER:EDGE:COUPLING {mode}")
@@ -941,3 +941,6 @@ class Oscilloscope(Subsystem):
 
     def setThresholdMode(self, mode):
         self.instr.write(f"MEASURE:THRESHOLDS {mode}")
+
+    def setVerticalOffset(self, value, ChannelNumber):
+        self.instr.write(f"CHANNEL{ChannelNumber}:OFFSET {value}")
