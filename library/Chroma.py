@@ -13,23 +13,16 @@ class Subsystem(object):
         except pyvisa.VisaIOError as e:
             print(e.args)
 
-    def strtoargs(self, args):
-        temp = ""
-        for item in args:
-            temp = temp + item
-
-        return temp
-
 
 class Channel(Subsystem):
     def __init__(self, VISA_ADDRESS):
         super().__init__(VISA_ADDRESS)
 
     def setChannelNumber(self, Channel_Number):
-        self.instr.write("CHAN " + str(Channel_Number))
+        self.instr.write(f"CHAN {Channel_Number}")
 
     def setChannelMode(self, Mode):
-        self.instr.write("CHAN:ACT " + str(Mode))
+        self.instr.write(f"CHAN:ACT {Mode}")
 
 
 class Mode(Subsystem):
@@ -37,7 +30,7 @@ class Mode(Subsystem):
         super().__init__(VISA_ADDRESS)
 
     def setMode(self, Mode):
-        self.instr.write("MODE " + str(Mode))
+        self.instr.write(f"MODE {Mode}")
 
 
 class Voltage(Subsystem):
@@ -45,7 +38,7 @@ class Voltage(Subsystem):
         super().__init__(VISA_ADDRESS)
 
     def setCurrentLimit(self, value):
-        self.instr.write("VOLT:STAT:ILIM " + str(value))
+        self.instr.write(f"VOLT:STAT:ILIM {value}")
 
 
 class Show(Subsystem):
@@ -53,4 +46,4 @@ class Show(Subsystem):
         super().__init__(VISA_ADDRESS)
 
     def Display(self, Channel):
-        self.instr.write("SHOW:DISP " + str(Channel))
+        self.instr.write(f"SHOW:DISP {Channel}")
