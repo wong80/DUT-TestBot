@@ -1421,3 +1421,93 @@ class RiseFallTime:
         print(
             f"Total Transient Time with Voltage Settling Band of 15mV, {rise_time+fall_time}s"
         )
+
+
+class ProgrammingSpeedTest:
+    def __init__(self, ADDR1, ADDR2, ADDR3, ELoad_Channel, PSU_Channel):
+        self.ELoad = ADDR1
+        self.PSU = ADDR2
+        self.OSC = ADDR3
+        self.ELoad_Channel = ELoad_Channel
+        self.PSU_Channel = PSU_Channel
+
+    def test(self):
+        RST(self.OSC)
+        Oscilloscope(self.OSC).setVerticalScale(5, 1)
+        Oscilloscope(self.OSC).setTriggerEdgeLevel(19, 1)
+        Oscilloscope(self.OSC).setTriggerMode("EDGE")
+        Oscilloscope(self.OSC).setTriggerCoupling("DC")
+        Oscilloscope(self.OSC).setTriggerSweepMode("NORM")
+        Oscilloscope(self.OSC).setTriggerSlope("EITHER")
+        Oscilloscope(self.OSC).setTriggerSource("1")
+        Oscilloscope(self.OSC).setTimeScale("10e-3")
+        Oscilloscope(self.OSC).setVerticalOffset(15, 1)
+        Oscilloscope(self.OSC).setThresholdMode("Voltage")
+        Oscilloscope(self.OSC).setUpperLimit(29)
+        Oscilloscope(self.OSC).setLowerLimit(1)
+
+        Voltage(self.PSU).setSenseMode("EXT", 1)
+        Apply(self.PSU).write(self.PSU_Channel, 1, 2)
+        Output(self.PSU).setOutputState("ON")
+        Oscilloscope(self.OSC).setSingleMode()
+        WAI(self.OSC)
+        sleep(1)
+
+        Apply(self.PSU).write(self.PSU_Channel, 30, 2)
+        sleep(1)
+        print(Oscilloscope(self.OSC).getRiseTime(1))
+        sleep(1)
+        Oscilloscope(self.OSC).setSingleMode()
+        sleep(1)
+        Apply(self.PSU).write(self.PSU_Channel, 1, 2)
+        print(Oscilloscope(self.OSC).getFallTime(1))
+        Output(self.PSU).setOutputState("OFF")
+
+    def execute(
+        self,
+        PSU,
+        OSC,
+        PSU_Channel,
+        OSC_Channel,
+        setVoltageSense,
+        V_Lower,
+        V_Upper,
+        Trigger_Mode,
+        Trigger_CouplingMode,
+        Trigger_SweepMode,
+        Trigger_SlopeMode,
+        Upper_Bound,
+        Lower_Bound,
+    ):
+        RST(OSC)
+        Oscilloscope(OSC).setVerticalScale(5, OSC_Channel)
+        Oscilloscope(OSC).setTriggerEdgeLevel(float(V_Upper) - 1, OSC_Channel)
+        Oscilloscope(OSC).setTriggerMode(Trigger_Mode)
+        Oscilloscope(OSC).setTriggerCoupling(Trigger_CouplingMode)
+        Oscilloscope(OSC).setTriggerSweepMode(Trigger_SweepMode)
+        Oscilloscope(OSC).setTriggerSlope(Trigger_SlopeMode)
+        Oscilloscope(OSC).setTriggerSource(OSC_Channel)
+        Oscilloscope(OSC).setTimeScale(10e-3)
+        Oscilloscope(OSC).setVerticalOffset(15, OSC_Channel)
+        Oscilloscope(OSC).setThresholdMode("Voltage")
+        Upper_Threshold = (float(Upper_Bound) / 100) * float(V_Upper)
+        Lower_Threshold = (1 + float(Lower_Bound) / 100) * float(V_Lower)
+        Oscilloscope(OSC).setUpperLimit(round(Upper_Threshold, 1))
+        Oscilloscope(OSC).setLowerLimit(round(Lower_Threshold, 1))
+
+        Voltage(PSU).setSenseMode(setVoltageSense, PSU_Channel)
+        Apply(PSU).write(PSU_Channel, V_Lower, 2)
+        Output(PSU).setOutputState("ON")
+        Oscilloscope(OSC).setSingleMode()
+        WAI(OSC)
+        sleep(1)
+
+        Apply(PSU).write(PSU_Channel, V_Upper, 2)
+        sleep(1)
+        print(Oscilloscope(OSC).getRiseTime(OSC_Channel))
+        sleep(1)
+        Oscilloscope(OSC).setSingleMode()
+        sleep(1)
+        Apply(PSU).write(PSU_Channel, V_Lower, 2)
+        print(Oscilloscope(OSC).getFallTime(OSC_Channel))
+        Output(PSU).setOutputState("OFF")
