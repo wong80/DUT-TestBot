@@ -35,6 +35,7 @@ from Test import (
     VisaResourceManager,
     LoadRegulation,
     RiseFallTime,
+    ProgrammingSpeedTest,
 )
 from data import *
 from xlreport import xlreport
@@ -52,18 +53,20 @@ class tab(QTabWidget):
         self.tab_LoadRegulationCV = QWidget()
         self.tab_LoadRegulationCC = QWidget()
         self.tab_TransientRecoveryTime = QWidget()
+        self.tab_ProgrammingSpeed = QWidget()
 
         self.addTab(self.tab_VoltageAccuracy, "Voltage Accuracy")
         self.addTab(self.tab_CurrentAccuracy, "Current Accuracy")
         self.addTab(self.tab_LoadRegulationCV, "Load Regulation (CV)")
         self.addTab(self.tab_LoadRegulationCC, "Load Regulation (CC)")
         self.addTab(self.tab_TransientRecoveryTime, "Transient Recovery Time")
-
+        self.addTab(self.tab_ProgrammingSpeed, "Programming Speed")
         self.VoltageAccuracyUI()
         self.CurrentAccuracyUI()
         self.CV_LoadRegulationUI()
         self.CC_LoadRegulationUI()
         self.TransientRecoveryTime()
+        self.ProgrammingSpeed()
 
     def VoltageAccuracyUI(self):
         pixmap_VoltageAccuracy = QPixmap("GUI/img/1.png")
@@ -130,6 +133,19 @@ class tab(QTabWidget):
         self.setTabText(4, "Transient Recovery Time")
         self.tab_TransientRecoveryTime.setLayout(layout)
 
+    def ProgrammingSpeed(self):
+        pixmap_ProgrammingSpeed = QPixmap("GUI/img/6.png")
+        pixmap_ProgrammingSpeed = pixmap_ProgrammingSpeed.scaled(
+            700, 450, Qt.KeepAspectRatio, Qt.FastTransformation
+        )
+        label_ProgrammingSpeed = QLabel()
+        label_ProgrammingSpeed.setPixmap(pixmap_ProgrammingSpeed)
+        layout = QVBoxLayout()
+        layout.addWidget(label_ProgrammingSpeed)
+        layout.addWidget(QLabel("To measure the Programming Speed of DUT"))
+        self.setTabText(5, "Programming Speed")
+        self.tab_ProgrammingSpeed.setLayout(layout)
+
     def currentTabChanged(self, s):
         self.CurrentTab = s
 
@@ -189,6 +205,10 @@ class Window(QMainWindow):
 
         elif self.CurrentTab == 4:
             dlg = TransientRecoveryTime()
+            dlg.exec()
+
+        elif self.CurrentTab == 5:
+            dlg = ProgrammingSpeed()
             dlg.exec()
 
 
@@ -2359,6 +2379,272 @@ class TransientRecoveryTime(QDialog):
 
     def Max_Voltage_changed(self, s):
         self.Voltage_Rating = s
+
+
+class ProgrammingSpeed(QDialog):
+    def __init__(self):
+        super().__init__()
+
+        self.setWindowTitle("Programming Speed")
+
+        QPushButton_Widget = QPushButton()
+        QPushButton_Widget.setText("Execute Test")
+        layout1 = QFormLayout()
+        self.OutputBox = QTextBrowser()
+        self.OutputBox.append(my_result.getvalue())
+
+        Desp1 = QLabel()
+        Desp2 = QLabel()
+        Desp3 = QLabel()
+        Desp4 = QLabel()
+
+        Desp1.setFont(desp_font)
+        Desp2.setFont(desp_font)
+        Desp3.setFont(desp_font)
+        Desp4.setFont(desp_font)
+
+        Desp1.setText("Connections:")
+        Desp2.setText("General Settings:")
+        Desp3.setText("Test Settings:")
+        Desp4.setText("Oscilloscope Settings:")
+
+        QLabel_PSU_VisaAddress = QLabel()
+        QLabel_OSC_VisaAddress = QLabel()
+        QLabel_PSU_VisaAddress.setText("Visa Address (PSU):")
+        QLabel_OSC_VisaAddress.setText("Visa Address (OSC):")
+        QLineEdit_PSU_VisaAddress = QLineEdit()
+        QLineEdit_OSC_VisaAddress = QLineEdit()
+
+        QLabel_PSU_Display_Channel = QLabel()
+        QLabel_OSC_Display_Channel = QLabel()
+        QLabel_Voltage_Sense = QLabel()
+
+        QComboBox_Voltage_Sense = QComboBox()
+
+        QComboBox_Voltage_Sense.addItems(["2 Wire", "4 Wire"])
+
+        QLabel_PSU_Display_Channel.setText("Display Channel (PSU):")
+        QLabel_OSC_Display_Channel.setText("Display Channel (OSC)")
+        QLabel_Voltage_Sense.setText("Voltage Sense:")
+        QLineEdit_PSU_Display_Channel = QLineEdit()
+        QLineEdit_OSC_Display_Channel = QLineEdit()
+        QComboBox_Voltage_Sense = QComboBox()
+        QComboBox_set_Function = QComboBox()
+
+        # Specifications
+        QLabel_V_Upper = QLabel()
+        QLabel_V_Lower = QLabel()
+        QLabel_Upper_Bound = QLabel()
+        QLabel_Lower_Bound = QLabel()
+
+        QLabel_V_Upper.setText("Max Voltage (V):")
+        QLabel_V_Lower.setText("Min Voltage (V):")
+        QLabel_Upper_Bound.setText("Percentage of upper bound (%)")
+        QLabel_Lower_Bound.setText("Percentage of lower bound (%)")
+
+        QLineEdit_V_Upper = QLineEdit()
+        QLineEdit_V_Lower = QLineEdit()
+        QLineEdit_Upper_Bound = QLineEdit()
+        QLineEdit_Lower_Bound = QLineEdit()
+
+        # Oscilloscope Settings
+        QLabel_Trigger_Mode = QLabel()
+        QLabel_Trigger_CouplingMode = QLabel()
+        QLabel_Trigger_SweepMode = QLabel()
+        QLabel_Trigger_SlopeMode = QLabel()
+
+        QLabel_Trigger_Mode.setText("Trigger Mode:")
+        QLabel_Trigger_CouplingMode.setText("Coupling Mode (Trigger):")
+        QLabel_Trigger_SweepMode.setText("Trigger Sweep Mode:")
+        QLabel_Trigger_SlopeMode.setText("Trigger Slope Mode:")
+
+        QComboBox_Trigger_Mode = QComboBox()
+        QComboBox_Trigger_CouplingMode = QComboBox()
+        QComboBox_Trigger_SweepMode = QComboBox()
+        QComboBox_Trigger_SlopeMode = QComboBox()
+
+        QComboBox_Trigger_Mode.addItems(["EDGE", "IIC", "EBUR"])
+        QComboBox_Trigger_CouplingMode.addItems(["AC", "DC"])
+        QComboBox_Trigger_SweepMode.addItems(["NORMAL", "AUTO"])
+        QComboBox_Trigger_SlopeMode.addItems(["ALT", "POS", "NEG", "EITH"])
+
+        QComboBox_Trigger_Mode.setEnabled(False)
+        QComboBox_Trigger_CouplingMode.setEnabled(False)
+        QComboBox_Trigger_SweepMode.setEnabled(False)
+        QComboBox_Trigger_SlopeMode.setEnabled(False)
+
+        layout1.addRow(Desp1)
+        layout1.addRow(QLabel_PSU_VisaAddress, QLineEdit_PSU_VisaAddress)
+        layout1.addRow(QLabel_OSC_VisaAddress, QLineEdit_OSC_VisaAddress)
+
+        layout1.addRow(Desp2)
+        layout1.addRow(QLabel_PSU_Display_Channel, QLineEdit_PSU_Display_Channel)
+        layout1.addRow(QLabel_OSC_Display_Channel, QLineEdit_OSC_Display_Channel)
+        layout1.addRow(QLabel_Voltage_Sense, QComboBox_Voltage_Sense)
+
+        layout1.addRow(Desp3)
+        layout1.addRow(QLabel_V_Lower, QLineEdit_V_Lower)
+        layout1.addRow(QLabel_V_Upper, QLineEdit_V_Upper)
+        layout1.addRow(QLabel_Lower_Bound, QLineEdit_Lower_Bound)
+        layout1.addRow(QLabel_Upper_Bound, QLineEdit_Upper_Bound)
+
+        layout1.addRow(Desp4)
+        layout1.addRow(QLabel_Trigger_CouplingMode, QComboBox_Trigger_CouplingMode)
+        layout1.addRow(QLabel_Trigger_Mode, QComboBox_Trigger_Mode)
+        layout1.addRow(QLabel_Trigger_SweepMode, QComboBox_Trigger_SweepMode)
+        layout1.addRow(QLabel_Trigger_SlopeMode, QComboBox_Trigger_SlopeMode)
+
+        layout1.addRow(self.OutputBox)
+        layout1.addRow(QPushButton_Widget)
+        self.setLayout(layout1)
+
+        # Default Values
+        self.PSU = ""
+        self.OSC = ""
+        self.PSU_Channel = ""
+        self.OSC_Channel = ""
+        self.V_Upper = ""
+        self.V_Lower = ""
+        self.Upper_Bound = ""
+        self.Lower_Bound = ""
+        self.Trigger_CouplingMode = "DC"
+        self.Trigger_Mode = "EDGE"
+        self.Trigger_SweepMode = "NORMAL"
+        self.Trigger_SlopeMode = "EITH"
+        self.VoltageSense = "EXT"
+
+        QLineEdit_PSU_VisaAddress.textEdited.connect(self.PSU_VisaAddress_changed)
+        QLineEdit_OSC_VisaAddress.textEdited.connect(self.OSC_VisaAddress_changed)
+        QLineEdit_PSU_Display_Channel.textEdited.connect(self.PSU_Channel_changed)
+        QLineEdit_OSC_Display_Channel.textEdited.connect(self.OSC_Channel_changed)
+        QComboBox_Voltage_Sense.currentTextChanged.connect(
+            self.set_VoltageSense_changed
+        )
+        QLineEdit_V_Upper.textEdited.connect(self.V_Upper_changed)
+        QLineEdit_V_Lower.textEdited.connect(self.V_Lower_changed)
+        QLineEdit_Upper_Bound.textEdited.connect(self.Upper_Bound_changed)
+        QLineEdit_Lower_Bound.textEdited.connect(self.Lower_Bound_changed)
+        QComboBox_Trigger_CouplingMode.currentTextChanged.connect(
+            self.Trigger_CouplingMode_changed
+        )
+        QComboBox_Trigger_Mode.currentTextChanged.connect(self.Trigger_Mode_changed)
+        QComboBox_Trigger_SweepMode.currentTextChanged.connect(
+            self.Trigger_SweepMode_changed
+        )
+        QComboBox_Trigger_SlopeMode.currentTextChanged.connect(
+            self.Trigger_SlopeMode_changed
+        )
+        QPushButton_Widget.clicked.connect(self.executeTest)
+
+    def executeTest(self):
+        QMessageBox.warning(
+            self,
+            "In Progress",
+            "Measurement will start now , please do not close the main window until test is completed",
+        )
+
+        for i in [
+            self,
+            self.PSU,
+            self.OSC,
+            self.PSU_Channel,
+            self.OSC_Channel,
+            self.VoltageSense,
+            self.Trigger_CouplingMode,
+            self.Trigger_Mode,
+            self.Trigger_SweepMode,
+            self.Trigger_SlopeMode,
+            self.V_Upper,
+            self.V_Lower,
+            self.Upper_Bound,
+            self.Lower_Bound,
+        ]:
+            print(i)
+            if i == "":
+                QMessageBox.warning(
+                    self, "Error", "One of the parameters are not filled in"
+                )
+                break
+
+        else:
+            A = VisaResourceManager()
+            flag, args = A.openRM(self.PSU, self.OSC)
+
+            if flag == 0:
+                string = ""
+                for item in args:
+                    string = string + item
+
+                QMessageBox.warning(self, "VISA IO ERROR", string)
+                exit()
+
+            try:
+                ProgrammingSpeedTest.execute(
+                    self,
+                    self.PSU,
+                    self.OSC,
+                    self.PSU_Channel,
+                    self.OSC_Channel,
+                    self.VoltageSense,
+                    self.V_Lower,
+                    self.V_Upper,
+                    self.Trigger_Mode,
+                    self.Trigger_CouplingMode,
+                    self.Trigger_SweepMode,
+                    self.Trigger_SlopeMode,
+                    self.Upper_Bound,
+                    self.Lower_Bound,
+                )
+
+            except Exception as e:
+                print(e)
+                QMessageBox.warning(self, "Error", str(e))
+                exit()
+
+            self.OutputBox.append(my_result.getvalue())
+            self.OutputBox.append("Measurement is complete !")
+
+    def V_Upper_changed(self, s):
+        self.V_Upper = s
+
+    def V_Lower_changed(self, s):
+        self.V_Lower = s
+
+    def Upper_Bound_changed(self, s):
+        self.Upper_Bound = s
+
+    def Lower_Bound_changed(self, s):
+        self.Lower_Bound = s
+
+    def Trigger_CouplingMode_changed(self, s):
+        self.Trigger_CouplingMode = s
+
+    def Trigger_Mode_changed(self, s):
+        self.Trigger_Mode = s
+
+    def Trigger_SweepMode_changed(self, s):
+        self.Trigger_SweepMode = s
+
+    def Trigger_SlopeMode_changed(self, s):
+        self.Trigger_SlopeMode = s
+
+    def set_VoltageSense_changed(self, s):
+        if s == "2 Wire":
+            self.VoltageSense = "INT"
+        elif s == "4 Wire":
+            self.VoltageSense = "EXT"
+
+    def PSU_VisaAddress_changed(self, s):
+        self.PSU = s
+
+    def OSC_VisaAddress_changed(self, s):
+        self.OSC = s
+
+    def PSU_Channel_changed(self, s):
+        self.PSU_Channel = s
+
+    def OSC_Channel_changed(self, s):
+        self.OSC_Channel = s
 
 
 if __name__ == "__main__":
