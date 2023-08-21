@@ -37,7 +37,7 @@ class ESE(IEEE_488):
             self.instr.write("*ESE")
 
         if len(*args) == 1:
-            self.instr.write("*ESE " + self.strtoargs(args))
+            self.instr.write(f"*ESE {args[0]}")
 
 
 class ESR(IEEE_488):
@@ -85,7 +85,7 @@ class PSC(IEEE_488):
             self.instr.write("*PSC")
 
         elif len(*args) == 1:
-            self.instr.write("*PSC " + self.strtoargs(args))
+            self.instr.write(f"*PSC {args[0]}")
 
 
 class SRE(IEEE_488):
@@ -100,7 +100,7 @@ class SRE(IEEE_488):
             self.instr.write("*SRE")
 
         if len(*args) == 1:
-            self.instr.write("*SRE " + self.strtoargs(args))
+            self.instr.write(f"*SRE {args[0]}")
 
 
 class STB(IEEE_488):
@@ -137,7 +137,7 @@ class RCL(IEEE_488):
 
     def write(self, *args):
         if len(*args) == 1:
-            self.instr.write("*RCL " + self.strtoargs(args))
+            self.instr.write(f"*RCL {args[0]}")
 
 
 class SAV(IEEE_488):
@@ -146,4 +146,4 @@ class SAV(IEEE_488):
 
     def write(self, *args):
         if len(*args) == 1:
-            self.instr.write("*SAV " + self.strtoargs(args))
+            self.instr.write(f"*SAV {args[0]}")
