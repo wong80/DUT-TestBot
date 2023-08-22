@@ -2421,15 +2421,13 @@ class ProgrammingSpeed(QDialog):
 
         QComboBox_Voltage_Sense = QComboBox()
 
-        QComboBox_Voltage_Sense.addItems(["2 Wire", "4 Wire"])
+        QComboBox_Voltage_Sense.addItems(["4 Wire", "2 Wire"])
 
         QLabel_PSU_Display_Channel.setText("Display Channel (PSU):")
         QLabel_OSC_Display_Channel.setText("Display Channel (OSC)")
         QLabel_Voltage_Sense.setText("Voltage Sense:")
         QLineEdit_PSU_Display_Channel = QLineEdit()
         QLineEdit_OSC_Display_Channel = QLineEdit()
-        QComboBox_Voltage_Sense = QComboBox()
-        QComboBox_set_Function = QComboBox()
 
         # Specifications
         QLabel_V_Upper = QLabel()
@@ -2464,7 +2462,7 @@ class ProgrammingSpeed(QDialog):
         QComboBox_Trigger_SlopeMode = QComboBox()
 
         QComboBox_Trigger_Mode.addItems(["EDGE", "IIC", "EBUR"])
-        QComboBox_Trigger_CouplingMode.addItems(["AC", "DC"])
+        QComboBox_Trigger_CouplingMode.addItems(["DC", "AC"])
         QComboBox_Trigger_SweepMode.addItems(["NORMAL", "AUTO"])
         QComboBox_Trigger_SlopeMode.addItems(["ALT", "POS", "NEG", "EITH"])
 
