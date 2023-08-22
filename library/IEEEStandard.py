@@ -1,21 +1,44 @@
+"""Library Containing all the SCPI Commands that have been defined by the IEEE 482.2 Standard
+
+    SCPI Commands here have been standardized according to IEEE where most instruments should recognize. However,
+    documentation for each exact method will not be written in this documentation. For further details, please 
+    refer to the Programming Manual of those separate instruments or :
+    https://rfmw.em.keysight.com/wireless/helpfiles/e5080a/programming/gp-ib_command_finder/scpi_command_tree.htm
+"""
+
 import pyvisa
 
 
 class IEEE_488(object):
+    """Parent Class for every SCPI Commands Subsystem
+
+    Attributes:
+        VISA_ADDRESS: The string which contains the VISA Address of an Instrument.
+        Channel_Number: An integer which contains the Channel Number of Instrument.
+        value: An integer which represents the value of certain parameters (e.g. Voltage, Current, Frequency).
+        state: A boolean representing if the function should be enabled or disabled.
+
+    """
+
     def __init__(self, VISA_ADDRESS):
+        """Initialize the instance where the Instrument is ready to receive commands
+
+        Object rm is created where the backend will find the shared VISA Library. VISA_Address are given as arguements to declare
+        which resources (in this case the instruments) to use.
+
+        Args:
+            VISA_ADDRESS: String Literal of VISA Address of the Instrument
+        """
+
         self.VISA_ADDRESS = VISA_ADDRESS
         # ResourceManager Setup
         rm = pyvisa.ResourceManager()
+        try:
+            # Visa Address is found under Keysight Connection Expert
+            self.instr = rm.open_resource(self.VISA_ADDRESS)
 
-        # Visa Address is found under Keysight Connection Expert
-        self.instr = rm.open_resource(self.VISA_ADDRESS)
-
-    def strtoargs(self, args):
-        temp = ""
-        for item in args:
-            temp = temp + item
-
-        return temp
+        except pyvisa.VisaIOError as e:
+            print(e.args)
 
 
 class CLS(IEEE_488):
