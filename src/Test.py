@@ -1,3 +1,11 @@
+""" Module containing all of the test options available in this program. 
+
+    The tests are categorized into different classes.
+
+"""
+infoList = []
+dataList = []
+from xlreport import xlreport
 import pyvisa
 import sys
 import data
@@ -10,7 +18,6 @@ sys.path.insert(
 
 from IEEEStandard import OPC, WAI, TRG, RST
 
-
 from Keysight import (
     Read,
     Apply,
@@ -21,9 +28,7 @@ from Keysight import (
     Voltage,
     Current,
     Configure,
-    Delay,
     Trigger,
-    Sample,
     Initiate,
     Fetch,
     Oscilloscope,
@@ -31,10 +36,21 @@ from Keysight import (
 
 
 class Dimport:
+    """Class to control which library will be dynamically imported"""
+
     def __init__():
         pass
 
     def getClasses(module_name):
+        """Declare the module based on the module name given
+
+        Args:
+            module_name: Determines which library will the program import from
+
+        Returns:
+            Returns a set of Modules imported from a library
+        """
+
         module = __import__(module_name)
         Read = getattr(module, "Read")
         Apply = getattr(module, "Apply")
@@ -71,18 +87,34 @@ class Dimport:
         )
 
 
-from xlreport import xlreport
-
-infoList = []
-dataList = []
-
-
 class VisaResourceManager:
+    """Manage the VISA Resources
+
+    Attributes:
+        args: args should contain one or multiple string containing the Visa Address of an Instrument
+
+    """
+
     def __init__(self):
+        """Initiate the object rm as Resource Manager"""
         rm = pyvisa.ResourceManager()
         self.rm = rm
 
     def openRM(self, *args):
+        """Open the VISA Resources to be used
+
+        The program also initiates and standardize certain specifications such as the baud rate.
+
+            Args:
+                *args: to declare single or multiple VISA Resources
+
+            Returns:
+                Return a Boolean to the program whether there were any errors encountered.
+
+            Raises:
+                VisaIOError: An error occured when opening PyVisa Resources
+
+        """
         try:
             for i in range(len(args)):
                 instr = self.rm.open_resource(args[i])
@@ -95,6 +127,7 @@ class VisaResourceManager:
             return 0, e.args
 
     def closeRM(self):
+        """Closes the Visa Resources when not in used"""
         self.rm.close()
 
 
@@ -277,8 +310,57 @@ class VoltageMeasurement:
         UpTime,
         DownTime,
     ):
+        """Execution of Voltage Measurement for Programm / Readback Accuracy using Status Event Registry to synchronize Instruments
+
+        The function first declares two lists, datalist & infolist that will be used to collect data.
+        It then dynamically imports the library to be used. Next, the settings for all instruments
+        are initialized. The test loop begins where Voltage and Current Sweep is conducted and collect
+        measured data.
+
+        The synchronization of instruments here is done by reading the status of the event registry.
+        The status determined from the instrument can let the program determine if the instrument is
+        measuring. The program will only proceed to tell the instrument to query the measured value
+        after it is determined that the measurement has been completed. This method is suitable for
+        operations that require a longer time (e.g. 100 NPLC). However the implementation is slighty
+        more complicated than other methods. This method only can be implemented that have the specific
+        commands that are used.
+
+
+        Args:
+            Instrument: String determining which library to be used.
+            Error_Gain: Float determining the error gain of the Readback Voltage Specification.
+            Error_Offset: Float determining the error offset of the Readback Voltage Specification.
+            minCurrent: Float determining the start current for Current Sweep.
+            maxCurrent: Float determining the stop current for Current Sweep.
+            current_stepsize: Float determining the step size during Current Sweep.
+            minVoltage: Float determining the start voltage for Voltage Sweep.
+            maxVoltage: Float determining the stop voltage for Voltage Sweep.
+            voltage_stepsize: Float determining the step_size for Voltage_Sweep.
+            PSU: String containing the VISA Address of the PSU used.
+            DMM: String containing the VISA Address of the DMM used.
+            ELoad: String containing the VISA Address of the ELoad used.
+            ELoad_Channel: Integer containing the channel number that the ELoad is using.
+            PSU_Channel: Integer containing the channel number that the PSU is using.
+            setVoltage_Sense: String determining the Voltage Sense that will be used.
+            setVoltage_Res: String determining the Voltage Resoltion that will be used.
+            setMode: String determining the Priority mode of the ELoad.
+            Range: String determining the measuring range of the DMM should be Auto or a specific range.
+            Apreture: String determining the NPLC to be used by DMM when measuring.
+            AutoZero: String determining if AutoZero Mode on DMM should be enabled/disabled.
+            InputZ: String determining the Input Impedance Mode of DMM.
+            UpTime: Float containing details regarding the uptime delay.
+            DownTime: Float containing details regarding the downtime delay.
+
+        Returns:
+            Returns two list, DataList & InfoList. Each containing the programmed & measured data individually.
+
+        Raises:
+            VisaIOError: An error occured when opening PyVisa Resources.
+        """
         dataList = []
         infoList = []
+
+        # Dynamic Library Import
         (
             Read,
             Apply,
@@ -296,13 +378,14 @@ class VoltageMeasurement:
             Voltage,
             Current,
         ) = Dimport.getClasses(Instrument)
+
+        # Instrument Initialization
         Configure(self.DMM).write("Voltage")
         Trigger(self.DMM).setSource("BUS")
         Sense(self.DMM).setVoltageResDC(setVoltage_Res)
         Display(self.ELoad).displayState(ELoad_Channel)
         Function(self.ELoad).setMode(setMode, ELoad_Channel)
         Voltage(self.PSU).setSenseMode(setVoltage_Sense, PSU_Channel)
-
         Voltage(self.DMM).setNPLC(Aperture)
         Voltage(self.DMM).setAutoZeroMode(AutoZero)
         Voltage(self.DMM).setAutoImpedanceMode(InputZ)
@@ -316,6 +399,7 @@ class VoltageMeasurement:
         self.param1 = Error_Gain
         self.param2 = Error_Offset
 
+        # Test Loop Begins
         i = 0
         j = 0
         k = 0
@@ -394,8 +478,55 @@ class VoltageMeasurement:
         UpTime,
         DownTime,
     ):
+        """Execution of Voltage Measurement for Programm / Readback Accuracy using WAI and OPC to synchronize Instruments
+
+        The function first declares two lists, datalist & infolist that will be used to collect data.
+        It then dynamically imports the library to be used. Next, the settings for all instruments
+        are initialized. The test loop begins where Voltage and Current Sweep is conducted and collect
+        measured data.
+
+        The synchronization of instruments here is done by using IEEE Commands OPC and WAI. The command OPC
+        queries the instrument the status of the commands. 1 will be returned if all commands given have
+        been executed. Hence, this makes as a simple and efficient way to synchronize the measurement timing
+        of the instruments, since it is under the IEEE Standard Library, most instruments are synchronized
+        using this way. However, this method only works for commands with a short execution time.
+
+
+        Args:
+            Instrument: String determining which library to be used.
+            Error_Gain: Float determining the error gain of the Readback Voltage Specification.
+            Error_Offset: Float determining the error offset of the Readback Voltage Specification.
+            minCurrent: Float determining the start current for Current Sweep.
+            maxCurrent: Float determining the stop current for Current Sweep.
+            current_stepsize: Float determining the step size during Current Sweep.
+            minVoltage: Float determining the start voltage for Voltage Sweep.
+            maxVoltage: Float determining the stop voltage for Voltage Sweep.
+            voltage_stepsize: Float determining the step_size for Voltage_Sweep.
+            PSU: String containing the VISA Address of the PSU used.
+            DMM: String containing the VISA Address of the DMM used.
+            ELoad: String containing the VISA Address of the ELoad used.
+            ELoad_Channel: Integer containing the channel number that the ELoad is using.
+            PSU_Channel: Integer containing the channel number that the PSU is using.
+            setVoltage_Sense: String determining the Voltage Sense that will be used.
+            setVoltage_Res: String determining the Voltage Resoltion that will be used.
+            setMode: String determining the Priority mode of the ELoad.
+            Range: String determining the measuring range of the DMM should be Auto or a specific range.
+            Apreture: String determining the NPLC to be used by DMM when measuring.
+            AutoZero: String determining if AutoZero Mode on DMM should be enabled/disabled.
+            InputZ: String determining the Input Impedance Mode of DMM.
+            UpTime: Float containing details regarding the uptime delay.
+            DownTime: Float containing details regarding the downtime delay.
+
+        Returns:
+            Returns two list, DataList & InfoList. Each containing the programmed & measured data individually.
+
+        Raises:
+            VisaIOError: An error occured when opening PyVisa Resources.
+        """
         dataList = []
         infoList = []
+
+        # Dynamic Library Import
         (
             Read,
             Apply,
@@ -413,6 +544,8 @@ class VoltageMeasurement:
             Voltage,
             Current,
         ) = Dimport.getClasses(Instrument)
+
+        # Instrument Initialization
         Configure(self.DMM).write("Voltage")
         Trigger(self.DMM).setSource("BUS")
         Sense(self.DMM).setVoltageResDC(setVoltage_Res)
@@ -433,6 +566,7 @@ class VoltageMeasurement:
         self.param1 = Error_Gain
         self.param2 = Error_Offset
 
+        # Test Loop
         i = 0
         j = 0
         k = 0
@@ -478,9 +612,6 @@ class VoltageMeasurement:
         Output(PSU).setOutputState("OFF")
         Output(ELoad).setOutputStateC("OFF", ELoad_Channel)
         return dataList, infoList
-
-    def test(self):
-        Configure(self.DMM).write("CURR")
 
 
 class CurrentMeasurement:
@@ -609,8 +740,56 @@ class CurrentMeasurement:
         AutoZero,
         Terminal,
     ):
+        """Execution of Current Measurement for Programm / Readback Accuracy using Status Event Registry to synchronize Instruments
+
+        The function first declares two lists, datalist & infolist that will be used to collect data.
+        It then dynamically imports the library to be used. Next, the settings for all instruments
+        are initialized. The test loop begins where Voltage and Current Sweep is conducted and collect
+        measured data.
+
+        The synchronization of instruments here is done by reading the status of the event registry.
+        The status determined from the instrument can let the program determine if the instrument is
+        measuring. The program will only proceed to tell the instrument to query the measured value
+        after it is determined that the measurement has been completed. This method is suitable for
+        operations that require a longer time (e.g. 100 NPLC). However the implementation is slighty
+        more complicated than other methods. This method only can be implemented that have the specific
+        commands that are used.
+
+
+        Args:
+            Instrument: String determining which library to be used.
+            Error_Gain: Float determining the error gain of the Readback Voltage Specification.
+            Error_Offset: Float determining the error offset of the Readback Voltage Specification.
+            minCurrent: Float determining the start current for Current Sweep.
+            maxCurrent: Float determining the stop current for Current Sweep.
+            current_stepsize: Float determining the step size during Current Sweep.
+            minVoltage: Float determining the start voltage for Voltage Sweep.
+            maxVoltage: Float determining the stop voltage for Voltage Sweep.
+            voltage_stepsize: Float determining the step_size for Voltage_Sweep.
+            PSU: String containing the VISA Address of the PSU used.
+            DMM: String containing the VISA Address of the DMM used.
+            ELoad: String containing the VISA Address of the ELoad used.
+            ELoad_Channel: Integer containing the channel number that the ELoad is using.
+            PSU_Channel: Integer containing the channel number that the PSU is using.
+            setCurrent_Sense: String determining the Current Sense that will be used.
+            setCurrent_Res: String determining the Current Resolution that will be used.
+            setMode: String determining the Priority mode of the ELoad.
+            Range: String determining the measuring range of the DMM should be Auto or a specific range.
+            Apreture: String determining the NPLC to be used by DMM when measuring.
+            AutoZero: String determining if AutoZero Mode on DMM should be enabled/disabled.
+            InputZ: String determining the Input Impedance Mode of DMM.
+            UpTime: Float containing details regarding the uptime delay.
+            DownTime: Float containing details regarding the downtime delay.
+
+        Returns:
+            Returns two list, DataList & InfoList. Each containing the programmed & measured data individually.
+
+        Raises:
+            VisaIOError: An error occured when opening PyVisa Resources.
+        """
         dataList = []
         infoList = []
+        # Dynamic Library Import
         (
             Read,
             Apply,
@@ -628,6 +807,8 @@ class CurrentMeasurement:
             Voltage,
             Current,
         ) = Dimport.getClasses(Instrument)
+
+        # Instruments Initialization
         Configure(self.DMM).write("Current")
         Trigger(self.DMM).setSource("BUS")
         Sense(DMM).setCurrentResDC(setCurrent_Res)
@@ -646,6 +827,7 @@ class CurrentMeasurement:
         self.param1 = Error_Gain
         self.param2 = Error_Offset
 
+        # Test Loop
         i = 0
         j = 0
         k = 0
@@ -721,8 +903,55 @@ class CurrentMeasurement:
         UpTime,
         DownTime,
     ):
+        """Execution of Current Measurement for Programm / Readback Accuracy using WAI and OPC to synchronize Instruments
+
+        The function first declares two lists, datalist & infolist that will be used to collect data.
+        It then dynamically imports the library to be used. Next, the settings for all instruments
+        are initialized. The test loop begins where Voltage and Current Sweep is conducted and collect
+        measured data.
+
+        The synchronization of instruments here is done by using IEEE Commands OPC and WAI. The command OPC
+        queries the instrument the status of the commands. 1 will be returned if all commands given have
+        been executed. Hence, this makes as a simple and efficient way to synchronize the measurement timing
+        of the instruments, since it is under the IEEE Standard Library, most instruments are synchronized
+        using this way. However, this method only works for commands with a short execution time.
+
+
+        Args:
+            Instrument: String determining which library to be used.
+            Error_Gain: Float determining the error gain of the Readback Voltage Specification.
+            Error_Offset: Float determining the error offset of the Readback Voltage Specification.
+            minCurrent: Float determining the start current for Current Sweep.
+            maxCurrent: Float determining the stop current for Current Sweep.
+            current_stepsize: Float determining the step size during Current Sweep.
+            minVoltage: Float determining the start voltage for Voltage Sweep.
+            maxVoltage: Float determining the stop voltage for Voltage Sweep.
+            voltage_stepsize: Float determining the step_size for Voltage_Sweep.
+            PSU: String containing the VISA Address of the PSU used.
+            DMM: String containing the VISA Address of the DMM used.
+            ELoad: String containing the VISA Address of the ELoad used.
+            ELoad_Channel: Integer containing the channel number that the ELoad is using.
+            PSU_Channel: Integer containing the channel number that the PSU is using.
+            setCurrent_Sense: String determining the Current Sense that will be used.
+            setCurrent_Res: String determining the Current Resolution that will be used.
+            setMode: String determining the Priority mode of the ELoad.
+            Range: String determining the measuring range of the DMM should be Auto or a specific range.
+            Apreture: String determining the NPLC to be used by DMM when measuring.
+            AutoZero: String determining if AutoZero Mode on DMM should be enabled/disabled.
+            InputZ: String determining the Input Impedance Mode of DMM.
+            UpTime: Float containing details regarding the uptime delay.
+            DownTime: Float containing details regarding the downtime delay.
+
+        Returns:
+            Returns two list, DataList & InfoList. Each containing the programmed & measured data individually.
+
+        Raises:
+            VisaIOError: An error occured when opening PyVisa Resources.
+        """
         dataList = []
         infoList = []
+
+        # Dynamic Library Import
         (
             Read,
             Apply,
@@ -759,6 +988,7 @@ class CurrentMeasurement:
         self.param1 = Error_Gain
         self.param2 = Error_Offset
 
+        # Test Loop
         i = 0
         j = 0
         k = 0
@@ -899,6 +1129,53 @@ class LoadRegulation:
         UpTime,
         DownTime,
     ):
+        """Test for determining the Load Regulation of DUT under Constant Voltage (CV) Mode.
+
+        The function first dynamically imports the library to be used. Next, settings for the
+        instruments will be initialized. The test begins by measuring the No Load Voltage when
+        the PSU is turned on at max nominal settings but ELoad is turned off. Then, the ELoad is
+        turned on to drive the DUT to full load, while measuring the V_FullLoad, Calculations
+        are then done to check the load regulation under CV condition.
+
+        The synchronization of instruments here is done by reading the status of the event registry.
+        The status determined from the instrument can let the program determine if the instrument is
+        measuring. The program will only proceed to tell the instrument to query the measured value
+        after it is determined that the measurement has been completed. This method is suitable for
+        operations that require a longer time (e.g. 100 NPLC). However the implementation is slighty
+        more complicated than other methods. This method only can be implemented that have the specific
+        commands that are used.
+
+        Args:
+            Instrument: String determining which library to be used.
+            Error_Gain: Float determining the error gain of the Load Regulation Specifications.
+            Error_Offset: Float determining the error offset of the Load Regulation Specifications.
+            V_Rating: Float containing the Rated Voltage of the DUT.
+            I_Rating: Float containing the Rated Current of the DUT.
+            P_Rating: Float containing the Rated Power of the DUT.
+            PSU: String containing the VISA Address of PSU used.
+            DMM: String containing the VISA Address of DMM used.
+            ELoad: String containing the VISA Address of ELoad used.
+            PSU_Channel: Integer containing the channel number that the PSU is using.
+            ELoad_Channel: Integer containing the channel number that the ELoad is using.
+            setVoltage_Sense: String determining the Voltage Sense that is used.
+            setVoltage_Res: String determining the Voltage Resolution that is used.
+            setMode: String determining the Priority Mode of the ELoad.
+            Range: String determining the measuring range of DMM should be Auto or specified range.
+            Apreture: String determining the NPLC to be used by DMM when measuring.
+            AutoZero: String determining if AutoZero Mode on DMM should be enabled/disabled.
+            InputZ: String determining the Input Impedance Mode of DMM.
+            UpTime: Float containing details regarding the uptime delay.
+            DownTime: Float containing details regarding the downtime delay.
+
+        Returns:
+            Returns two list, DataList & InfoList. Each containing the programmed & measured data individually.
+
+        Raises:
+            VisaIOError: An error occured when opening PyVisa Resources.
+
+
+        """
+        # Dynamic Library Import
         (
             Read,
             Apply,
@@ -916,7 +1193,8 @@ class LoadRegulation:
             Voltage,
             Current,
         ) = Dimport.getClasses(Instrument)
-        # Fixed Settings
+
+        # Instrument Initializations
         Configure(DMM).write("Voltage")
         Trigger(DMM).setSource("BUS")
         Display(ELoad).displayState(ELoad_Channel)
@@ -993,6 +1271,51 @@ class LoadRegulation:
         UpTime,
         DownTime,
     ):
+        """Test for determining the Load Regulation of DUT under Constant Voltage (CV) Mode.
+
+        The function first dynamically imports the library to be used. Next, settings for the
+        instruments will be initialized. The test begins by measuring the No Load Voltage when
+        the PSU is turned on at max nominal settings but ELoad is turned off. Then, the ELoad is
+        turned on to drive the DUT to full load, while measuring the V_FullLoad, Calculations
+        are then done to check the load regulation under CV condition.
+
+        The synchronization of instruments here is done by using IEEE Commands OPC and WAI. The command OPC
+        queries the instrument the status of the commands. 1 will be returned if all commands given have
+        been executed. Hence, this makes as a simple and efficient way to synchronize the measurement timing
+        of the instruments, since it is under the IEEE Standard Library, most instruments are synchronized
+        using this way. However, this method only works for commands with a short execution time.
+
+        Args:
+            Instrument: String determining which library to be used.
+            Error_Gain: Float determining the error gain of the Load Regulation Specifications.
+            Error_Offset: Float determining the error offset of the Load Regulation Specifications.
+            V_Rating: Float containing the Rated Voltage of the DUT.
+            I_Rating: Float containing the Rated Current of the DUT.
+            P_Rating: Float containing the Rated Power of the DUT.
+            PSU: String containing the VISA Address of PSU used.
+            DMM: String containing the VISA Address of DMM used.
+            ELoad: String containing the VISA Address of ELoad used.
+            PSU_Channel: Integer containing the channel number that the PSU is using.
+            ELoad_Channel: Integer containing the channel number that the ELoad is using.
+            setVoltage_Sense: String determining the Voltage Sense that is used.
+            setVoltage_Res: String determining the Voltage Resolution that is used.
+            setMode: String determining the Priority Mode of the ELoad.
+            Range: String determining the measuring range of DMM should be Auto or specified range.
+            Apreture: String determining the NPLC to be used by DMM when measuring.
+            AutoZero: String determining if AutoZero Mode on DMM should be enabled/disabled.
+            InputZ: String determining the Input Impedance Mode of DMM.
+            UpTime: Float containing details regarding the uptime delay.
+            DownTime: Float containing details regarding the downtime delay.
+
+        Returns:
+            Returns two list, DataList & InfoList. Each containing the programmed & measured data individually.
+
+        Raises:
+            VisaIOError: An error occured when opening PyVisa Resources.
+
+
+        """
+        # Dynamic Library Import
         (
             Read,
             Apply,
@@ -1010,7 +1333,8 @@ class LoadRegulation:
             Voltage,
             Current,
         ) = Dimport.getClasses(Instrument)
-        # Fixed Settings
+
+        # Instruments Initialization
         Configure(DMM).write("Voltage")
         Trigger(DMM).setSource("BUS")
         Display(ELoad).displayState(ELoad_Channel)
@@ -1106,6 +1430,51 @@ class LoadRegulation:
         UpTime,
         DownTime,
     ):
+        """Test for determining the Load Regulation of DUT under Constant Current (CC) Mode.
+
+        The function first dynamically imports the library to be used. Next, settings for the
+        instruments will be initialized. The test begins by measuring the No Load Voltage when
+        the PSU is turned on at max nominal settings but ELoad is turned off. Then, the ELoad is
+        turned on to drive the DUT to full load, while measuring the V_FullLoad, Calculations
+        are then done to check the load regulation under CC condition.
+
+        The synchronization of instruments here is done by reading the status of the event registry.
+        The status determined from the instrument can let the program determine if the instrument is
+        measuring. The program will only proceed to tell the instrument to query the measured value
+        after it is determined that the measurement has been completed. This method is suitable for
+        operations that require a longer time (e.g. 100 NPLC). However the implementation is slighty
+        more complicated than other methods. This method only can be implemented that have the specific
+        commands that are used.
+
+        Args:
+            Instrument: String determining which library to be used.
+            Error_Gain: Float determining the error gain of the Load Regulation Specifications.
+            Error_Offset: Float determining the error offset of the Load Regulation Specifications.
+            V_Rating: Float containing the Rated Voltage of the DUT.
+            I_Rating: Float containing the Rated Current of the DUT.
+            P_Rating: Float containing the Rated Power of the DUT.
+            PSU: String containing the VISA Address of PSU used.
+            DMM: String containing the VISA Address of DMM used.
+            ELoad: String containing the VISA Address of ELoad used.
+            PSU_Channel: Integer containing the channel number that the PSU is using.
+            ELoad_Channel: Integer containing the channel number that the ELoad is using.
+            setVoltage_Sense: String determining the Voltage Sense that is used.
+            setCurrent_Res: String determining the Current Resolution that is used.
+            setMode: String determining the Priority Mode of the ELoad.
+            Range: String determining the measuring range of DMM should be Auto or specified range.
+            Apreture: String determining the NPLC to be used by DMM when measuring.
+            AutoZero: String determining if AutoZero Mode on DMM should be enabled/disabled.
+            InputZ: String determining the Input Impedance Mode of DMM.
+            UpTime: Float containing details regarding the uptime delay.
+            DownTime: Float containing details regarding the downtime delay.
+
+        Returns:
+            Returns two list, DataList & InfoList. Each containing the programmed & measured data individually.
+
+        Raises:
+            VisaIOError: An error occured when opening PyVisa Resources.
+
+        """
         (
             Read,
             Apply,
@@ -1200,6 +1569,50 @@ class LoadRegulation:
         UpTime,
         DownTime,
     ):
+        """Test for determining the Load Regulation of DUT under Constant Current (CC) Mode.
+
+        The function first dynamically imports the library to be used. Next, settings for the
+        instruments will be initialized. The test begins by measuring the No Load Voltage when
+        the PSU is turned on at max nominal settings but ELoad is turned off. Then, the ELoad is
+        turned on to drive the DUT to full load, while measuring the V_FullLoad, Calculations
+        are then done to check the load regulation under CC condition.
+
+        The synchronization of instruments here is done by using IEEE Commands OPC and WAI. The command OPC
+        queries the instrument the status of the commands. 1 will be returned if all commands given have
+        been executed. Hence, this makes as a simple and efficient way to synchronize the measurement timing
+        of the instruments, since it is under the IEEE Standard Library, most instruments are synchronized
+        using this way. However, this method only works for commands with a short execution time.
+
+        Args:
+            Instrument: String determining which library to be used.
+            Error_Gain: Float determining the error gain of the Load Regulation Specifications.
+            Error_Offset: Float determining the error offset of the Load Regulation Specifications.
+            V_Rating: Float containing the Rated Voltage of the DUT.
+            I_Rating: Float containing the Rated Current of the DUT.
+            P_Rating: Float containing the Rated Power of the DUT.
+            PSU: String containing the VISA Address of PSU used.
+            DMM: String containing the VISA Address of DMM used.
+            ELoad: String containing the VISA Address of ELoad used.
+            PSU_Channel: Integer containing the channel number that the PSU is using.
+            ELoad_Channel: Integer containing the channel number that the ELoad is using.
+            setVoltage_Sense: String determining the Voltage Sense that is used.
+            setCurrent_Res: String determining the Current Resolution that is used.
+            setMode: String determining the Priority Mode of the ELoad.
+            Range: String determining the measuring range of DMM should be Auto or specified range.
+            Apreture: String determining the NPLC to be used by DMM when measuring.
+            AutoZero: String determining if AutoZero Mode on DMM should be enabled/disabled.
+            InputZ: String determining the Input Impedance Mode of DMM.
+            UpTime: Float containing details regarding the uptime delay.
+            DownTime: Float containing details regarding the downtime delay.
+
+        Returns:
+            Returns two list, DataList & InfoList. Each containing the programmed & measured data individually.
+
+        Raises:
+            VisaIOError: An error occured when opening PyVisa Resources.
+
+        """
+        # Dynamic Library Import
         (
             Read,
             Apply,
@@ -1217,7 +1630,8 @@ class LoadRegulation:
             Voltage,
             Current,
         ) = Dimport.getClasses(Instrument)
-        # Fixed Settings
+
+        # Instrument Initialization
         Configure(DMM).write("Current")
         Trigger(DMM).setSource("BUS")
         Display(ELoad).displayState(ELoad_Channel)
@@ -1362,6 +1776,41 @@ class RiseFallTime:
         I_Step,
         V_settling_band,
     ):
+        """Test for determining the Transient Recovery Time of DUT
+
+        The test begins by initializing all the settings for Oscilloscope and other instruments.
+        The PSU is then set to output full load followed by activating single mode on the oscilloscope.
+        The Eload is then turned off, which would trigger the oscilloscope to show a transient wave. The
+        transient wave is then measured using the built in functions. The transient time is caluclated by
+        totalling the rise and fall time where the threshold is set manually depending on the voltage
+        settling band.
+
+        Args:
+            ELoad: String determining the VISA Address of ELoad.
+            PSU: String determining the VISA Address of PSU.
+            OSC: String determining the VISA Address of Oscilloscope.
+            ELoad_Channel: Integer containing the Channel Number used for ELoad.
+            PSU_Channel: Integer containing the Channel Number used for PSU.
+            OSC_Channel: Integer containing the Channel Number used for Oscilloscope.
+            setMode: String determining the Priority Mode of the ELoad.
+            setVoltageSense: String determining the Voltage Sense of the PSU.
+            V_rating: Float containing the Voltage Rating of the PSU.
+            I_rating: Float containing the Current Rating of the PSU.
+            Channel_CouplingMode: String determining the Channel Coupling Mode.
+            Trigger_Mode: String determining the Trigger Mode.
+            Trigger_CouplingMode: String determining the Trigger Coupling Mode.
+            Trigger_SweepMode: String determining the Trigger Sweep Mode.
+            Trigger_SlopeMode: String determining the Trigger Slope Mode.
+            TimeScale: Float determining the time scale of the oscilloscope display.
+            VerticalScale: Float determining the vertical scale of the oscilloscope display.
+            I_Step: Float determining the value of current step.
+            V_settling_band: Float determining the desired voltage settling band.
+
+        Raises:
+            VisaIOError: An error occured when opening PyVisa Resources.
+        """
+
+        # Instruments Settings
         Oscilloscope(OSC).setChannelCoupling(OSC_Channel, Channel_CouplingMode)
         Oscilloscope(OSC).setTriggerMode(Trigger_Mode)
         Oscilloscope(OSC).setTriggerCoupling(Trigger_CouplingMode)
@@ -1404,23 +1853,6 @@ class RiseFallTime:
         Output(self.ELoad).setOutputStateC("OFF", self.ELoad_Channel)
 
         Output(self.PSU).setOutputState("OFF")
-
-    def saveimg(self):
-        Oscilloscope(self.OSC).saveimg()
-
-    def calc(self):
-        V_max = float(Oscilloscope(self.OSC).getMaximumVoltage())
-        Oscilloscope(self.OSC).setThresholdMode("Voltage")
-        Oscilloscope(self.OSC).setUpperLimit(0.99 * V_max)
-        Oscilloscope(self.OSC).setLowerLimit(0)
-        rise_time = float(Oscilloscope(self.OSC).getRiseTime(1))
-
-        Oscilloscope(self.OSC).setLowerLimit("15e-3")
-        fall_time = float(Oscilloscope(self.OSC).getFallTime(1))
-
-        print(
-            f"Total Transient Time with Voltage Settling Band of 15mV, {rise_time+fall_time}s"
-        )
 
 
 class ProgrammingSpeedTest:
