@@ -87,7 +87,7 @@ class VisaResourceManager:
             for i in range(len(args)):
                 instr = self.rm.open_resource(args[i])
                 instr.baud_rate = 9600
-                print(instr.query("*IDN?"))
+                # print(instr.query("*IDN?"))
 
             return 1, None
         except pyvisa.VisaIOError as e:
@@ -1460,6 +1460,7 @@ class ProgrammingSpeedTest:
         Oscilloscope(self.OSC).setSingleMode()
         sleep(1)
         Apply(self.PSU).write(self.PSU_Channel, 1, 2)
+        sleep(1)
         print(Oscilloscope(self.OSC).getFallTime(1))
         Output(self.PSU).setOutputState("OFF")
 
@@ -1504,10 +1505,15 @@ class ProgrammingSpeedTest:
 
         Apply(PSU).write(PSU_Channel, V_Upper, 2)
         sleep(1)
-        print(Oscilloscope(OSC).getRiseTime(OSC_Channel))
+        Rise_Time = float(Oscilloscope(OSC).getRiseTime(OSC_Channel))
+        print(f"Rise Time from{Lower_Bound}% to {Upper_Bound}%: {Rise_Time} s")
         sleep(1)
         Oscilloscope(OSC).setSingleMode()
         sleep(1)
         Apply(PSU).write(PSU_Channel, V_Lower, 2)
-        print(Oscilloscope(OSC).getFallTime(OSC_Channel))
+        sleep(1)
+        Fall_Time = float(Oscilloscope(OSC).getFallTime(OSC_Channel))
+
+        print(f"Fall Time from {Upper_Bound}% to {Lower_Bound}%: {Fall_Time} s")
+        WAI(OSC)
         Output(PSU).setOutputState("OFF")
