@@ -1,11 +1,38 @@
+"""Library containing all the SCPI Commands used by the program that is compatible with Keysight Instruments.
+
+    SCPI Commands are organized in an inverse tree layer where the commands are categorized by Subsystems. Hence,
+    different commands are written into methods of child classes based on the Subsystem they belong in. However,
+    documentation for each exact method will not be written in this documentation. For further details, please 
+    refer to the Programming Manual of those separate instruments or :
+    https://rfmw.em.keysight.com/wireless/helpfiles/e5080a/programming/gp-ib_command_finder/scpi_command_tree.htm
+
+
+"""
+
 import pyvisa
-from time import sleep
-import sys
-from matplotlib import pyplot as plt
 
 
 class Subsystem(object):
+    """Parent Class for every SCPI Commands Subsystem
+
+    Attributes:
+        VISA_ADDRESS: The string which contains the VISA Address of an Instrument.
+        Channel_Number: An integer which contains the Channel Number of Instrument.
+        value: An integer which represents the value of certain parameters (e.g. Voltage, Current, Frequency).
+        state: A boolean representing if the function should be enabled or disabled.
+
+    """
+
     def __init__(self, VISA_ADDRESS):
+        """Initialize the instance where the Instrument is ready to receive commands
+
+        Object rm is created where the backend will find the shared VISA Library. VISA_Address are given as arguements to declare
+        which resources (in this case the instruments) to use.
+
+        Args:
+            VISA_ADDRESS: String Literal of VISA Address of the Instrument
+        """
+
         self.VISA_ADDRESS = VISA_ADDRESS
         # ResourceManager Setup
         rm = pyvisa.ResourceManager()
@@ -16,15 +43,10 @@ class Subsystem(object):
         except pyvisa.VisaIOError as e:
             print(e.args)
 
-    def strtoargs(self, args):
-        temp = ""
-        for item in args:
-            temp = temp + item
-
-        return temp
-
 
 class Abort(Subsystem):
+    """Child Class for Abort Subsystem"""
+
     def __init__(self, VISA_ADDRESS):
         super().__init__(VISA_ADDRESS)
 
@@ -39,6 +61,8 @@ class Abort(Subsystem):
 
 
 class Apply(Subsystem):
+    """Child Class for Apply Subsystem"""
+
     def __init__(self, VISA_ADDRESS):
         super().__init__(VISA_ADDRESS)
 
@@ -47,6 +71,8 @@ class Apply(Subsystem):
 
 
 class Current(Subsystem):
+    """Child Class for Current Subsystem"""
+
     def __init__(self, VISA_ADDRESS):
         super().__init__(VISA_ADDRESS)
 
@@ -106,6 +132,8 @@ class Current(Subsystem):
 
 
 class Calculate(Subsystem):
+    """Child Class for Calculate Subsystem"""
+
     def __init__(self, VISA_ADDRESS):
         super().__init__(VISA_ADDRESS)
 
@@ -135,6 +163,8 @@ class Calculate(Subsystem):
 
 
 class Calibration(Subsystem):
+    """Child Class for Calibration Subsystem"""
+
     def __init__(self, VISA_ADDRESS):
         super().__init__(VISA_ADDRESS)
 
@@ -164,6 +194,8 @@ class Calibration(Subsystem):
 
 
 class Configure(Subsystem):
+    """Child Class for Configure Subsystem"""
+
     def __init__(self, VISA_ADDRESS):
         super().__init__(VISA_ADDRESS)
 
@@ -189,6 +221,8 @@ class Configure(Subsystem):
 
 
 class Data(Subsystem):
+    """Child Class for Data Subsystem"""
+
     def __init__(self, VISA_ADDRESS):
         super().__init__(VISA_ADDRESS)
 
@@ -206,6 +240,8 @@ class Data(Subsystem):
 
 
 class Display(Subsystem):
+    """Child Class for Display Subsystem"""
+
     def __init__(self, VISA_ADDRESS):
         super().__init__(VISA_ADDRESS)
 
@@ -220,6 +256,8 @@ class Display(Subsystem):
 
 
 class Emul(Subsystem):
+    """Child Class for Emul Subsystem"""
+
     def __init__(self, VISA_ADDRESS):
         super().__init__(VISA_ADDRESS)
 
@@ -228,6 +266,8 @@ class Emul(Subsystem):
 
 
 class Fetch(Subsystem):
+    """Child Class for Fetch Subsystem"""
+
     def __init__(self, VISA_ADDRESS):
         super().__init__(VISA_ADDRESS)
 
@@ -243,6 +283,8 @@ class Fetch(Subsystem):
 
 
 class Function(Subsystem):
+    """Child Class for Function Subsystem"""
+
     def __init__(self, VISA_ADDRESS):
         super().__init__(VISA_ADDRESS)
 
@@ -251,6 +293,8 @@ class Function(Subsystem):
 
 
 class Format(Subsystem):
+    """Child Class for Format Subsystem"""
+
     def __init__(self, VISA_ADDRESS):
         super().__init__(VISA_ADDRESS)
 
@@ -262,6 +306,8 @@ class Format(Subsystem):
 
 
 class Initiate(Subsystem):
+    """Child Class for Initiate Subsystem"""
+
     def __init__(self, VISA_ADDRESS):
         super().__init__(VISA_ADDRESS)
 
@@ -279,6 +325,8 @@ class Initiate(Subsystem):
 
 
 class Output(Subsystem):
+    """Child Class for Output Subsystem"""
+
     def __init__(self, VISA_ADDRESS):
         super().__init__(VISA_ADDRESS)
 
@@ -317,6 +365,8 @@ class Output(Subsystem):
 
 
 class List(Subsystem):
+    """Child Class for List Subsystem"""
+
     def __init__(self, VISA_ADDRESS):
         super().__init__(VISA_ADDRESS)
 
@@ -331,6 +381,8 @@ class List(Subsystem):
 
 
 class LXI(Subsystem):
+    """Child Class for LXI Subsystem"""
+
     def __init__(self, VISA_ADDRESS):
         super().__init__(VISA_ADDRESS)
 
@@ -366,6 +418,8 @@ class LXI(Subsystem):
 
 
 class Measure(Subsystem):
+    """Child Class for Measure Subsystem"""
+
     def __init__(self, VISA_ADDRESS):
         super().__init__(VISA_ADDRESS)
 
@@ -388,6 +442,8 @@ class Measure(Subsystem):
 
 
 class Memory(Subsystem):
+    """Child Class for Memory Subsystem"""
+
     def __init__(self, VISA_ADDRESS):
         super().__init__(VISA_ADDRESS)
 
@@ -407,6 +463,8 @@ class Memory(Subsystem):
 
 
 class MMemory(Subsystem):
+    """Child Class for MMemory Subsystem"""
+
     def __init__(self, VISA_ADDRESS):
         super().__init__(VISA_ADDRESS)
 
@@ -415,6 +473,8 @@ class MMemory(Subsystem):
 
 
 class Power(Subsystem):
+    """Child Class for Power Subsystem"""
+
     def __init__(self, VISA_ADDRESS):
         super().__init__(VISA_ADDRESS)
 
@@ -456,6 +516,8 @@ class Power(Subsystem):
 
 
 class Read(Subsystem):
+    """Child Class for Read Subsystem"""
+
     def __init__(self, VISA_ADDRESS):
         super().__init__(VISA_ADDRESS)
 
@@ -464,6 +526,8 @@ class Read(Subsystem):
 
 
 class Delay(Subsystem):
+    """Child Class for Delay Subsystem"""
+
     def __init__(self, VISA_ADDRESS):
         super().__init__(VISA_ADDRESS)
 
@@ -475,6 +539,8 @@ class Delay(Subsystem):
 
 
 class Resistance(Subsystem):
+    """Child Class for Resistance Subsystem"""
+
     def __init__(self, VISA_ADDRESS):
         super().__init__(VISA_ADDRESS)
 
@@ -510,6 +576,8 @@ class Resistance(Subsystem):
 
 
 class Sample(Subsystem):
+    """Child Class for Sample Subsystem"""
+
     def __init__(self, VISA_ADDRESS):
         super().__init__(VISA_ADDRESS)
 
@@ -524,6 +592,8 @@ class Sample(Subsystem):
 
 
 class Sense(Subsystem):
+    """Child Class for Sense Subsystem"""
+
     def __init__(self, VISA_ADDRESS):
         super().__init__(VISA_ADDRESS)
 
@@ -625,6 +695,8 @@ class Sense(Subsystem):
 
 
 class Status(Subsystem):
+    """Child Class for Status Subsystem"""
+
     def __init__(self, VISA_ADDRESS):
         super().__init__(VISA_ADDRESS)
 
@@ -659,6 +731,8 @@ class Status(Subsystem):
 
 
 class System(Subsystem):
+    """Child Class for System Subsystem"""
+
     def __init__(self, VISA_ADDRESS):
         super().__init__(VISA_ADDRESS)
 
@@ -739,6 +813,8 @@ class System(Subsystem):
 
 
 class Transient(Subsystem):
+    """Child Class for Transient Subsystem"""
+
     def __init__(self, VISA_ADDRESS):
         super().__init__(VISA_ADDRESS)
 
@@ -759,6 +835,8 @@ class Transient(Subsystem):
 
 
 class Trigger(Subsystem):
+    """Child Class for Trigger Subsystem"""
+
     def __init__(self, VISA_ADDRESS):
         super().__init__(VISA_ADDRESS)
 
@@ -794,6 +872,8 @@ class Trigger(Subsystem):
 
 
 class Unit(Subsystem):
+    """Child Class for Unit Subsystem"""
+
     def __init__(self, VISA_ADDRESS):
         super().__init__(VISA_ADDRESS)
 
@@ -805,6 +885,8 @@ class Unit(Subsystem):
 
 
 class Voltage(Subsystem):
+    """Child Class for Voltage Subsystem"""
+
     def __init__(self, VISA_ADDRESS):
         super().__init__(VISA_ADDRESS)
 
@@ -885,6 +967,8 @@ class Voltage(Subsystem):
 
 
 class Oscilloscope(Subsystem):
+    """Child Class for Oscilloscope Subsystem"""
+
     def __init__(self, VISA_ADDRESS):
         super().__init__(VISA_ADDRESS)
 
