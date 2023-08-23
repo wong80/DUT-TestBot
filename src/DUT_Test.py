@@ -1,6 +1,9 @@
 """ Module containing all of the test options available in this program. 
 
-    The tests are categorized into different classes.
+    The tests are categorized into different classes. 
+    Notes: Tests RiseFallTime & ProgrammingSpeed are only compatible with
+    certain Oscilloscopes using the Keysight Library. Hence, the default 
+    library is only set to Keysight
 
 """
 
@@ -160,6 +163,8 @@ class VoltageMeasurement:
         more complicated than other methods. This method only can be implemented that have the specific
         commands that are used.
 
+        In line 260, where I_fixed - 0.001 * I_fixed is done to prevent the ELoad from causing the DUT
+        to enter CC Mode.
 
         Args:
             Instrument: String determining which library to be used.
@@ -185,6 +190,11 @@ class VoltageMeasurement:
             InputZ: String determining the Input Impedance Mode of DMM.
             UpTime: Float containing details regarding the uptime delay.
             DownTime: Float containing details regarding the downtime delay.
+            current_iter: integer storing the number of iterations of current sweep.
+            voltage_iter: integer storing the number of iterations of voltage sweep.
+            status: float storing the value returned by the status event registry.
+            infoList: List containing the programmed data that was set by Program.
+            dataList: List containing the measured data that was queried from DUT.
 
         Returns:
             Returns two list, DataList & InfoList. Each containing the programmed & measured data individually.
@@ -324,6 +334,8 @@ class VoltageMeasurement:
         of the instruments, since it is under the IEEE Standard Library, most instruments are synchronized
         using this way. However, this method only works for commands with a short execution time.
 
+        In line 434, where I_fixed - 0.001 * I_fixed is done to prevent the ELoad from causing the DUT
+        to enter CC Mode.
 
         Args:
             Instrument: String determining which library to be used.
@@ -349,6 +361,11 @@ class VoltageMeasurement:
             InputZ: String determining the Input Impedance Mode of DMM.
             UpTime: Float containing details regarding the uptime delay.
             DownTime: Float containing details regarding the downtime delay.
+            current_iter: integer storing the number of iterations of current sweep.
+            voltage_iter: integer storing the number of iterations of voltage sweep.
+            status: float storing the value returned by the status event registry.
+            infoList: List containing the programmed data that was set by Program.
+            dataList: List containing the measured data that was queried from DUT.
 
         Returns:
             Returns two list, DataList & InfoList. Each containing the programmed & measured data individually.
@@ -488,6 +505,8 @@ class CurrentMeasurement:
         more complicated than other methods. This method only can be implemented that have the specific
         commands that are used.
 
+        In line 605, where V_fixed - 0.001 * V_fixed is done to prevent the ELoad from causing the DUT
+        to enter CV Mode.
 
         Args:
             Instrument: String determining which library to be used.
@@ -513,6 +532,11 @@ class CurrentMeasurement:
             InputZ: String determining the Input Impedance Mode of DMM.
             UpTime: Float containing details regarding the uptime delay.
             DownTime: Float containing details regarding the downtime delay.
+            current_iter: integer storing the number of iterations of current sweep.
+            voltage_iter: integer storing the number of iterations of voltage sweep.
+            status: float storing the value returned by the status event registry.
+            infoList: List containing the programmed data that was set by Program.
+            dataList: List containing the measured data that was queried from DUT.
 
         Returns:
             Returns two list, DataList & InfoList. Each containing the programmed & measured data individually.
@@ -650,6 +674,8 @@ class CurrentMeasurement:
         of the instruments, since it is under the IEEE Standard Library, most instruments are synchronized
         using this way. However, this method only works for commands with a short execution time.
 
+        In line 771, where V_fixed - 0.001 * V_fixed is done to prevent the ELoad from causing the DUT
+        to enter CV Mode.
 
         Args:
             Instrument: String determining which library to be used.
@@ -675,6 +701,11 @@ class CurrentMeasurement:
             InputZ: String determining the Input Impedance Mode of DMM.
             UpTime: Float containing details regarding the uptime delay.
             DownTime: Float containing details regarding the downtime delay.
+            current_iter: integer storing the number of iterations of current sweep.
+            voltage_iter: integer storing the number of iterations of voltage sweep.
+            status: float storing the value returned by the status event registry.
+            infoList: List containing the programmed data that was set by Program.
+            dataList: List containing the measured data that was queried from DUT.
 
         Returns:
             Returns two list, DataList & InfoList. Each containing the programmed & measured data individually.
@@ -832,6 +863,9 @@ class LoadRegulation:
             InputZ: String determining the Input Impedance Mode of DMM.
             UpTime: Float containing details regarding the uptime delay.
             DownTime: Float containing details regarding the downtime delay.
+            I_Max: Float storing the maximum nominal current value based on Power & Voltage Rating
+            V_NL: Float storing the measured voltage during no load.
+            V_FL: Float storing the measured voltage during full load.
 
         Raises:
             VisaIOError: An error occured when opening PyVisa Resources.
@@ -970,6 +1004,9 @@ class LoadRegulation:
             InputZ: String determining the Input Impedance Mode of DMM.
             UpTime: Float containing details regarding the uptime delay.
             DownTime: Float containing details regarding the downtime delay.
+            I_Max: Float storing the maximum nominal current value based on Power & Voltage Rating
+            V_NL: Float storing the measured voltage during no load.
+            V_FL: Float storing the measured voltage during full load.
 
 
         Raises:
@@ -1130,6 +1167,9 @@ class LoadRegulation:
             InputZ: String determining the Input Impedance Mode of DMM.
             UpTime: Float containing details regarding the uptime delay.
             DownTime: Float containing details regarding the downtime delay.
+            V_Max: Float storing the maximum nominal voltage value based on Power & Voltage Rating
+            I_NL: Float storing the measured current during no load.
+            I_FL: Float storing the measured current during full load.
 
         Raises:
             VisaIOError: An error occured when opening PyVisa Resources.
@@ -1265,6 +1305,9 @@ class LoadRegulation:
             InputZ: String determining the Input Impedance Mode of DMM.
             UpTime: Float containing details regarding the uptime delay.
             DownTime: Float containing details regarding the downtime delay.
+            V_Max: Float storing the maximum nominal voltage value based on Power & Voltage Rating
+            I_NL: Float storing the measured current during no load.
+            I_FL: Float storing the measured current during full load.
 
 
         Raises:
@@ -1516,6 +1559,7 @@ class ProgrammingSpeedTest:
         will capture the rise time of the voltage from the first voltage to the final voltage. Then the
         PSU is set to the first voltage to measure the fall time, speed of voltage changing.
 
+        The trigger edge level is set to V_MAX - 1 is to ensure the trigger range is still valid.
 
         Args:
             PSU: String containing the VISA Address of the PSU.
