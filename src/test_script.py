@@ -1,3 +1,11 @@
+""" Module containing all the scripts for testing purposes
+
+    Most of the functions do not work well and are not documented. 
+    For documentation, please refer to DUT_Test.py
+
+
+"""
+
 from xlreport import xlreport
 import pyvisa
 import sys
