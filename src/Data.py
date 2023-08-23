@@ -206,7 +206,7 @@ class datatoGraph(datatoCSV_Accuracy):
             plt.ylabel("Percentage Error (%)")
 
         elif UNIT.upper() == "CURRENT":
-            upper_error_limit = self.param1 * x + self.param2 * 100
+            upper_error_limit = param1 * x + param2 * 100
             lower_error_limit = -upper_error_limit
             self.upper_error_limit = upper_error_limit
             self.lower_error_limit = lower_error_limit
