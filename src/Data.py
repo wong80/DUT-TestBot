@@ -1,3 +1,9 @@
+""" This module contains all of the data processing and visualization tools and functions
+
+    The module mainly uses maltplotlib to plot graphs and pandas to process the data. 
+
+"""
+
 import sys
 import pandas as pd
 from matplotlib import pyplot as plt
@@ -12,63 +18,115 @@ from Keysight import System
 
 
 class datatoCSV_Accuracy(object):
+    """This class is used to preprocess the data collected for Voltage/Accuracy test and export CSV Files
+
+    Attributes:
+        infoList: List containing information collected from Program
+        dataList List containing measured data collected from DUT
+
+    """
+
     def __init__(self, infoList, dataList):
-        self.infoList = infoList
-        self.dataList = dataList
+        """This function initializes the preprocessing of data and generate CSV file
 
-        self.Vset = pd.Series(self.column(infoList, 0))
-        self.Iset = pd.Series(self.column(infoList, 1))
-        self.key = pd.Series(self.column(infoList, 2))
-        self.Vmeasured = pd.Series(self.column(dataList, 0))
-        self.Imeasured = pd.Series(self.column(dataList, 1))
+            This function begins by extracting the list provided as an arguement into
+            multiple columns. The absolute and percentage error is then calculted using
+            the columns, the columns are then converted into dataframes which is then
+            all compiled into a csv file.
 
-        self.Vabsolute_error = self.Vset - self.Vmeasured
-        self.Vpercent_error = self.Vabsolute_error / self.Vset * 100
+        Args:
+            infoList: List containing all the data that is sent from the program.
+            dataList: List containing all the data that is collected from the DUT.
+            Vset: Column containing information regarding the Voltage Set.
+            Iset: Column containing information regarding the Current Set.
+            Key: Column containing key to differentiate different current iterations.
+            Vmeasured: Column containing information regarding Voltage Measured.
+            Imeasured: Column containing information regarding Current Measured.
+            Vabsolute_error: Column containing information regarding absolute error (Voltage).
+            Vpercent_error: Column containing information regarding percentage error (Voltage).
+            Iabsolute_error: Column containing information regarding absolute error (Current).
+            Ipercent_error: Column containing information regarding percentage error (Current).
 
-        self.Iabsolute_error = self.Iset - self.Imeasured
-        self.Ipercent_error = self.Iabsolute_error / self.Iset * 100
 
-        self.VsetF = self.Vset.to_frame(name="Voltage Set")
-        self.IsetF = self.Iset.to_frame(name="Current Set")
-        self.keyF = self.key.to_frame(name="key")
-        self.VmeasuredF = self.Vmeasured.to_frame(name="Voltage Measured")
-        self.ImeasuredF = self.Imeasured.to_frame(name="Current Measured")
+        """
 
-        self.Vabsolute_errorF = self.Vabsolute_error.to_frame(
-            name="Voltage Absolute Error"
-        )
-        self.Vpercent_errorF = self.Vpercent_error.to_frame(
-            name="Voltage Percentage Error (%)"
-        )
-        self.Iabsolute_errorF = self.Iabsolute_error.to_frame(
-            name="Current Absolute Error"
-        )
-        self.Ipercent_errorF = self.Ipercent_error.to_frame(
-            name="Current Percentage Error (%)"
-        )
-        self.CSV1 = pd.concat(
+        Vset = pd.Series(self.column(infoList, 0))
+        Iset = pd.Series(self.column(infoList, 1))
+        Key = pd.Series(self.column(infoList, 2))
+        Vmeasured = pd.Series(self.column(dataList, 0))
+        Imeasured = pd.Series(self.column(dataList, 1))
+
+        Vabsolute_error = Vset - Vmeasured
+        Vpercent_error = Vabsolute_error / Vset * 100
+
+        Iabsolute_error = Iset - Imeasured
+        Ipercent_error = Iabsolute_error / Iset * 100
+
+        VsetF = Vset.to_frame(name="Voltage Set")
+        IsetF = Iset.to_frame(name="Current Set")
+        keyF = Key.to_frame(name="key")
+        VmeasuredF = Vmeasured.to_frame(name="Voltage Measured")
+        ImeasuredF = Imeasured.to_frame(name="Current Measured")
+
+        Vabsolute_errorF = Vabsolute_error.to_frame(name="Voltage Absolute Error")
+        Vpercent_errorF = Vpercent_error.to_frame(name="Voltage Percentage Error (%)")
+        Iabsolute_errorF = Iabsolute_error.to_frame(name="Current Absolute Error")
+        Ipercent_errorF = Ipercent_error.to_frame(name="Current Percentage Error (%)")
+        CSV1 = pd.concat(
             [
-                self.VsetF,
-                self.IsetF,
-                self.VmeasuredF,
-                self.ImeasuredF,
-                self.keyF,
-                self.Vabsolute_errorF,
-                self.Vpercent_errorF,
-                self.Iabsolute_errorF,
-                self.Ipercent_errorF,
+                VsetF,
+                IsetF,
+                VmeasuredF,
+                ImeasuredF,
+                keyF,
+                Vabsolute_errorF,
+                Vpercent_errorF,
+                Iabsolute_errorF,
+                Ipercent_errorF,
             ],
             axis=1,
         )
 
-        self.CSV1.to_csv("csv/data.csv", index=False)
+        CSV1.to_csv("csv/data.csv", index=False)
 
     def column(self, matrix, i):
+        """Function to convert rows of data from list to a column
+
+        Args:
+            matrix: The 2D matrix to store the column data
+            i: to iterate through loop
+        """
         return [row[i] for row in matrix]
 
 
 class datatoCSV_Regulation(object):
+    """This class is used to preprocess the data collected for Load Regulation Tests and export CSV Files"""
+
     def __init__(self, infoList, dataList, V_rating, param1, param2, V_NL):
+        """This function initializes the preprocessing of data and generate CSV file
+
+            The function begins by extracting the data from the list passed as an arguement
+            into different columns labeled. The Voltage Regulation is then calculated using
+            these information.
+
+            A plot is then made using the dataframes collected above. A scatter of the Voltage
+            Regulation is plotted with a horizontal line of a y axis of the voltage regulation
+            determined by the desired specifications. Condition is provided that if the voltage
+            regulation at the point is lower than the voltage regulation boundary, the scatter
+            point will be visibilly larger and red.
+
+        Args:
+            infoList: List containing all the data that is sent from the program.
+            dataList: List containing all the data that is collected from the DUT.
+            V_NL: List containing the nominal value when voltage is measured during no load.
+            V_FL: Float containing the nominal value when voltage is measured during full load.
+            Current_Programmed: Column containing the nominal value to program the output current of DUT.
+            Voltage_Programmed: Column containing the nominal value to program the output voltage of DUT.
+            Load_Measured: Float containing the nominal value of total Load of DUT.
+            Voltage_Error: Column containing the calculated voltage error.
+            Voltage_Regulation: Column containing the calculated voltage regulation.
+
+        """
         self.infoList = infoList
         self.dataList = dataList
         self.V_NL = V_NL
@@ -143,15 +201,37 @@ class datatoCSV_Regulation(object):
         plt.show()
 
     def column(self, matrix, i):
+        """Function to convert rows of data from list to a column
+
+        Args:
+            matrix: The 2D matrix to store the column data
+            i: to iterate through loop
+        """
         return [row[i] for row in matrix]
 
 
 class datatoGraph(datatoCSV_Accuracy):
+    """Child class of datatoCSV_Accuracy to plot the graph"""
+
     def __init__(self, infoList, dataList):
         super().__init__(infoList, dataList)
         self.data = pd.read_csv("csv/data.csv")
 
     def errorBoundary(self, param1, param2, UNIT, x, x_err, y):
+        """Function is used to determine the error boundary of voltage accuracy
+
+            The function begins by computing the error boundaries based on specifications.
+            The error boundaries are then compared using data extracted from parent class.
+            The boolList will collect information whether the accuracy at certain point has
+            been reached. The boolList will append a "PASS" if it does, else "FAIL".
+            A scatter plot is then plotted on the same plane with the error boundary lines.
+            For scatter points that do not meet the condition will appear visibly red and larger.
+
+        Args:
+            upper_error_limit: float value of the upper error boundary determined from specification
+            lower_error_limit: float value of the lower error boundary determined from specification
+
+        """
         boolList = []
 
         if UNIT.upper() == "VOLTAGE":
