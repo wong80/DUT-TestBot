@@ -29,7 +29,7 @@ sys.path.insert(
     1,
     r"C://Users//zhiywong//OneDrive - Keysight Technologies//Documents//GitHub//PyVisa//src",
 )
-from Test import (
+from DUT_Test import (
     VoltageMeasurement,
     CurrentMeasurement,
     VisaResourceManager,
@@ -496,6 +496,8 @@ class VoltageMeasurementDialog(QDialog):
         dlg.exec()
 
     def executeTest(self):
+        self.infoList = []
+        self.dataList = []
         QMessageBox.warning(
             self,
             "In Progress",
@@ -541,14 +543,11 @@ class VoltageMeasurementDialog(QDialog):
                 QMessageBox.warning(self, "VISA IO ERROR", string)
                 exit()
 
-            VoltageMeasurement.settings(
-                self, self.DMM_Instrument, self.Error_Gain, self.Error_Offset
-            )
             if self.DMM_Instrument == "Keysight":
                 try:
                     (
-                        dataList,
                         infoList,
+                        dataList,
                     ) = VoltageMeasurement.executeVoltageMeasurementA(
                         self,
                         self.DMM_Instrument,
@@ -583,8 +582,8 @@ class VoltageMeasurementDialog(QDialog):
             elif self.DMM_Instrument == "Keithley":
                 try:
                     (
-                        dataList,
                         infoList,
+                        dataList,
                     ) = VoltageMeasurement.executeVoltageMeasurementB(
                         self,
                         self.DMM_Instrument,
@@ -641,7 +640,6 @@ class VoltageMeasurementDialog(QDialog):
                     "PSU Settling Time (UP)": [AdvancedSettingsList[4]],
                     "PSU Settling Time (DOWN)": [AdvancedSettingsList[5]],
                 }
-
                 instrumentData(self.PSU, self.DMM, self.ELoad)
                 datatoCSV_Accuracy(infoList, dataList)
                 datatoGraph(infoList, dataList)
@@ -948,6 +946,8 @@ class CurrentMeasurementDialog(QDialog):
         AdvancedSettingsList[5] = value
 
     def executeTest(self):
+        self.infoList = []
+        self.dataList = []
         QMessageBox.warning(
             self,
             "In Progress",
@@ -2649,7 +2649,7 @@ if __name__ == "__main__":
     original_stdout = sys.stdout
     my_result = StringIO()
     sys.stdout = my_result
-    # Create the application
+    # # Create the application
     app = QApplication(sys.argv)
     # Create and show the application's main window
     win = Window()
