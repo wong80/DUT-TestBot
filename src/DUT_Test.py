@@ -489,6 +489,8 @@ class CurrentMeasurement:
         Aperture,
         AutoZero,
         Terminal,
+        UpTime,
+        DownTime,
     ):
         """Execution of Current Measurement for Programm / Readback Accuracy using Status Event Registry to synchronize Instruments
 
@@ -611,6 +613,7 @@ class CurrentMeasurement:
                 infoList.insert(k, [V_fixed, I, i])
 
                 WAI(PSU)
+                Delay(PSU).write(UpTime)
                 Initiate(DMM).initiate()
                 status = float(Status(DMM).operationCondition())
                 TRG(self.DMM)
@@ -625,6 +628,8 @@ class CurrentMeasurement:
                     elif status == 512.0:
                         dataList.insert(k, [V_fixed, float(Fetch(DMM).query())])
                         break
+
+                Delay(PSU).write(DownTime)
                 I += float(current_stepsize)
                 j += 1
                 k += 1
@@ -915,7 +920,7 @@ class LoadRegulation:
         self.param2 = float(Error_Offset)
 
         I_Max = self.P_Rating / self.V_Rating
-        Apply(PSU).write(self.PSU_Channel, self.V_Rating, self.I_Rating)
+        Apply(PSU).write(PSU_Channel, self.V_Rating, self.I_Rating)
         Output(PSU).setOutputState("ON")
 
         # Reading for No Load Voltage
@@ -1400,10 +1405,10 @@ class LoadRegulation:
         print("I_NL: ", I_NL, "I_FL: ", I_FL)
         Output(ELoad).setOutputStateC("OFF", ELoad_Channel)
         Output(PSU).setOutputState("OFF")
-        Voltage_Regulation = ((I_NL - I_FL) / I_FL) * 100
-        Desired_Voltage_Regulation = 30 * self.param1 + self.param2
-        print("Desired Load Regulation (CC): (%)", Desired_Voltage_Regulation)
-        print("Calculated Load Regulation (CC): (%)", round(Voltage_Regulation, 4))
+        Current_Regulation = ((I_NL - I_FL) / I_FL) * 100
+        Desired_Current_Regulation = self.I_Rating * self.param1 + self.param2
+        print("Desired Load Regulation (CC): (%)", Desired_Current_Regulation)
+        print("Calculated Load Regulation (CC): (%)", round(Current_Regulation, 4))
 
 
 class RiseFallTime:
