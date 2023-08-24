@@ -703,33 +703,33 @@ class CurrentMeasurementDialog(QDialog):
         QComboBox_DMM_Instrument = QComboBox()
 
         # General Settings
-        QLabel_Voltage_Res = QLabel()
+        QLabel_Current_Res = QLabel()
         QLabel_ELoad_Display_Channel = QLabel()
         QLabel_PSU_Display_Channel = QLabel()
         QLabel_set_Function = QLabel()
-        QLabel_Voltage_Sense = QLabel()
+        QLabel_Current_Sense = QLabel()
         QLabel_Error_Gain = QLabel()
         QLabel_Error_Offset = QLabel()
         QLabel_Range = QLabel()
 
-        QLabel_Voltage_Res.setText("Current Resolution (DMM):")
+        QLabel_Current_Res.setText("Current Resolution (DMM):")
         QLabel_ELoad_Display_Channel.setText("Display Channel (Eload):")
         QLabel_PSU_Display_Channel.setText("Display Channel (PSU):")
         QLabel_set_Function.setText("Mode(Eload):")
-        QLabel_Voltage_Sense.setText("Current Sense:")
+        QLabel_Current_Sense.setText("Current Sense:")
         QLabel_Error_Gain.setText("Desired Specification (Gain):")
         QLabel_Error_Offset.setText("Desired Specification (Offset):")
         QLabel_Range.setText("Current Range:")
         self.OutputBox = QTextBrowser()
-        QComboBox_Voltage_Res = QComboBox()
+        QComboBox_Current_Res = QComboBox()
         QLineEdit_ELoad_Display_Channel = QLineEdit()
         QLineEdit_PSU_Display_Channel = QLineEdit()
         QComboBox_set_Function = QComboBox()
-        QComboBox_Voltage_Sense = QComboBox()
+        QComboBox_Current_Sense = QComboBox()
         QLineEdit_Error_Gain = QLineEdit()
         QLineEdit_Error_Offset = QLineEdit()
         QComboBox_Range = QComboBox()
-        QComboBox_Voltage_Res.addItems(["SLOW", "MEDIUM", "FAST"])
+        QComboBox_Current_Res.addItems(["SLOW", "MEDIUM", "FAST"])
         QComboBox_set_Function.addItems(
             [
                 "Voltage Priority",
@@ -739,7 +739,7 @@ class CurrentMeasurementDialog(QDialog):
         )
         QComboBox_DMM_Instrument.addItems(["Keysight", "Keithley"])
         QComboBox_set_Function.setEnabled(False)
-        QComboBox_Voltage_Sense.addItems(["2 Wire", "4 Wire"])
+        QComboBox_Current_Sense.addItems(["2 Wire", "4 Wire"])
         QComboBox_Range.addItems(["Auto", "10mA", "100mA", "1A", "3A"])
 
         # Current Sweep
@@ -778,7 +778,7 @@ class CurrentMeasurementDialog(QDialog):
         layout1.addRow(QLabel_ELoad_Display_Channel, QLineEdit_ELoad_Display_Channel)
         layout1.addRow(QLabel_PSU_Display_Channel, QLineEdit_PSU_Display_Channel)
         layout1.addRow(QLabel_set_Function, QComboBox_set_Function)
-        layout1.addRow(QLabel_Voltage_Sense, QComboBox_Voltage_Sense)
+        layout1.addRow(QLabel_Current_Sense, QComboBox_Current_Sense)
         layout1.addRow(QLabel_Error_Gain, QLineEdit_Error_Gain)
         layout1.addRow(QLabel_Error_Offset, QLineEdit_Error_Offset)
         layout1.addRow(Desp3)
@@ -843,9 +843,9 @@ class CurrentMeasurementDialog(QDialog):
         QLineEdit_voltage_stepsize.textEdited.connect(self.voltage_step_size_changed)
         QLineEdit_current_stepsize.textEdited.connect(self.current_step_size_changed)
         QComboBox_set_Function.currentTextChanged.connect(self.set_Function_changed)
-        QComboBox_Voltage_Res.currentTextChanged.connect(self.set_VoltageRes_changed)
-        QComboBox_Voltage_Sense.currentTextChanged.connect(
-            self.set_VoltageSense_changed
+        QComboBox_Current_Res.currentTextChanged.connect(self.set_CurrentRes_changed)
+        QComboBox_Current_Sense.currentTextChanged.connect(
+            self.set_CurrentSense_changed
         )
         QComboBox_DMM_Instrument.currentTextChanged.connect(self.DMM_Instrument_changed)
         QCheckBox_Report_Widget.stateChanged.connect(self.checkbox_state_Report)
@@ -905,23 +905,20 @@ class CurrentMeasurementDialog(QDialog):
         elif s == "Resistance Priority":
             self.setFunction = "Resistance"
 
-    def set_VoltageRes_changed(self, s):
-        self.VoltageRes = s
+    def set_CurrentRes_changed(self, s):
+        self.CurrentRes = s
 
-    def set_VoltageSense_changed(self, s):
+    def set_CurrentSense_changed(self, s):
         if s == "2 Wire":
-            self.VoltageSense = "INT"
+            self.CurrentSense = "INT"
         elif s == "4 Wire":
-            self.VoltageSense = "EXT"
+            self.CurrentSense = "EXT"
 
     def checkbox_state_Report(self, s):
         self.checkbox_data_Report = s
 
     def checkbox_state_Image(self, s):
         self.checkbox_data_Image = s
-
-    def set_CurrentRange_changed(self, s):
-        self.CurrentRange = s
 
     def openDialog(self):
         dlg = AdvancedSetting_Current()
@@ -968,10 +965,9 @@ class CurrentMeasurementDialog(QDialog):
             self.ELoad,
             self.ELoad_Channel,
             self.PSU_Channel,
-            self.VoltageSense,
-            self.VoltageRes,
+            self.CurrentSense,
+            self.CurrentRes,
             self.setFunction,
-            self.CurrentRange,
             AdvancedSettingsList[0],
             AdvancedSettingsList[1],
             AdvancedSettingsList[2],
@@ -996,7 +992,6 @@ class CurrentMeasurementDialog(QDialog):
 
                 QMessageBox.warning(self, "VISA IO ERROR", string)
                 exit()
-            CurrentMeasurement.settings(self, self.Error_Gain, self.Error_Offset)
 
             if self.DMM_Instrument == "Keysight":
                 try:
@@ -1019,10 +1014,9 @@ class CurrentMeasurementDialog(QDialog):
                         self.ELoad,
                         self.ELoad_Channel,
                         self.PSU_Channel,
-                        self.VoltageSense,
-                        self.VoltageRes,
+                        self.CurrentSense,
+                        self.CurrentRes,
                         self.setFunction,
-                        self.CurrentRange,
                         AdvancedSettingsList[0],
                         AdvancedSettingsList[1],
                         AdvancedSettingsList[2],
@@ -1056,8 +1050,8 @@ class CurrentMeasurementDialog(QDialog):
                         self.ELoad,
                         self.ELoad_Channel,
                         self.PSU_Channel,
-                        self.VoltageSense,
-                        self.VoltageRes,
+                        self.CurrentSense,
+                        self.CurrentRes,
                         self.setFunction,
                         AdvancedSettingsList[0],
                         AdvancedSettingsList[1],
@@ -1678,8 +1672,8 @@ class CV_LoadRegulationDialog(QDialog):
                     QMessageBox.warning(self, "Error", str(e))
                     exit()
 
-                self.OutputBox.append(my_result.getvalue())
-                self.OutputBox.append("Measurement is complete !")
+            self.OutputBox.append(my_result.getvalue())
+            self.OutputBox.append("Measurement is complete !")
 
     def openDialog(self):
         dlg = AdvancedSetting_Voltage()
@@ -2023,8 +2017,8 @@ class CC_LoadRegulationDialog(QDialog):
                     QMessageBox.warning(self, "Error", str(e))
                     exit()
 
-                self.OutputBox.append(my_result.getvalue())
-                self.OutputBox.append("Measurement is complete !")
+            self.OutputBox.append(my_result.getvalue())
+            self.OutputBox.append("Measurement is complete !")
 
     def openDialog(self):
         dlg = AdvancedSetting_Current()
