@@ -218,18 +218,24 @@ class datatoGraph(datatoCSV_Accuracy):
         self.data = pd.read_csv("csv/data.csv")
 
     def errorBoundary(self, param1, param2, UNIT, x, x_err, y):
-        """Function is used to determine the error boundary of voltage accuracy
+        """Function is used to determine and plot the error boundaries of voltage/current accuracy
 
-            The function begins by computing the error boundaries based on specifications.
-            The error boundaries are then compared using data extracted from parent class.
-            The boolList will collect information whether the accuracy at certain point has
-            been reached. The boolList will append a "PASS" if it does, else "FAIL".
+            The function begins by defining certain parameters, it also extracts data from method
+            ScatterCompare() that has determined which points have passed or failed the given condition.
+
+            The valyes given will change how the points are plotted on the scatter plot.
             A scatter plot is then plotted on the same plane with the error boundary lines.
             For scatter points that do not meet the condition will appear visibly red and larger.
 
+            The function is divided into two different sections depending on the condition, condition
+            whether we are comparing programming accuracy of voltage or current.
+
         Args:
-            upper_error_limit: float value of the upper error boundary determined from specification
-            lower_error_limit: float value of the lower error boundary determined from specification
+            upper_error_limit: float value of the upper error boundary determined from specification.
+            lower_error_limit: float value of the lower error boundary determined from specification.
+            condition1: Boolean which indicates if the absolute error is higher than upper error limit.
+            condition2: Boolean which indicates if the absolute error is lower than lower error limit.
+            boolList: List containing all the conditions of each point whether they passed or failed.
 
         """
         boolList = []
@@ -336,104 +342,27 @@ class datatoGraph(datatoCSV_Accuracy):
             plt.xlabel("Current (A)")
             plt.ylabel("Percentage Error (%)")
 
-    def scatterCompare(self, Mode, param1, param2):
-        self.Mode = Mode
-        ungrouped_df = pd.read_csv("csv/data.csv")
-        grouped_df = ungrouped_df.groupby(["key"])
-        [grouped_df.get_group(x) for x in grouped_df.groups]
-
-        upper_error_limitC = pd.Series()
-        lower_error_limitC = pd.Series()
-        conditionC = pd.Series()
-
-        for x in range(len(grouped_df)):
-            Vset = grouped_df.get_group(x)[["Voltage Set"]]
-            Iset = grouped_df.get_group(x)[["Current Set"]]
-            Vpercent_error = grouped_df.get_group(x)[["Voltage Percentage Error (%)"]]
-            Ipercent_error = grouped_df.get_group(x)[["Current Percentage Error (%)"]]
-
-            VsetS = Vset.squeeze()
-            Vpercent_errorS = Vpercent_error.squeeze()
-            IsetS = Iset.squeeze()
-            Ipercent_errorS = Ipercent_error.squeeze()
-
-            if self.Mode.upper() == "VOLTAGE":
-                self.errorBoundary(
-                    param1, param2, self.Mode, VsetS, Vpercent_errorS, Iset
-                )
-            elif self.Mode.upper() == "CURRENT":
-                self.errorBoundary(
-                    param1, param2, self.Mode, IsetS, Ipercent_errorS, Vset
-                )
-
-            upper_error_limitC = pd.concat([upper_error_limitC, self.upper_error_limit])
-            lower_error_limitC = pd.concat([lower_error_limitC, self.lower_error_limit])
-            conditionC = pd.concat([conditionC, self.condition_series])
-
-        if self.Mode.upper() == "VOLTAGE":
-            plt.plot(
-                Vset,
-                self.upper_error_limit,
-                label="Upper Bound",
-                color="red",
-                linewidth=1,
-            )
-            plt.plot(
-                Vset,
-                self.lower_error_limit,
-                label="Lower Bound",
-                color="red",
-                linewidth=1,
-            )
-        elif self.Mode.upper() == "CURRENT":
-            plt.plot(
-                Iset,
-                self.upper_error_limit,
-                label="Upper Bound",
-                color="red",
-                linewidth=1,
-            )
-            plt.plot(
-                Iset,
-                self.lower_error_limit,
-                label="Lower Bound",
-                color="red",
-                linewidth=1,
-            )
-
-        conditionF = conditionC.to_frame(name="Condition ?")
-        conditionFF = conditionF.reset_index(drop=True)
-
-        upper_error_limitF = pd.DataFrame(
-            upper_error_limitC, columns=["Upper Error Boundary"]
-        )
-        lower_error_limitF = pd.DataFrame(
-            lower_error_limitC, columns=["Lower Error Boundary"]
-        )
-
-        self.CSV2 = pd.concat(
-            [
-                self.VsetF,
-                self.IsetF,
-                self.VmeasuredF,
-                self.ImeasuredF,
-                self.Vabsolute_errorF,
-                self.Vpercent_errorF,
-                self.Iabsolute_errorF,
-                self.Ipercent_errorF,
-                upper_error_limitF,
-                lower_error_limitF,
-                conditionFF,
-            ],
-            axis=1,
-        )
-
-        self.CSV2.to_csv("csv/error.csv", index=False)
-
-        plt.legend(loc="lower left")
-        plt.savefig("images/Chart.png")
-
     def scatterCompareVoltage(self, param1, param2):
+        """Function is used to determine and plot the error boundaries of voltage accuracy
+
+            The function begins by computing the error boundaries based on specifications.
+            The error boundaries are then compared using data extracted from parent class.
+            The boolList will collect information whether the accuracy at certain point has
+            been reached. The boolList will append a "PASS" if it does, else "FAIL".
+            A scatter plot is then plotted on the same plane with the error boundary lines.
+            For scatter points that do not meet the condition will appear visibly red and larger.
+
+
+
+        Args:
+            upper_error_limit: float value of the upper error boundary determined from specification
+            lower_error_limit: float value of the lower error boundary determined from specification
+            condition1: Boolean which indicates if the absolute error is higher than upper error limit.
+            condition2: Boolean which indicates if the absolute error is lower than lower error limit.
+            boolList: List containing all the conditions of each point whether they passed or failed.
+
+
+        """
         ungrouped_df = pd.read_csv("csv/data.csv", index_col=False)
         grouped_df = ungrouped_df.groupby(["key"])
         [grouped_df.get_group(x) for x in grouped_df.groups]
@@ -549,6 +478,26 @@ class datatoGraph(datatoCSV_Accuracy):
         plt.savefig("images/Chart.png")
 
     def scatterCompareCurrent(self, param1, param2):
+        """Function is used to determine and plot the error boundaries of current accuracy
+
+            The function begins by computing the error boundaries based on specifications.
+            The error boundaries are then compared using data extracted from parent class.
+            The boolList will collect information whether the accuracy at certain point has
+            been reached. The boolList will append a "PASS" if it does, else "FAIL".
+            A scatter plot is then plotted on the same plane with the error boundary lines.
+            For scatter points that do not meet the condition will appear visibly red and larger.
+
+
+
+        Args:
+            upper_error_limit: float value of the upper error boundary determined from specification
+            lower_error_limit: float value of the lower error boundary determined from specification
+            condition1: Boolean which indicates if the absolute error is higher than upper error limit.
+            condition2: Boolean which indicates if the absolute error is lower than lower error limit.
+            boolList: List containing all the conditions of each point whether they passed or failed.
+
+
+        """
         ungrouped_df = pd.read_csv("csv/data.csv", index_col=False)
         grouped_df = ungrouped_df.groupby(["key"])
         [grouped_df.get_group(x) for x in grouped_df.groups]
@@ -665,6 +614,15 @@ class datatoGraph(datatoCSV_Accuracy):
 
 
 class instrumentData(object):
+    """This class stores and facilitates the collection of Instrument Data to be placed in Excel Report
+
+    Attributes:
+        *args: arguements should contain strings of VISA Addresses of instruments used.
+        instrumentIDN: List containing the Identification Name of the Instruments
+        instrumentVersion: List containing the SCPI Version of the Instruments
+
+    """
+
     def __init__(self, *args):
         instrumentIDN = []
         instrumentVersion = []
