@@ -891,7 +891,7 @@ class Voltage(Subsystem):
         super().__init__(VISA_ADDRESS)
 
     def setOutputVoltage(self, Value, ChannelNumber):
-        self.instr.write(f"VOLT: {Value},(@{ChannelNumber})")
+        self.instr.write(f"VOLT {Value},(@{ChannelNumber})")
 
     def OutputVoltageStepSize(self, Value, ChannelNumber):
         self.instr.write(f"VOLT:STEP {Value},(@{ChannelNumber})")
