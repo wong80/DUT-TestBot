@@ -69,7 +69,9 @@ class tab(QTabWidget):
         self.ProgrammingSpeed()
 
     def VoltageAccuracyUI(self):
-        pixmap_VoltageAccuracy = QPixmap("GUI/img/1.png")
+        pixmap_VoltageAccuracy = QPixmap(
+            "C:/Users/zhiywong/OneDrive - Keysight Technologies/Documents/GitHub/PyVisa/GUI/img/1.png"
+        )
         pixmap_VoltageAccuracy = pixmap_VoltageAccuracy.scaled(
             800, 600, Qt.KeepAspectRatio, Qt.FastTransformation
         )
@@ -82,7 +84,9 @@ class tab(QTabWidget):
         self.tab_VoltageAccuracy.setLayout(layout)
 
     def CurrentAccuracyUI(self):
-        pixmap_CurrentAccuracy = QPixmap("GUI/img/2.png")
+        pixmap_CurrentAccuracy = QPixmap(
+            "C:/Users/zhiywong/OneDrive - Keysight Technologies/Documents/GitHub/PyVisa/GUI/img/2.png"
+        )
         pixmap_CurrentAccuracy = pixmap_CurrentAccuracy.scaled(
             800, 600, Qt.KeepAspectRatio, Qt.FastTransformation
         )
@@ -95,7 +99,9 @@ class tab(QTabWidget):
         self.tab_CurrentAccuracy.setLayout(layout)
 
     def CV_LoadRegulationUI(self):
-        pixmap_LoadRegulationCV = QPixmap("GUI/img/3.png")
+        pixmap_LoadRegulationCV = QPixmap(
+            "C:/Users/zhiywong/OneDrive - Keysight Technologies/Documents/GitHub/PyVisa/GUI/img/3.png"
+        )
         pixmap_LoadRegulationCV = pixmap_LoadRegulationCV.scaled(
             800, 600, Qt.KeepAspectRatio, Qt.FastTransformation
         )
@@ -108,7 +114,9 @@ class tab(QTabWidget):
         self.tab_LoadRegulationCV.setLayout(layout)
 
     def CC_LoadRegulationUI(self):
-        pixmap_LoadRegulationCC = QPixmap("GUI/img/4.png")
+        pixmap_LoadRegulationCC = QPixmap(
+            "C:/Users/zhiywong/OneDrive - Keysight Technologies/Documents/GitHub/PyVisa/GUI/img/4.png"
+        )
         pixmap_LoadRegulationCC = pixmap_LoadRegulationCC.scaled(
             800, 550, Qt.KeepAspectRatio, Qt.FastTransformation
         )
@@ -121,7 +129,9 @@ class tab(QTabWidget):
         self.tab_LoadRegulationCC.setLayout(layout)
 
     def TransientRecoveryTime(self):
-        pixmap_TransientRecoveryTime = QPixmap("GUI/img/5.png")
+        pixmap_TransientRecoveryTime = QPixmap(
+            "C:/Users/zhiywong/OneDrive - Keysight Technologies/Documents/GitHub/PyVisa/GUI/img/5.png"
+        )
         pixmap_TransientRecoveryTime = pixmap_TransientRecoveryTime.scaled(
             800, 550, Qt.KeepAspectRatio, Qt.FastTransformation
         )
@@ -134,7 +144,9 @@ class tab(QTabWidget):
         self.tab_TransientRecoveryTime.setLayout(layout)
 
     def ProgrammingSpeed(self):
-        pixmap_ProgrammingSpeed = QPixmap("GUI/img/6.png")
+        pixmap_ProgrammingSpeed = QPixmap(
+            "C:/Users/zhiywong/OneDrive - Keysight Technologies/Documents/GitHub/PyVisa/GUI/img/6.png"
+        )
         pixmap_ProgrammingSpeed = pixmap_ProgrammingSpeed.scaled(
             700, 450, Qt.KeepAspectRatio, Qt.FastTransformation
         )
