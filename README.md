@@ -26,6 +26,32 @@ This lists contains the list of Instrument Models/Series that are compatible wit
 ##
 
 ## User Guide
+### Front Panel
 When the executable is opened, user should be greeted by a window that should look as below.
+![alt text](https://github.com/wong80/DUT-TestBot/blob/main/images/ReadME/FrontPanel.PNG)
+There are six types of tests provided, which are `Voltage Accuracy`, `Current Accuracy`, `Load Regulation (CV)`, `Load Regulation (CC)`, `Transient Recovery Time` & `Programming Speed`
+### Dialog
+Each tab will have a secondary window showing the parameters required to carry out the test.
 
+![alt_text](https://github.com/wong80/DUT-TestBot/blob/main/images/ReadME/Dialog.PNG)
+
+### Advanced Settings
+Some DUT Tests have another window called "Advanced Settings" which is used to configure more parameters of your instrument.
+
+![alt_text](https://github.com/wong80/DUT-TestBot/blob/main/images/ReadME/AdvancedSettings.PNG)
+
+### Test Begins
+When the user fills in all the parameters and tests is initiated, the program will give a prompt that the test will begin shortly.
+
+![alt_text](https://github.com/wong80/DUT-TestBot/blob/main/images/ReadME/TestStart.PNG)
+
+### Error Exception Handle
+When the tests is being conducted, there could be a possibliity an error will occur, the program will return a dialog prompting the user the type of error that has occured before closing the application by itself.
+
+![alt_text](https://github.com/wong80/DUT-TestBot/blob/main/images/ReadME/Error_Handle.PNG)
+
+### Test Complete
+When the tests is complete, the textbox at the bottom of your test window will prompt the user that the tests are completed and showing the respective results/ chart and generate excel report (depending on the type of DUT Tests)
+
+![alt_text](https://github.com/wong80/DUT-TestBot/blob/main/images/ReadME/TextBox.PNG)
 ## To-Do List
