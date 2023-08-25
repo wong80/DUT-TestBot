@@ -1364,6 +1364,8 @@ class LoadRegulation:
         V_Max = self.P_Rating / self.I_Rating
         Apply(PSU).write(PSU_Channel, self.V_Rating, self.I_Rating)
         Output(PSU).setOutputState("ON")
+        Output(ELoad).setOutputStateC("ON", ELoad_Channel)
+        Voltage(ELoad).setOutputVoltage(0.01, ELoad_Channel)
 
         # Reading for No Load Voltage
 
@@ -1382,14 +1384,13 @@ class LoadRegulation:
                 I_NL = float(Fetch(DMM).query())
                 break
         Delay(PSU).write(DownTime)
-        Current(ELoad).setOutputCurrent(V_Max, ELoad_Channel)
-        Output(ELoad).setOutputStateC("ON", ELoad_Channel)
+        Voltage(ELoad).setOutputVoltage(V_Max - 1, ELoad_Channel)
 
         WAI(ELoad)
         Initiate(DMM).initiate()
         status = float(Status(DMM).operationCondition())
         TRG(DMM)
-        Delay(self.PSU).write(UpTime)
+        Delay(PSU).write(UpTime)
         while 1:
             status = float(Status(DMM).operationCondition())
 
