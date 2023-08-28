@@ -637,3 +637,11 @@ class instrumentData(object):
         instrument = pd.concat([df1, df2], axis=1)
 
         instrument.to_csv("csv/instrumentData.csv", index=False)
+
+
+class dictGenerator(object):
+    def __init__():
+        pass
+
+    def input(**kwargs):
+        return kwargs
