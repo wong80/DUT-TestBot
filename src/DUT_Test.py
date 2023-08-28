@@ -77,7 +77,7 @@ class VisaResourceManager:
     """Manage the VISA Resources
 
     Attributes:
-        args: args should contain one or multiple string containing the Visa Address of an Instrument
+        args: args should contain one or multiple string containing the Visa Address of an dict["Instrument"]
 
     """
 
@@ -122,42 +122,17 @@ class VoltageMeasurement:
         self.infoList = []
         self.dataList = []
 
-    def executeVoltageMeasurementA(
-        self,
-        Instrument,
-        Error_Gain,
-        Error_Offset,
-        minCurrent,
-        maxCurrent,
-        current_stepsize,
-        minVoltage,
-        maxVoltage,
-        voltage_stepsize,
-        PSU,
-        DMM,
-        ELoad,
-        ELoad_Channel,
-        PSU_Channel,
-        setVoltage_Sense,
-        setVoltage_Res,
-        setMode,
-        Range,
-        Aperture,
-        AutoZero,
-        InputZ,
-        UpTime,
-        DownTime,
-    ):
-        """Execution of Voltage Measurement for Programm / Readback Accuracy using Status Event Registry to synchronize Instruments
+    def executeVoltageMeasurementA(self, dict):
+        """Execution of Voltage Measurement for Programm / Readback Accuracy using Status Event Registry to synchronize Instrument
 
         The function first declares two lists, datalist & infolist that will be used to collect data.
-        It then dynamically imports the library to be used. Next, the settings for all instruments
+        It then dynamically imports the library to be used. Next, the settings for all Instrument
         are initialized. The test loop begins where Voltage and Current Sweep is conducted and collect
         measured data.
 
-        The synchronization of instruments here is done by reading the status of the event registry.
-        The status determined from the instrument can let the program determine if the instrument is
-        measuring. The program will only proceed to tell the instrument to query the measured value
+        The synchronization of Instruments here is done by reading the status of the event registry.
+        The status determined from the Instrument can let the program determine if the Instrument is
+        measuring. The program will only proceed to tell the Instrument to query the measured value
         after it is determined that the measurement has been completed. This method is suitable for
         operations that require a longer time (e.g. 100 NPLC). However the implementation is slighty
         more complicated than other methods. This method only can be implemented that have the specific
@@ -182,12 +157,12 @@ class VoltageMeasurement:
             ELoad_Channel: Integer containing the channel number that the ELoad is using.
             PSU_Channel: Integer containing the channel number that the PSU is using.
             setVoltage_Sense: String determining the Voltage Sense that will be used.
-            setVoltage_Res: String determining the Voltage Resoltion that will be used.
+            VoltageRes: String determining the Voltage Resoltion that will be used.
             setMode: String determining the Priority mode of the ELoad.
-            Range: String determining the measuring range of the DMM should be Auto or a specific range.
-            Apreture: String determining the NPLC to be used by DMM when measuring.
-            AutoZero: String determining if AutoZero Mode on DMM should be enabled/disabled.
-            InputZ: String determining the Input Impedance Mode of DMM.
+            Range: String determining the measuring range of the DMM  should be Auto or a specific range.
+            Apreture: String determining the NPLC to be used by DMM  when measuring.
+            AutoZero: String determining if AutoZero Mode on DMM  should be enabled/disabled.
+            InputZ: String determining the Input Impedance Mode of DMM .
             UpTime: Float containing details regarding the uptime delay.
             DownTime: Float containing details regarding the downtime delay.
             current_iter: integer storing the number of iterations of current sweep.
@@ -220,118 +195,104 @@ class VoltageMeasurement:
             Voltage,
             Current,
             Oscilloscope,
-        ) = Dimport.getClasses(Instrument)
+        ) = Dimport.getClasses(dict["Instrument"])
 
         # Instrument Initialization
-        Configure(DMM).write("Voltage")
-        Trigger(DMM).setSource("BUS")
-        Sense(DMM).setVoltageResDC(setVoltage_Res)
-        Display(ELoad).displayState(ELoad_Channel)
-        Function(ELoad).setMode(setMode, ELoad_Channel)
-        Voltage(PSU).setSenseMode(setVoltage_Sense, PSU_Channel)
-        Voltage(DMM).setNPLC(Aperture)
-        Voltage(DMM).setAutoZeroMode(AutoZero)
-        Voltage(DMM).setAutoImpedanceMode(InputZ)
+        Configure(dict["DMM"]).write("Voltage")
+        Trigger(dict["DMM"]).setSource("BUS")
+        Sense(dict["DMM"]).setVoltageResDC(dict["VoltageRes"])
+        Display(dict["ELoad"]).displayState(dict["ELoad_Channel"])
+        Function(dict["ELoad"]).setMode(dict["setFunction"], dict["ELoad_Channel"])
+        Voltage(dict["PSU"]).setSenseMode(dict["VoltageSense"], dict["PSU_Channel"])
+        Voltage(dict["DMM"]).setNPLC(dict["Aperture"])
+        Voltage(dict["DMM"]).setAutoZeroMode(dict["AutoZero"])
+        Voltage(dict["DMM"]).setAutoImpedanceMode(dict["InputZ"])
 
-        if Range == "Auto":
-            Sense(self.DMM).setVoltageRangeDCAuto()
+        if dict["Range"] == "Auto":
+            Sense(dict["DMM"]).setVoltageRangeDCAuto()
 
         else:
-            Sense(self.DMM).setVoltageRangeDC(Range)
+            Sense(dict["DMM"]).setVoltageRangeDC(dict["Range"])
 
-        self.param1 = Error_Gain
-        self.param2 = Error_Offset
+        self.param1 = dict["Error_Gain"]
+        self.param2 = dict["Error_Offset"]
 
         # Test Loop Begins
         i = 0
         j = 0
         k = 0
-        I_fixed = float(minCurrent)
-        V = float(minVoltage)
-        I = float(maxCurrent) + 1
+        I_fixed = float(dict["minCurrent"])
+        V = float(dict["minVoltage"])
+        I = float(dict["maxVoltage"]) + 1
         current_iter = (
-            (float(maxCurrent) - float(minCurrent)) / float(current_stepsize)
+            (float(dict["maxCurrent"]) - float(dict["minCurrent"]))
+            / float(dict["current_step_size"])
         ) + 1
         voltage_iter = (
-            (float(maxVoltage) - float(minVoltage)) / float(voltage_stepsize)
+            (float(dict["maxVoltage"]) - float(dict["minVoltage"]))
+            / float(dict["voltage_step_size"])
         ) + 1
-        Output(ELoad).setOutputStateC("ON", ELoad_Channel)
-        Output(PSU).setOutputState("ON")
+        Output(dict["ELoad"]).setOutputStateC("ON", dict["ELoad_Channel"])
+        Output(dict["PSU"]).setOutputState("ON")
 
         while i < current_iter:
-            Current(ELoad).setOutputCurrent(I_fixed - 0.001 * I_fixed, ELoad_Channel)
+            Current(dict["ELoad"]).setOutputCurrent(
+                I_fixed - 0.001 * I_fixed, dict["ELoad_Channel"]
+            )
             j = 0
-            V = float(minVoltage)
+            V = float(dict["minVoltage"])
             while j < voltage_iter:
-                Apply(PSU).write(PSU_Channel, V, I)
+                Apply(dict["PSU"]).write(dict["PSU_Channel"], V, I)
                 print("Voltage: ", V, "Current: ", I_fixed)
                 self.infoList.insert(k, [V, I_fixed, i])
-                WAI(PSU)
-                Delay(PSU).write(UpTime)
-                Initiate(DMM).initiate()
-                status = float(Status(DMM).operationCondition())
-                TRG(DMM)
+                WAI(dict["PSU"])
+                Delay(dict["PSU"]).write(dict["UpTime"])
+                Initiate(dict["DMM"]).initiate()
+                status = float(Status(dict["DMM"]).operationCondition())
+                TRG(dict["DMM"])
 
                 while 1:
-                    status = float(Status(DMM).operationCondition())
+                    status = float(Status(dict["DMM"]).operationCondition())
 
                     if status == 8704.0:
-                        self.dataList.insert(k, [float(Fetch(DMM).query()), I_fixed])
+                        self.dataList.insert(
+                            k, [float(Fetch(dict["DMM"]).query()), I_fixed]
+                        )
                         break
 
                     elif status == 512.0:
-                        self.dataList.insert(k, [float(Fetch(DMM).query()), I_fixed])
+                        self.dataList.insert(
+                            k, [float(Fetch(dict["DMM"]).query()), I_fixed]
+                        )
                         break
 
-                Delay(PSU).write(DownTime)
-                V += float(voltage_stepsize)
+                Delay(dict["PSU"]).write(dict["DownTime"])
+                V += float(dict["voltage_step_size"])
                 j += 1
                 k += 1
 
-            I_fixed += float(current_stepsize)
+            I_fixed += float(dict["current_step_size"])
             i += 1
 
-        Output(PSU).setOutputState("OFF")
-        Output(ELoad).setOutputStateC("OFF", ELoad_Channel)
+        Output(dict["PSU"]).setOutputState("OFF")
+        Output(dict["ELoad"]).setOutputStateC("OFF", dict["ELoad_Channel"])
         return self.infoList, self.dataList
 
     def executeVoltageMeasurementB(
         self,
-        Instrument,
-        Error_Gain,
-        Error_Offset,
-        minCurrent,
-        maxCurrent,
-        current_stepsize,
-        minVoltage,
-        maxVoltage,
-        voltage_stepsize,
-        PSU,
-        DMM,
-        ELoad,
-        ELoad_Channel,
-        PSU_Channel,
-        setVoltage_Sense,
-        setVoltage_Res,
-        setMode,
-        Range,
-        Aperture,
-        AutoZero,
-        InputZ,
-        UpTime,
-        DownTime,
+        dict,
     ):
-        """Execution of Voltage Measurement for Programm / Readback Accuracy using WAI and OPC to synchronize Instruments
+        """Execution of Voltage Measurement for Programm / Readback Accuracy using WAI and OPC to synchronize Instrument
 
         The function first declares two lists, datalist & infolist that will be used to collect data.
-        It then dynamically imports the library to be used. Next, the settings for all instruments
+        It then dynamically imports the library to be used. Next, the settings for all Instrument
         are initialized. The test loop begins where Voltage and Current Sweep is conducted and collect
         measured data.
 
-        The synchronization of instruments here is done by using IEEE Commands OPC and WAI. The command OPC
-        queries the instrument the status of the commands. 1 will be returned if all commands given have
+        The synchronization of Instrument here is done by using IEEE Commands OPC and WAI. The command OPC
+        queries the Instrument the status of the commands. 1 will be returned if all commands given have
         been executed. Hence, this makes as a simple and efficient way to synchronize the measurement timing
-        of the instruments, since it is under the IEEE Standard Library, most instruments are synchronized
+        of the Instrument, since it is under the IEEE Standard Library, most Instrument are synchronized
         using this way. However, this method only works for commands with a short execution time.
 
         In line 434, where I_fixed - 0.001 * I_fixed is done to prevent the ELoad from causing the DUT
@@ -353,7 +314,7 @@ class VoltageMeasurement:
             ELoad_Channel: Integer containing the channel number that the ELoad is using.
             PSU_Channel: Integer containing the channel number that the PSU is using.
             setVoltage_Sense: String determining the Voltage Sense that will be used.
-            setVoltage_Res: String determining the Voltage Resoltion that will be used.
+            VoltageRes: String determining the Voltage Resoltion that will be used.
             setMode: String determining the Priority mode of the ELoad.
             Range: String determining the measuring range of the DMM should be Auto or a specific range.
             Apreture: String determining the NPLC to be used by DMM when measuring.
@@ -391,74 +352,80 @@ class VoltageMeasurement:
             Voltage,
             Current,
             Oscilloscope,
-        ) = Dimport.getClasses(Instrument)
+        ) = Dimport.getClasses(dict["Instrument"])
 
         # Instrument Initialization
-        Configure(DMM).write("Voltage")
-        Trigger(DMM).setSource("BUS")
-        Sense(DMM).setVoltageResDC(setVoltage_Res)
-        Display(ELoad).displayState(ELoad_Channel)
-        Function(ELoad).setMode(setMode, ELoad_Channel)
-        Voltage(PSU).setSenseMode(setVoltage_Sense, PSU_Channel)
+        Configure(dict["DMM"]).write("Voltage")
+        Trigger(dict["DMM"]).setSource("BUS")
+        Sense(dict["DMM"]).setVoltageResDC(dict["VoltageRes"])
+        Display(dict["ELoad"]).displayState(dict["ELoad_Channel"])
+        Function(dict["ELoad"]).setMode(dict["setFunction"], dict["ELoad_Channel"])
+        Voltage(dict["PSU"]).setSenseMode(dict["VoltageSense"], dict["PSU_Channel"])
 
-        Voltage(DMM).setNPLC(Aperture)
-        Voltage(DMM).setAutoZeroMode(AutoZero)
-        Voltage(DMM).setAutoImpedanceMode(InputZ)
+        Voltage(dict["DMM"]).setNPLC(dict["Aperture"])
+        Voltage(dict["DMM"]).setAutoZeroMode(dict["AutoZero"])
+        Voltage(dict["DMM"]).setAutoImpedanceMode(dict["InputZ"])
 
-        if Range == "Auto":
-            Sense(DMM).setVoltageRangeDCAuto()
+        if dict["Range"] == "Auto":
+            Sense(dict["DMM"]).setVoltageRangeDCAuto()
 
         else:
-            Sense(DMM).setVoltageRangeDC(Range)
+            Sense(dict["DMM"]).setVoltageRangeDC(dict["Range"])
 
-        self.param1 = Error_Gain
-        self.param2 = Error_Offset
+        self.param1 = dict["Error_Gain"]
+        self.param2 = dict["Error_Offset"]
 
         # Test Loop
         i = 0
         j = 0
         k = 0
-        I_fixed = float(minCurrent)
-        V = float(minVoltage)
-        I = float(maxCurrent) + 1
+        I_fixed = float(dict["minCurrent"])
+        V = float(dict["minVoltage"])
+        I = float(dict["maxCurrent"]) + 1
         current_iter = (
-            (float(maxCurrent) - float(minCurrent)) / float(current_stepsize)
+            (float(dict["maxCurrent"]) - float(dict["minCurrent"]))
+            / float(dict["current_step_size"])
         ) + 1
         voltage_iter = (
-            (float(maxVoltage) - float(minVoltage)) / float(voltage_stepsize)
+            (float(dict["maxVoltage"]) - float(dict["minVoltage"]))
+            / float(dict["voltage_step_size"])
         ) + 1
-        Output(ELoad).setOutputStateC("ON", ELoad_Channel)
-        Output(PSU).setOutputState("ON")
+        Output(dict["ELoad"]).setOutputStateC("ON", dict["ELoad_Channel"])
+        Output(dict["PSU"]).setOutputState("ON")
 
         while i < current_iter:
-            Current(ELoad).setOutputCurrent(I_fixed - 0.001 * I_fixed, ELoad_Channel)
+            Current(dict["ELoad"]).setOutputCurrent(
+                I_fixed - 0.001 * I_fixed, dict["ELoad_Channel"]
+            )
             j = 0
-            V = float(minVoltage)
+            V = float(dict["minVoltage"])
             while j < voltage_iter:
-                Apply(PSU).write(PSU_Channel, V, I)
+                Apply(dict["PSU"]).write(dict["PSU_Channel"], V, I)
                 print("Voltage: ", V, "Current: ", I_fixed)
                 self.infoList.insert(k, [V, I_fixed, i])
-                WAI(PSU)
-                Delay(PSU).write(UpTime)
-                Initiate(DMM).initiate()
-                TRG(DMM)
+                WAI(dict["PSU"])
+                Delay(dict["PSU"]).write(dict["UpTime"])
+                Initiate(dict["DMM"]).initiate()
+                TRG(dict["DMM"])
 
-                temp_string = float(OPC(self.PSU).query())
+                temp_string = float(OPC(dict["PSU"]).query())
 
                 if temp_string == 1:
-                    self.dataList.insert(k, [float(Fetch(DMM).query()), I_fixed])
+                    self.dataList.insert(
+                        k, [float(Fetch(dict["DMM"]).query()), I_fixed]
+                    )
                     del temp_string
 
-                Delay(self.PSU).write(DownTime)
-                V += float(voltage_stepsize)
+                Delay(self.PSU).write(dict["DownTime"])
+                V += float(dict["voltage_step_size"])
                 j += 1
                 k += 1
 
-            I_fixed += float(current_stepsize)
+            I_fixed += float(dict["current_step_size"])
             i += 1
 
-        Output(PSU).setOutputState("OFF")
-        Output(ELoad).setOutputStateC("OFF", ELoad_Channel)
+        Output(dict["PSU"]).setOutputState("OFF")
+        Output(dict["ELoad"]).setOutputStateC("OFF", dict["ELoad_Channel"])
         return self.infoList, self.dataList
 
 
@@ -466,48 +433,174 @@ class CurrentMeasurement:
     def __init__(self):
         pass
 
-    def executeCurrentMeasurementA(
-        self,
-        Instrument,
-        Error_Gain,
-        Error_Offset,
-        minCurrent,
-        maxCurrent,
-        current_stepsize,
-        minVoltage,
-        maxVoltage,
-        voltage_stepsize,
-        PSU,
-        DMM,
-        ELoad,
-        ELoad_Channel,
-        PSU_Channel,
-        setCurrent_Sense,
-        setCurrent_Res,
-        setMode,
-        Range,
-        Aperture,
-        AutoZero,
-        Terminal,
-        UpTime,
-        DownTime,
-    ):
-        """Execution of Current Measurement for Programm / Readback Accuracy using Status Event Registry to synchronize Instruments
+    def executeCurrentMeasurementA(self, dict):
+        """Execution of Current Measurement for Programm / Readback Accuracy using Status Event Registry to synchronize Instrument
 
         The function first declares two lists, datalist & infolist that will be used to collect data.
-        It then dynamically imports the library to be used. Next, the settings for all instruments
+        It then dynamically imports the library to be used. Next, the settings for all Instrument
         are initialized. The test loop begins where Voltage and Current Sweep is conducted and collect
         measured data.
 
-        The synchronization of instruments here is done by reading the status of the event registry.
-        The status determined from the instrument can let the program determine if the instrument is
-        measuring. The program will only proceed to tell the instrument to query the measured value
+        The synchronization of Instrument here is done by reading the status of the event registry.
+        The status determined from the Instrument can let the program determine if the Instrument is
+        measuring. The program will only proceed to tell the Instrument to query the measured value
         after it is determined that the measurement has been completed. This method is suitable for
         operations that require a longer time (e.g. 100 NPLC). However the implementation is slighty
         more complicated than other methods. This method only can be implemented that have the specific
         commands that are used.
 
         In line 605, where V_fixed - 0.001 * V_fixed is done to prevent the ELoad from causing the DUT
+        to enter CV Mode.
+
+        Args:
+            Instrument: String determining which library to be used.
+            Error_Gain: Float determining the error gain of the Readback Voltage Specification.
+            Error_Offset: Float determining the error offset of the Readback Voltage Specification.
+            minCurrent: Float determining the start current for Current Sweep.
+            maxCurrent: Float determining the stop current for Current Sweep.
+            current_stepsize: Float determining the step size during Current Sweep.
+            minVoltage: Float determining the start voltage for Voltage Sweep.
+            maxVoltage: Float determining the stop voltage for Voltage Sweep.
+            voltage_stepsize: Float determining the step_size for Voltage_Sweep.
+            PSU: String containing the VISA Address of the PSU used.
+            DMM: String containing the VISA Address of the DMM used.
+            ELoad: String containing the VISA Address of the ELoad used.
+            "ELoad_Channel: Integer containing the channel number that the ELoad is using.
+            PSU_Channel: Integer containing the channel number that the PSU is using.
+            setCurrent_Sense: String determining the Current Sense that will be used.
+            setCurrent_Res: String determining the Current Resolution that will be used.
+            setMode: String determining the Priority mode of the ELoad.
+            Range: String determining the measuring range of the DMM should be Auto or a specific range.
+            Apreture: String determining the NPLC to be used by DMM when measuring.
+            AutoZero: String determining if AutoZero Mode on DMM should be enabled/disabled.
+            InputZ: String determining the Input Impedance Mode of DMM.
+            UpTime: Float containing details regarding the uptime delay.
+            DownTime: Float containing details regarding the downtime delay.
+            current_iter: integer storing the number of iterations of current sweep.
+            voltage_iter: integer storing the number of iterations of voltage sweep.
+            status: float storing the value returned by the status event registry.
+            infoList: List containing the programmed data that was set by Program.
+            dataList: List containing the measured data that was queried from DUT.
+
+        Returns:
+            Returns two list, DataList & InfoList. Each containing the programmed & measured data individually.
+
+        Raises:
+            VisaIOError: An error occured when opening PyVisa Resources.
+        """
+        dataList = []
+        infoList = []
+        # Dynamic Library Import
+        (
+            Read,
+            Apply,
+            Display,
+            Function,
+            Output,
+            Sense,
+            Configure,
+            Delay,
+            Trigger,
+            Sample,
+            Initiate,
+            Fetch,
+            Status,
+            Voltage,
+            Current,
+            Oscilloscope,
+        ) = Dimport.getClasses(dict["Instrument"])
+
+        # Instrument Initialization
+        Configure(dict["DMM"]).write("Current")
+        Trigger(dict["DMM"]).setSource("BUS")
+        Sense(dict["DMM"]).setCurrentResDC(dict["CurrentRes"])
+        Display(dict["ELoad"]).displayState(dict["ELoad_Channel"])
+        Function(dict["ELoad"]).setMode(dict["setFunction"], dict["ELoad_Channel"])
+        Voltage(dict["PSU"]).setSenseMode(dict["CurrentSense"], dict["PSU_Channel"])
+
+        Current(dict["DMM"]).setNPLC(dict["Aperture"])
+        Current(dict["DMM"]).setAutoZeroMode(dict["AutoZero"])
+        Current(dict["DMM"]).setTerminal(dict["Terminal"])
+
+        if dict["Range"] == "Auto":
+            Sense(dict["DMM"]).setCurrentRangeDCAuto()
+        else:
+            Sense(dict["DMM"]).setCurrentRangeDC(dict["Range"])
+        self.param1 = dict["Error_Gain"]
+        self.param2 = dict["Error_Offset"]
+
+        # Test Loop
+        i = 0
+        j = 0
+        k = 0
+        V_fixed = float(dict["minVoltage"])
+        V = float(dict["maxVoltage"]) + 1
+        I = float(dict["minCurrent"])
+        current_iter = (
+            (float(dict["maxCurrent"]) - float(dict["minCurrent"]))
+            / float(dict["current_step_size"])
+        ) + 1
+        voltage_iter = (
+            (float(dict["maxVoltage"]) - float(dict["minVoltage"]))
+            / float(dict["voltage_step_size"])
+        ) + 1
+        Output(dict["ELoad"]).setOutputStateC("ON", dict["ELoad_Channel"])
+        Output(dict["PSU"]).setOutputState("ON")
+
+        while i < voltage_iter:
+            Voltage(dict["ELoad"]).setOutputVoltage(
+                V_fixed - 0.001 * V_fixed, dict["ELoad_Channel"]
+            )
+            j = 0
+            I = float(dict["minCurrent"])
+            while j < current_iter:
+                Apply(dict["PSU"]).write(dict["PSU_Channel"], V, I)
+                print("Voltage: ", V_fixed, "Current: ", I)
+                infoList.insert(k, [V_fixed, I, i])
+
+                WAI(dict["PSU"])
+                Delay(dict["PSU"]).write(dict["UpTime"])
+                Initiate(dict["DMM"]).initiate()
+                status = float(Status(dict["DMM"]).operationCondition())
+                TRG(dict["DMM"])
+
+                while 1:
+                    status = float(Status(dict["DMM"]).operationCondition())
+
+                    if status == 8704.0:
+                        dataList.insert(k, [V_fixed, float(Fetch(dict["DMM"]).query())])
+                        break
+
+                    elif status == 512.0:
+                        dataList.insert(k, [V_fixed, float(Fetch(dict["DMM"]).query())])
+                        break
+
+                Delay(dict["PSU"]).write(dict["DownTime"])
+                I += float(dict["current_step_size"])
+                j += 1
+                k += 1
+
+            V_fixed += float(dict["voltage_step_size"])
+            i += 1
+        Output(dict["PSU"]).setOutputState("OFF")
+        Output(dict["ELoad"]).setOutputStateC("OFF", dict["ELoad_Channel"])
+        return dataList, infoList
+
+    def executeCurrentMeasurementB(self, dict):
+        """Execution of Current Measurement for Programm / Readback Accuracy using WAI and OPC to synchronize Instrument
+
+        The function first declares two lists, datalist & infolist that will be used to collect data.
+        It then dynamically imports the library to be used. Next, the settings for all Instruments
+        are initialized. The test loop begins where Voltage and Current Sweep is conducted and collect
+        measured data.
+
+        The synchronization of "Instruments here is done by using IEEE Commands OPC and WAI. The command OPC
+        queries the Instrument the status of the commands. 1 will be returned if all commands given have
+        been executed. Hence, this makes as a simple and efficient way to synchronize the measurement timing
+        of the "Instrument", since it is under the IEEE Standard Library, most Instruments are synchronized
+        using this way. However, this method only works for commands with a short execution time.
+
+        In line 771, where V_fixed - 0.001 * V_fixed is done to prevent the ELoad from causing the DUT
         to enter CV Mode.
 
         Args:
@@ -565,283 +658,93 @@ class CurrentMeasurement:
             Status,
             Voltage,
             Current,
-            Oscilloscope,
-        ) = Dimport.getClasses(Instrument)
+        ) = Dimport.getClasses(dict["Instrument"])
 
-        # Instruments Initialization
-        Configure(DMM).write("Current")
-        Trigger(DMM).setSource("BUS")
-        Sense(DMM).setCurrentResDC(setCurrent_Res)
-        Display(ELoad).displayState(ELoad_Channel)
-        Function(ELoad).setMode(setMode, ELoad_Channel)
-        Voltage(PSU).setSenseMode(setCurrent_Sense, PSU_Channel)
+        Configure(self.dict["DMM"]).write("Current")
+        Trigger(self.dict["DMM"]).setSource("BUS")
+        Sense(dict["DMM"]).setCurrentResDC(dict["CurrentRes"])
+        Display(dict["ELoad"]).displayState(dict["ELoad_Channel"])
+        Function(dict["ELoad"]).setMode(dict["setFunction"], dict["ELoad_Channel"])
+        Voltage(dict["PSU"]).setSenseMode(dict["CurrentSense"], dict["PSU_Channel"])
 
-        Current(DMM).setNPLC(Aperture)
-        Current(DMM).setAutoZeroMode(AutoZero)
-        Current(DMM).setTerminal(Terminal)
+        Current(self.dict["DMM"]).setNPLC(dict["Aperture"])
+        Current(self.dict["DMM"]).setAutoZeroMode(dict["AutoZero"])
+        Current(self.dict["DMM"]).setTerminal(dict["Terminal"])
 
-        if Range == "Auto":
-            Sense(DMM).setCurrentRangeDCAuto()
+        if dict["Range"] == "Auto":
+            Sense(self.dict["DMM"]).setCurrentRangeDCAuto()
         else:
-            Sense(DMM).setCurrentRangeDC(Range)
-        self.param1 = Error_Gain
-        self.param2 = Error_Offset
-
+            Sense(self.dict["DMM"]).setCurrentRangeDC(dict["Range"])
+        self.param1 = dict["Error_Gain"]
+        self.param2 = dict["Error_Offset"]
         # Test Loop
         i = 0
         j = 0
         k = 0
-        V_fixed = float(minVoltage)
-        V = float(maxVoltage) + 1
-        I = float(minCurrent)
+        V_fixed = float(dict["minVoltage"])
+        V = float(dict["maxVoltage"]) + 1
+        I = float(dict["minCurrent"])
         current_iter = (
-            (float(maxCurrent) - float(minCurrent)) / float(current_stepsize)
+            (float(dict["maxCurrent"]) - float(dict["minCurrent"]))
+            / float(dict["current_step_size"])
         ) + 1
         voltage_iter = (
-            (float(maxVoltage) - float(minVoltage)) / float(voltage_stepsize)
+            (float(dict["maxVoltage"]) - float(dict["minVoltage"]))
+            / float(dict["voltage_stepsize"])
         ) + 1
-        Output(ELoad).setOutputStateC("ON", ELoad_Channel)
-        Output(PSU).setOutputState("ON")
+        Output(dict["ELoad"]).setOutputStateC("ON", dict["ELoad_Channel"])
+        Output(dict["PSU"]).setOutputState("ON")
 
         while i < voltage_iter:
-            Voltage(ELoad).setOutputVoltage(V_fixed - 0.001 * V_fixed, ELoad_Channel)
+            Voltage(dict["ELoad"]).setOutputVoltage(
+                V_fixed - 0.001 * V_fixed, dict["ELoad_Channel"]
+            )
             j = 0
-            I = float(minCurrent)
+            I = float(dict["minCurrent"])
             while j < current_iter:
-                Apply(PSU).write(PSU_Channel, V, I)
+                Apply(dict["PSU"]).write(dict["PSU_Channel"], V, I)
                 print("Voltage: ", V_fixed, "Current: ", I)
                 infoList.insert(k, [V_fixed, I, i])
 
-                WAI(PSU)
-                Delay(PSU).write(UpTime)
-                Initiate(DMM).initiate()
-                status = float(Status(DMM).operationCondition())
-                TRG(self.DMM)
+                WAI(dict["PSU"])
+                Delay(dict["PSU"]).write(dict["UpTime"])
+                Initiate(dict["DMM"]).initiate()
+                TRG(dict["DMM"])
 
-                while 1:
-                    status = float(Status(DMM).operationCondition())
-
-                    if status == 8704.0:
-                        dataList.insert(k, [V_fixed, float(Fetch(DMM).query())])
-                        break
-
-                    elif status == 512.0:
-                        dataList.insert(k, [V_fixed, float(Fetch(DMM).query())])
-                        break
-
-                Delay(PSU).write(DownTime)
-                I += float(current_stepsize)
-                j += 1
-                k += 1
-
-            V_fixed += float(voltage_stepsize)
-            i += 1
-        Output(PSU).setOutputState("OFF")
-        Output(ELoad).setOutputStateC("OFF", ELoad_Channel)
-        return dataList, infoList
-
-    def executeCurrentMeasurementB(
-        self,
-        Instrument,
-        Error_Gain,
-        Error_Offset,
-        minCurrent,
-        maxCurrent,
-        current_stepsize,
-        minVoltage,
-        maxVoltage,
-        voltage_stepsize,
-        PSU,
-        DMM,
-        ELoad,
-        ELoad_Channel,
-        PSU_Channel,
-        setCurrent_Sense,
-        setCurrent_Res,
-        setMode,
-        Range,
-        Aperture,
-        AutoZero,
-        Terminal,
-        UpTime,
-        DownTime,
-    ):
-        """Execution of Current Measurement for Programm / Readback Accuracy using WAI and OPC to synchronize Instruments
-
-        The function first declares two lists, datalist & infolist that will be used to collect data.
-        It then dynamically imports the library to be used. Next, the settings for all instruments
-        are initialized. The test loop begins where Voltage and Current Sweep is conducted and collect
-        measured data.
-
-        The synchronization of instruments here is done by using IEEE Commands OPC and WAI. The command OPC
-        queries the instrument the status of the commands. 1 will be returned if all commands given have
-        been executed. Hence, this makes as a simple and efficient way to synchronize the measurement timing
-        of the instruments, since it is under the IEEE Standard Library, most instruments are synchronized
-        using this way. However, this method only works for commands with a short execution time.
-
-        In line 771, where V_fixed - 0.001 * V_fixed is done to prevent the ELoad from causing the DUT
-        to enter CV Mode.
-
-        Args:
-            Instrument: String determining which library to be used.
-            Error_Gain: Float determining the error gain of the Readback Voltage Specification.
-            Error_Offset: Float determining the error offset of the Readback Voltage Specification.
-            minCurrent: Float determining the start current for Current Sweep.
-            maxCurrent: Float determining the stop current for Current Sweep.
-            current_stepsize: Float determining the step size during Current Sweep.
-            minVoltage: Float determining the start voltage for Voltage Sweep.
-            maxVoltage: Float determining the stop voltage for Voltage Sweep.
-            voltage_stepsize: Float determining the step_size for Voltage_Sweep.
-            PSU: String containing the VISA Address of the PSU used.
-            DMM: String containing the VISA Address of the DMM used.
-            ELoad: String containing the VISA Address of the ELoad used.
-            ELoad_Channel: Integer containing the channel number that the ELoad is using.
-            PSU_Channel: Integer containing the channel number that the PSU is using.
-            setCurrent_Sense: String determining the Current Sense that will be used.
-            setCurrent_Res: String determining the Current Resolution that will be used.
-            setMode: String determining the Priority mode of the ELoad.
-            Range: String determining the measuring range of the DMM should be Auto or a specific range.
-            Apreture: String determining the NPLC to be used by DMM when measuring.
-            AutoZero: String determining if AutoZero Mode on DMM should be enabled/disabled.
-            InputZ: String determining the Input Impedance Mode of DMM.
-            UpTime: Float containing details regarding the uptime delay.
-            DownTime: Float containing details regarding the downtime delay.
-            current_iter: integer storing the number of iterations of current sweep.
-            voltage_iter: integer storing the number of iterations of voltage sweep.
-            status: float storing the value returned by the status event registry.
-            infoList: List containing the programmed data that was set by Program.
-            dataList: List containing the measured data that was queried from DUT.
-
-        Returns:
-            Returns two list, DataList & InfoList. Each containing the programmed & measured data individually.
-
-        Raises:
-            VisaIOError: An error occured when opening PyVisa Resources.
-        """
-
-        # Dynamic Library Import
-        (
-            Read,
-            Apply,
-            Display,
-            Function,
-            Output,
-            Sense,
-            Configure,
-            Delay,
-            Trigger,
-            Sample,
-            Initiate,
-            Fetch,
-            Status,
-            Voltage,
-            Current,
-        ) = Dimport.getClasses(Instrument)
-
-        Configure(self.DMM).write("Current")
-        Trigger(self.DMM).setSource("BUS")
-        Sense(DMM).setCurrentResDC(setCurrent_Res)
-        Display(ELoad).displayState(ELoad_Channel)
-        Function(ELoad).setMode(setMode, ELoad_Channel)
-        Voltage(PSU).setSenseMode(setCurrent_Sense, PSU_Channel)
-
-        Current(self.DMM).setNPLC(Aperture)
-        Current(self.DMM).setAutoZeroMode(AutoZero)
-        Current(self.DMM).setTerminal(Terminal)
-
-        if Range == "Auto":
-            Sense(self.DMM).setCurrentRangeDCAuto()
-        else:
-            Sense(self.DMM).setCurrentRangeDC(Range)
-        self.param1 = Error_Gain
-        self.param2 = Error_Offset
-
-        # Test Loop
-        i = 0
-        j = 0
-        k = 0
-        V_fixed = float(minVoltage)
-        V = float(maxVoltage) + 1
-        I = float(minCurrent)
-        current_iter = (
-            (float(maxCurrent) - float(minCurrent)) / float(current_stepsize)
-        ) + 1
-        voltage_iter = (
-            (float(maxVoltage) - float(minVoltage)) / float(voltage_stepsize)
-        ) + 1
-        Output(ELoad).setOutputStateC("ON", ELoad_Channel)
-        Output(PSU).setOutputState("ON")
-
-        while i < voltage_iter:
-            Voltage(ELoad).setOutputVoltage(V_fixed - 0.001 * V_fixed, ELoad_Channel)
-            j = 0
-            I = float(minCurrent)
-            while j < current_iter:
-                Apply(PSU).write(PSU_Channel, V, I)
-                print("Voltage: ", V_fixed, "Current: ", I)
-                self.infoList.insert(k, [V_fixed, I, i])
-
-                WAI(self.PSU)
-                Delay(self.PSU).write(UpTime)
-                Initiate(DMM).initiate()
-                TRG(DMM)
-
-                temp_string = float(OPC(self.PSU).query())
+                temp_string = float(OPC(dict["PSU"]).query())
 
                 if temp_string == 1:
-                    self.dataList.insert(k, [V_fixed, float(Fetch(DMM).query())])
+                    dataList.insert(k, [V_fixed, float(Fetch(dict["DMM"]).query())])
                     del temp_string
 
-                Delay(PSU).write(DownTime)
-                I += float(current_stepsize)
+                Delay(dict["PSU"]).write(dict["DownTime"])
+                I += float(dict["current_step_size"])
                 j += 1
                 k += 1
 
-            V_fixed += float(voltage_stepsize)
+            V_fixed += float(dict["voltage_stepsize"])
             i += 1
-        Output(PSU).setOutputState("OFF")
-        Output(ELoad).setOutputStateC("OFF", ELoad_Channel)
-        return self.dataList, self.infoList
+        Output(dict["PSU"]).setOutputState("OFF")
+        Output(dict["ELoad"]).setOutputStateC("OFF", dict["ELoad_Channel"])
+        return dataList, infoList
 
 
 class LoadRegulation:
     def __init__(self):
         pass
 
-    def executeCV_LoadRegulationA(
-        self,
-        Instrument,
-        Error_Gain,
-        Error_Offset,
-        V_Rating,
-        I_Rating,
-        P_Rating,
-        PSU,
-        DMM,
-        ELoad,
-        ELoad_Channel,
-        PSU_Channel,
-        setVoltage_Sense,
-        setVoltage_Res,
-        setMode,
-        Range,
-        Aperture,
-        AutoZero,
-        InputZ,
-        UpTime,
-        DownTime,
-    ):
+    def executeCV_LoadRegulationA(self, dict):
         """Test for determining the Load Regulation of DUT under Constant Voltage (CV) Mode.
 
         The function first dynamically imports the library to be used. Next, settings for the
-        instruments will be initialized. The test begins by measuring the No Load Voltage when
+        Instruments will be initialized. The test begins by measuring the No Load Voltage when
         the PSU is turned on at max nominal settings but ELoad is turned off. Then, the ELoad is
         turned on to drive the DUT to full load, while measuring the V_FullLoad, Calculations
         are then done to check the load regulation under CV condition.
 
-        The synchronization of instruments here is done by reading the status of the event registry.
-        The status determined from the instrument can let the program determine if the instrument is
-        measuring. The program will only proceed to tell the instrument to query the measured value
+        The synchronization of Instruments here is done by reading the status of the event registry.
+        The status determined from the Instrument can let the program determine if the Instrument is
+        measuring. The program will only proceed to tell the Instrument to query the measured value
         after it is determined that the measurement has been completed. This method is suitable for
         operations that require a longer time (e.g. 100 NPLC). However the implementation is slighty
         more complicated than other methods. This method only can be implemented that have the specific
@@ -855,14 +758,14 @@ class LoadRegulation:
             I_Rating: Float containing the Rated Current of the DUT.
             P_Rating: Float containing the Rated Power of the DUT.
             PSU: String containing the VISA Address of PSU used.
-            DMM: String containing the VISA Address of DMM used.
+            DMM: String containing the VISA Address of dictDMM used.
             ELoad: String containing the VISA Address of ELoad used.
             PSU_Channel: Integer containing the channel number that the PSU is using.
             ELoad_Channel: Integer containing the channel number that the ELoad is using.
             setVoltage_Sense: String determining the Voltage Sense that is used.
-            setVoltage_Res: String determining the Voltage Resolution that is used.
+            VoltageRes: String determining the Voltage Resolution that is used.
             setMode: String determining the Priority Mode of the ELoad.
-            Range: String determining the measuring range of DMM should be Auto or specified range.
+            Range: String determining the measuring range of DMMshould be Auto or specified range.
             Apreture: String determining the NPLC to be used by DMM when measuring.
             AutoZero: String determining if AutoZero Mode on DMM should be enabled/disabled.
             InputZ: String determining the Input Impedance Mode of DMM.
@@ -895,97 +798,75 @@ class LoadRegulation:
             Voltage,
             Current,
             Oscilloscope,
-        ) = Dimport.getClasses(Instrument)
+        ) = Dimport.getClasses(dict["Instrument"])
 
         # Instrument Initializations
-        Configure(DMM).write("Voltage")
-        Trigger(DMM).setSource("BUS")
-        Display(ELoad).displayState(ELoad_Channel)
-        Function(ELoad).setMode(setMode, ELoad_Channel)
-        Voltage(PSU).setSenseMode(setVoltage_Sense, 1)
-        Voltage(DMM).setNPLC(Aperture)
-        Voltage(DMM).setAutoZeroMode(AutoZero)
-        Voltage(DMM).setAutoImpedanceMode(InputZ)
+        Configure(dict["DMM"]).write("Voltage")
+        Trigger(dict["DMM"]).setSource("BUS")
+        Display(dict["ELoad"]).displayState(dict["ELoad_Channel"])
+        Function(dict["ELoad"]).setMode(dict["setFunction"], dict["ELoad_Channel"])
+        Voltage(dict["PSU"]).setSenseMode(dict["CurrentSense"], dict["PSU_Channel"])
+        Voltage(dict["DMM"]).setNPLC(dict["Aperture"])
+        Voltage(dict["DMM"]).setAutoZeroMode(dict["AutoZero"])
+        Voltage(dict["DMM"]).setAutoImpedanceMode(dict["InputZ"])
 
-        if Range == "Auto":
-            Sense(DMM).setVoltageRangeDCAuto()
+        if dict["Range"] == "Auto":
+            Sense(dict["DMM"]).setVoltageRangeDCAuto()
 
         else:
-            Sense(DMM).setVoltageRangeDC(Range)
+            Sense(dict["DMM"]).setVoltageRangeDC(dict["Range"])
 
-        self.V_Rating = float(V_Rating)
-        self.I_Rating = float(I_Rating)
-        self.P_Rating = float(P_Rating)
-        self.param1 = float(Error_Gain)
-        self.param2 = float(Error_Offset)
+        self.V_Rating = float(dict["V_Rating"])
+        self.I_Rating = float(dict["I_Rating"])
+        self.P_Rating = float(dict["P_Rating"])
+        self.param1 = float(dict["Error_Gain"])
+        self.param2 = float(dict["Error_Offset"])
 
         I_Max = self.P_Rating / self.V_Rating
-        Apply(PSU).write(PSU_Channel, self.V_Rating, self.I_Rating)
-        Output(PSU).setOutputState("ON")
+        Apply(dict["PSU"]).write(dict["PSU_Channel"], self.V_Rating, self.I_Rating)
+        Output(dict["PSU"]).setOutputState("ON")
 
         # Reading for No Load Voltage
 
-        WAI(PSU)
-        Initiate(DMM).initiate()
-        TRG(DMM)
-        Delay(PSU).write(UpTime)
-        V_NL = float(Fetch(DMM).query())
-        Delay(PSU).write(DownTime)
-        Current(ELoad).setOutputCurrent(I_Max, ELoad_Channel)
-        Output(ELoad).setOutputStateC("ON", ELoad_Channel)
-        Initiate(DMM).initiate()
-        TRG(DMM)
-        WAI(ELoad)
-        Delay(PSU).write(UpTime)
-        temp_string = float(OPC(ELoad).query())
+        WAI(dict["PSU"])
+        Initiate(dict["DMM"]).initiate()
+        TRG(dict["DMM"])
+        Delay(dict["PSU"]).write(dict["UpTime"])
+        V_NL = float(Fetch(dict["DMM"]).query())
+        Delay(dict["PSU"]).write(dict["DownTime"])
+        Current(dict["ELoad"]).setOutputCurrent(I_Max, dict["ELoad_Channel"])
+        Output(dict["ELoad"]).setOutputStateC("ON", dict["ELoad_Channel"])
+        Initiate(dict["DMM"]).initiate()
+        TRG(dict["DMM"])
+        WAI(dict["ELoad"])
+        Delay(dict["PSU"]).write(dict["UpTime"])
+        temp_string = float(OPC(dict["ELoad"]).query())
         if temp_string == 1:
-            V_FL = float(Fetch(DMM).query())
+            V_FL = float(Fetch(dict["DMM"]).query())
             del temp_string
 
-        Delay(PSU).write(DownTime)
+        Delay(dict["PSU"]).write(dict["DownTime"])
         print("V_NL: ", V_NL, "V_FL: ", V_FL)
-        Output(ELoad).setOutputStateC("OFF", ELoad_Channel)
-        Output(PSU).setOutputState("OFF")
+        Output(dict["ELoad"]).setOutputStateC("OFF", dict["ELoad_Channel"])
+        Output(dict["PSU"]).setOutputState("OFF")
         Voltage_Regulation = ((V_NL - V_FL) / V_FL) * 100
         Desired_Voltage_Regulation = 30 * self.param1 + self.param2
         print("Desired Voltage Regulation (CV): (%)", Desired_Voltage_Regulation)
         print("Calculated Voltage Regulation (CV): (%)", round(Voltage_Regulation, 4))
 
-    def executeCV_LoadRegulationB(
-        self,
-        Instrument,
-        Error_Gain,
-        Error_Offset,
-        V_Rating,
-        I_Rating,
-        P_Rating,
-        PSU,
-        DMM,
-        ELoad,
-        ELoad_Channel,
-        PSU_Channel,
-        setVoltage_Sense,
-        setVoltage_Res,
-        setMode,
-        Range,
-        Aperture,
-        AutoZero,
-        InputZ,
-        UpTime,
-        DownTime,
-    ):
+    def executeCV_LoadRegulationB(self, dict):
         """Test for determining the Load Regulation of DUT under Constant Voltage (CV) Mode.
 
         The function first dynamically imports the library to be used. Next, settings for the
-        instruments will be initialized. The test begins by measuring the No Load Voltage when
+        Instruments will be initialized. The test begins by measuring the No Load Voltage when
         the PSU is turned on at max nominal settings but ELoad is turned off. Then, the ELoad is
         turned on to drive the DUT to full load, while measuring the V_FullLoad, Calculations
         are then done to check the load regulation under CV condition.
 
-        The synchronization of instruments here is done by using IEEE Commands OPC and WAI. The command OPC
-        queries the instrument the status of the commands. 1 will be returned if all commands given have
+        The synchronization of Instruments here is done by using IEEE Commands OPC and WAI. The command OPC
+        queries the Instrument the status of the commands. 1 will be returned if all commands given have
         been executed. Hence, this makes as a simple and efficient way to synchronize the measurement timing
-        of the instruments, since it is under the IEEE Standard Library, most instruments are synchronized
+        of the Instruments, since it is under the IEEE Standard Library, most Instruments are synchronized
         using this way. However, this method only works for commands with a short execution time.
 
         Args:
@@ -996,17 +877,17 @@ class LoadRegulation:
             I_Rating: Float containing the Rated Current of the DUT.
             P_Rating: Float containing the Rated Power of the DUT.
             PSU: String containing the VISA Address of PSU used.
-            DMM: String containing the VISA Address of DMM used.
+            DMM: String containing the VISA Address of dict["DMM"] used.
             ELoad: String containing the VISA Address of ELoad used.
             PSU_Channel: Integer containing the channel number that the PSU is using.
             ELoad_Channel: Integer containing the channel number that the ELoad is using.
             setVoltage_Sense: String determining the Voltage Sense that is used.
-            setVoltage_Res: String determining the Voltage Resolution that is used.
+            VoltageRes: String determining the Voltage Resolution that is used.
             setMode: String determining the Priority Mode of the ELoad.
-            Range: String determining the measuring range of DMM should be Auto or specified range.
-            Apreture: String determining the NPLC to be used by DMM when measuring.
-            AutoZero: String determining if AutoZero Mode on DMM should be enabled/disabled.
-            InputZ: String determining the Input Impedance Mode of DMM.
+            Range: String determining the measuring range of dict["DMM"] should be Auto or specified range.
+            Apreture: String determining the NPLC to be used by dict["DMM"] when measuring.
+            AutoZero: String determining if AutoZero Mode on dict["DMM"] should be enabled/disabled.
+            InputZ: String determining the Input Impedance Mode of dict["DMM"].
             UpTime: Float containing details regarding the uptime delay.
             DownTime: Float containing details regarding the downtime delay.
             I_Max: Float storing the maximum nominal current value based on Power & Voltage Rating
@@ -1037,74 +918,74 @@ class LoadRegulation:
             Voltage,
             Current,
             Oscilloscope,
-        ) = Dimport.getClasses(Instrument)
+        ) = Dimport.getClasses(dict["Instrument"])
 
         # Instruments Initialization
-        Configure(DMM).write("Voltage")
-        Trigger(DMM).setSource("BUS")
-        Display(ELoad).displayState(ELoad_Channel)
-        Function(ELoad).setMode(setMode, ELoad_Channel)
-        Voltage(PSU).setSenseMode(setVoltage_Sense, 1)
-        Voltage(DMM).setNPLC(Aperture)
-        Voltage(DMM).setAutoZeroMode(AutoZero)
-        Voltage(DMM).setAutoImpedanceMode(InputZ)
+        Configure(dict["DMM"]).write("Voltage")
+        Trigger(dict["DMM"]).setSource("BUS")
+        Display(dict["ELoad"]).displayState(dict["ELoad_Channel"])
+        Function(dict["ELoad"]).setMode(dict["setFunction"], dict["ELoad_Channel"])
+        Voltage(dict["PSU"]).setSenseMode(dict["VoltageSense"], dict["PSU_Channel"])
+        Voltage(dict["DMM"]).setNPLC(dict["Aperture"])
+        Voltage(dict["DMM"]).setAutoZeroMode(dict["AutoZero"])
+        Voltage(dict["DMM"]).setAutoImpedanceMode(dict["InputZ"])
 
-        if Range == "Auto":
-            Sense(DMM).setVoltageRangeDCAuto()
+        if dict["Range"] == "Auto":
+            Sense(dict["DMM"]).setVoltageRangeDCAuto()
 
         else:
-            Sense(DMM).setVoltageRangeDC(Range)
+            Sense(dict["DMM"]).setVoltageRangeDC(dict["Range"])
 
-        self.V_Rating = float(V_Rating)
-        self.I_Rating = float(I_Rating)
-        self.P_Rating = float(P_Rating)
-        self.param1 = float(Error_Gain)
-        self.param2 = float(Error_Offset)
+        self.V_Rating = float(dict["V_Rating"])
+        self.I_Rating = float(dict["I_Rating"])
+        self.P_Rating = float(dict["P_Rating"])
+        self.param1 = float(dict["Error_Gain"])
+        self.param2 = float(dict["Error_Offset"])
 
         I_Max = self.P_Rating / self.V_Rating
-        Apply(PSU).write(PSU_Channel, self.V_Rating, self.I_Rating)
-        Output(PSU).setOutputState("ON")
+        Apply(dict["PSU"]).write(dict["PSU_Channel"], self.V_Rating, self.I_Rating)
+        Output(dict["PSU"]).setOutputState("ON")
 
         # Reading for No Load Voltage
 
-        WAI(PSU)
-        Initiate(DMM).initiate()
-        status = float(Status(DMM).operationCondition())
-        TRG(DMM)
+        WAI(dict["PSU"])
+        Initiate(dict["DMM"]).initiate()
+        status = float(Status(dict["DMM"]).operationCondition())
+        TRG(dict["DMM"])
         while 1:
-            status = float(Status(DMM).operationCondition())
+            status = float(Status(dict["DMM"]).operationCondition())
 
             if status == 8704.0:
-                V_NL = float(Fetch(DMM).query())
+                V_NL = float(Fetch(dict["DMM"]).query())
                 break
 
             elif status == 512.0:
-                V_NL = float(Fetch(DMM).query())
+                V_NL = float(Fetch(dict["DMM"]).query())
                 break
-        Delay(PSU).write(DownTime)
-        Current(ELoad).setOutputCurrent(I_Max, ELoad_Channel)
-        Output(ELoad).setOutputStateC("ON", ELoad_Channel)
+        Delay(dict["PSU"]).write(dict["DownTime"])
+        Current(dict["ELoad"]).setOutputCurrent(I_Max, dict["ELoad_Channel"])
+        Output(dict["ELoad"]).setOutputStateC("ON", dict["ELoad_Channel"])
 
-        WAI(ELoad)
-        Initiate(DMM).initiate()
-        status = float(Status(DMM).operationCondition())
-        TRG(DMM)
-        Delay(self.PSU).write(UpTime)
+        WAI(dict["ELoad"])
+        Initiate(dict["DMM"]).initiate()
+        status = float(Status(dict["DMM"]).operationCondition())
+        TRG(dict["DMM"])
+        Delay(dict["PSU"]).write(dict["UpTime"])
         while 1:
-            status = float(Status(DMM).operationCondition())
+            status = float(Status(dict["DMM"]).operationCondition())
 
             if status == 8704.0:
-                V_FL = float(Fetch(DMM).query())
+                V_FL = float(Fetch(dict["DMM"]).query())
                 break
 
             elif status == 512.0:
-                V_FL = float(Fetch(DMM).query())
+                V_FL = float(Fetch(dict["DMM"]).query())
                 break
 
-        Delay(self.PSU).write(DownTime)
+        Delay(dict["PSU"]).write(dict["DownTime"])
         print("V_NL: ", V_NL, "V_FL: ", V_FL)
-        Output(ELoad).setOutputStateC("OFF", ELoad_Channel)
-        Output(PSU).setOutputState("OFF")
+        Output(dict["ELoad"]).setOutputStateC("OFF", dict["ELoad_Channel"])
+        Output(dict["PSU"]).setOutputState("OFF")
         Voltage_Regulation = ((V_NL - V_FL) / V_FL) * 100
         Desired_Voltage_Regulation = 30 * self.param1 + self.param2
         print("Desired Load Regulation (CV): (%)", Desired_Voltage_Regulation)
@@ -1112,40 +993,18 @@ class LoadRegulation:
             "Calculated Load Voltage Regulation (CV): (%)", round(Voltage_Regulation, 4)
         )
 
-    def executeCC_LoadRegulationA(
-        self,
-        Instrument,
-        Error_Gain,
-        Error_Offset,
-        V_Rating,
-        I_Rating,
-        P_Rating,
-        PSU,
-        DMM,
-        ELoad,
-        ELoad_Channel,
-        PSU_Channel,
-        setCurrent_Sense,
-        setVoltage_Res,
-        setMode,
-        Range,
-        Aperture,
-        AutoZero,
-        Terminal,
-        UpTime,
-        DownTime,
-    ):
+    def executeCC_LoadRegulationA(self, dict):
         """Test for determining the Load Regulation of DUT under Constant Current (CC) Mode.
 
         The function first dynamically imports the library to be used. Next, settings for the
-        instruments will be initialized. The test begins by measuring the No Load Voltage when
+        Instrument will be initialized. The test begins by measuring the No Load Voltage when
         the PSU is turned on at max nominal settings but ELoad is turned off. Then, the ELoad is
         turned on to drive the DUT to full load, while measuring the V_FullLoad, Calculations
         are then done to check the load regulation under CC condition.
 
-        The synchronization of instruments here is done by reading the status of the event registry.
-        The status determined from the instrument can let the program determine if the instrument is
-        measuring. The program will only proceed to tell the instrument to query the measured value
+        The synchronization of Instrument here is done by reading the status of the event registry.
+        The status determined from the Instrument can let the program determine if the Instrument is
+        measuring. The program will only proceed to tell the Instrument to query the measured value
         after it is determined that the measurement has been completed. This method is suitable for
         operations that require a longer time (e.g. 100 NPLC). However the implementation is slighty
         more complicated than other methods. This method only can be implemented that have the specific
@@ -1197,96 +1056,76 @@ class LoadRegulation:
             Voltage,
             Current,
             Oscilloscope,
-        ) = Dimport.getClasses(Instrument)
+        ) = Dimport.getClasses(dict["Instrument"])
         # Fixed Settings
-        Configure(DMM).write("Current")
-        Trigger(DMM).setSource("BUS")
-        Display(ELoad).displayState(ELoad_Channel)
-        Function(ELoad).setMode(setMode, ELoad_Channel)
-        Voltage(PSU).setSenseMode(setCurrent_Sense, PSU_Channel)
-        Current(DMM).setNPLC(Aperture)
-        Current(DMM).setAutoZeroMode(AutoZero)
-        Current(DMM).setTerminal(Terminal)
+        Configure(dict["DMM"]).write("Current")
+        Trigger(dict["DMM"]).setSource("BUS")
+        Display(dict["ELoad"]).displayState(dict["ELoad_Channel"])
+        Function(dict["ELoad"]).setMode(dict["setFunction"], dict["ELoad_Channel"])
+        Voltage(dict["PSU"]).setSenseMode(dict["CurrentSense"], dict["PSU_Channel"])
+        Current(dict["DMM"]).setNPLC(dict["Aperture"])
+        Current(dict["DMM"]).setAutoZeroMode(dict["AutoZero"])
+        Current(dict["DMM"]).setTerminal(dict["Terminal"])
 
-        if Range == "Auto":
-            Sense(DMM).setCurrentRangeDCAuto()
+        if dict["Range"] == "Auto":
+            Sense(dict["DMM"]).setCurrentRangeDCAuto()
 
         else:
-            Sense(DMM).setCurrentRangeDC(Range)
+            Sense(dict["DMM"]).setCurrentRangeDC(dict["Range"])
 
-        self.V_Rating = float(V_Rating)
-        self.I_Rating = float(I_Rating)
-        self.P_Rating = float(P_Rating)
-        self.param1 = float(Error_Gain)
-        self.param2 = float(Error_Offset)
+        self.V_Rating = float(dict["V_Rating"])
+        self.I_Rating = float(dict["I_Rating"])
+        self.P_Rating = float(dict["P_Rating"])
+        self.param1 = float(dict["Error_Gain"])
+        self.param2 = float(dict["Error_Offset"])
 
         V_Max = self.P_Rating / self.I_Rating
-        Apply(PSU).write(PSU_Channel, self.V_Rating, self.I_Rating)
-        Output(PSU).setOutputState("ON")
-
+        Apply(dict["PSU"]).write(dict["PSU_Channel"], self.V_Rating, self.I_Rating)
+        Voltage(dict["ELoad"]).setOutputVoltage(1, dict["ELoad_Channel"])
+        Output(dict["PSU"]).setOutputState("ON")
+        Output(dict["ELoad"]).setOutputStateC("ON", dict["ELoad_Channel"])
         # Reading for No Load Voltage
 
-        WAI(PSU)
-        Initiate(DMM).initiate()
-        TRG(DMM)
-        Delay(PSU).write(UpTime)
-        I_NL = float(Fetch(DMM).query())
-        Delay(PSU).write(DownTime)
-        Voltage(ELoad).setOutputVoltage(V_Max, ELoad_Channel)
-        Output(ELoad).setOutputStateC("ON", ELoad_Channel)
-        Initiate(DMM).initiate()
-        TRG(DMM)
-        WAI(ELoad)
-        Delay(PSU).write(UpTime)
-        temp_string = float(OPC(ELoad).query())
+        WAI(dict["PSU"])
+        Initiate(dict["DMM"]).initiate()
+        TRG(dict["DMM"])
+        Delay(dict["PSU"]).write(dict["UpTime"])
+        I_NL = float(Fetch(dict["DMM"]).query())
+
+        Delay(dict["PSU"]).write(dict["DownTime"])
+        Voltage(dict["ELoad"]).setOutputVoltage(V_Max - 1, dict["ELoad_Channel"])
+
+        Initiate(dict["DMM"]).initiate()
+        TRG(dict["DMM"])
+        WAI(dict["ELoad"])
+        Delay(dict["PSU"]).write(dict["UpTime"])
+        temp_string = float(OPC(dict["ELoad"]).query())
         if temp_string == 1:
-            I_FL = float(Fetch(DMM).query())
+            I_FL = float(Fetch(dict["DMM"]).query())
             del temp_string
 
-        Delay(PSU).write(DownTime)
+        Delay(dict["PSU"]).write(dict["DownTime"])
         print("I_NL: ", I_NL, "I_FL: ", I_FL)
-        Output(ELoad).setOutputStateC("OFF", ELoad_Channel)
-        Output(PSU).setOutputState("OFF")
+        Output(dict["ELoad"]).setOutputStateC("OFF", dict["ELoad_Channel"])
+        Output(dict["PSU"]).setOutputState("OFF")
         Voltage_Regulation = ((I_NL - I_FL) / I_FL) * 100
         Desired_Voltage_Regulation = 30 * self.param1 + self.param2
         print("Desired Load Regulation(CC): (%)", Desired_Voltage_Regulation)
         print("Calculated Load Regulation(CC): (%)", round(Voltage_Regulation, 4))
 
-    def executeCC_LoadRegulationB(
-        self,
-        Instrument,
-        Error_Gain,
-        Error_Offset,
-        V_Rating,
-        I_Rating,
-        P_Rating,
-        PSU,
-        DMM,
-        ELoad,
-        ELoad_Channel,
-        PSU_Channel,
-        setCurrent_Sense,
-        setVoltage_Res,
-        setMode,
-        Range,
-        Aperture,
-        AutoZero,
-        Terminal,
-        UpTime,
-        DownTime,
-    ):
+    def executeCC_LoadRegulationB(self, dict):
         """Test for determining the Load Regulation of DUT under Constant Current (CC) Mode.
 
         The function first dynamically imports the library to be used. Next, settings for the
-        instruments will be initialized. The test begins by measuring the No Load Voltage when
+        Instrument will be initialized. The test begins by measuring the No Load Voltage when
         the PSU is turned on at max nominal settings but ELoad is turned off. Then, the ELoad is
         turned on to drive the DUT to full load, while measuring the V_FullLoad, Calculations
         are then done to check the load regulation under CC condition.
 
-        The synchronization of instruments here is done by using IEEE Commands OPC and WAI. The command OPC
-        queries the instrument the status of the commands. 1 will be returned if all commands given have
+        The synchronization of Instrument here is done by using IEEE Commands OPC and WAI. The command OPC
+        queries the Instrument the status of the commands. 1 will be returned if all commands given have
         been executed. Hence, this makes as a simple and efficient way to synchronize the measurement timing
-        of the instruments, since it is under the IEEE Standard Library, most instruments are synchronized
+        of the Instrument, since it is under the IEEE Standard Library, most Instrument are synchronized
         using this way. However, this method only works for commands with a short execution time.
 
         Args:
@@ -1337,75 +1176,74 @@ class LoadRegulation:
             Voltage,
             Current,
             Oscilloscope,
-        ) = Dimport.getClasses(Instrument)
+        ) = Dimport.getClasses(dict["Instrument"])
 
-        # Instrument Initialization
-        Configure(DMM).write("Current")
-        Trigger(DMM).setSource("BUS")
-        Display(ELoad).displayState(ELoad_Channel)
-        Function(ELoad).setMode(setMode, ELoad_Channel)
-        Voltage(PSU).setSenseMode(setCurrent_Sense, PSU_Channel)
-        Current(DMM).setNPLC(Aperture)
-        Current(DMM).setAutoZeroMode(AutoZero)
-        Current(DMM).setTerminal(Terminal)
+        # Instruments Initialization
+        Configure(dict["DMM"]).write("Current")
+        Trigger(dict["DMM"]).setSource("BUS")
+        Display(dict["ELoad"]).displayState(dict["ELoad_Channel"])
+        Function(dict["ELoad"]).setMode(dict["setFunction"], dict["ELoad_Channel"])
+        Voltage(dict["PSU"]).setSenseMode(dict["CurrentSense"], dict["PSU_Channel"])
+        Current(dict["DMM"]).setNPLC(dict["Aperture"])
+        Current(dict["DMM"]).setAutoZeroMode(dict["AutoZero"])
+        Current(dict["DMM"]).setTerminal(dict["Terminal"])
 
-        if Range == "Auto":
-            Sense(DMM).setCurrentRangeDCAuto()
+        if dict["Range"] == "Auto":
+            Sense(dict["DMM"]).setCurrentRangeDCAuto()
 
         else:
-            Sense(DMM).setCurrentRangeDC(Range)
+            Sense(dict["DMM"]).setCurrentRangeDC(dict["Range"])
 
-        self.V_Rating = float(V_Rating)
-        self.I_Rating = float(I_Rating)
-        self.P_Rating = float(P_Rating)
-        self.param1 = float(Error_Gain)
-        self.param2 = float(Error_Offset)
+        self.V_Rating = float(dict["V_Rating"])
+        self.I_Rating = float(dict["I_Rating"])
+        self.P_Rating = float(dict["P_Rating"])
+        self.param1 = float(dict["Error_Gain"])
+        self.param2 = float(dict["Error_Offset"])
 
         V_Max = self.P_Rating / self.I_Rating
-        Apply(PSU).write(PSU_Channel, self.V_Rating, self.I_Rating)
-        Output(PSU).setOutputState("ON")
-        Output(ELoad).setOutputStateC("ON", ELoad_Channel)
-        Voltage(ELoad).setOutputVoltage(0.01, ELoad_Channel)
-
+        Apply(dict["PSU"]).write(dict["PSU_Channel"], self.V_Rating, self.I_Rating)
+        Voltage(dict["ELoad"]).setOutputVoltage(1, dict["ELoad_Channel"])
+        Output(dict["PSU"]).setOutputState("ON")
+        Output(dict["ELoad"]).setOutputStateC("ON", dict["ELoad_Channel"])
         # Reading for No Load Voltage
 
-        WAI(PSU)
-        Initiate(DMM).initiate()
-        status = float(Status(DMM).operationCondition())
-        TRG(DMM)
+        WAI(dict["PSU"])
+        Initiate(dict["DMM"]).initiate()
+        status = float(Status(dict["DMM"]).operationCondition())
+        TRG(dict["DMM"])
         while 1:
-            status = float(Status(DMM).operationCondition())
+            status = float(Status(dict["DMM"]).operationCondition())
 
             if status == 8704.0:
-                I_NL = float(Fetch(DMM).query())
+                I_NL = float(Fetch(dict["DMM"]).query())
                 break
 
             elif status == 512.0:
-                I_NL = float(Fetch(DMM).query())
+                I_NL = float(Fetch(dict["DMM"]).query())
                 break
-        Delay(PSU).write(DownTime)
-        Voltage(ELoad).setOutputVoltage(V_Max - 1, ELoad_Channel)
+        Delay(dict["PSU"]).write(dict["DownTime"])
+        Voltage(dict["ELoad"]).setOutputVoltage(V_Max - 1, dict["ELoad_Channel"])
 
-        WAI(ELoad)
-        Initiate(DMM).initiate()
-        status = float(Status(DMM).operationCondition())
-        TRG(DMM)
-        Delay(PSU).write(UpTime)
+        WAI(dict["ELoad"])
+        Initiate(dict["DMM"]).initiate()
+        status = float(Status(dict["DMM"]).operationCondition())
+        TRG(dict["DMM"])
+        Delay(dict["PSU"]).write(dict["UpTime"])
         while 1:
-            status = float(Status(DMM).operationCondition())
+            status = float(Status(dict["DMM"]).operationCondition())
 
             if status == 8704.0:
-                I_FL = float(Fetch(DMM).query())
+                I_FL = float(Fetch(dict["DMM"]).query())
                 break
 
             elif status == 512.0:
-                I_FL = float(Fetch(DMM).query())
+                I_FL = float(Fetch(dict["DMM"]).query())
                 break
 
-        Delay(PSU).write(DownTime)
+        Delay(dict["PSU"]).write(dict["DownTime"])
         print("I_NL: ", I_NL, "I_FL: ", I_FL)
-        Output(ELoad).setOutputStateC("OFF", ELoad_Channel)
-        Output(PSU).setOutputState("OFF")
+        Output(dict["ELoad"]).setOutputStateC("OFF", dict["ELoad_Channel"])
+        Output(dict["PSU"]).setOutputState("OFF")
         Current_Regulation = ((I_NL - I_FL) / I_FL) * 100
         Desired_Current_Regulation = self.I_Rating * self.param1 + self.param2
         print("Desired Load Regulation (CC): (%)", Desired_Current_Regulation)
@@ -1418,30 +1256,11 @@ class RiseFallTime:
 
     def execute(
         self,
-        ELoad,
-        PSU,
-        OSC,
-        ELoad_Channel,
-        PSU_Channel,
-        OSC_Channel,
-        setMode,
-        setVoltageSense,
-        V_rating,
-        I_rating,
-        Channel_CouplingMode,
-        Trigger_Mode,
-        Trigger_CouplingMode,
-        Trigger_SweepMode,
-        Trigger_SlopeMode,
-        TimeScale,
-        VerticalScale,
-        I_Step,
-        V_settling_band,
-        Instrument="Keysight",
+        dict,
     ):
         """Test for determining the Transient Recovery Time of DUT
 
-        The test begins by initializing all the settings for Oscilloscope and other instruments.
+        The test begins by initializing all the settings for Oscilloscope and other Instrument.
         The PSU is then set to output full load followed by activating single mode on the oscilloscope.
         The Eload is then turned off, which would trigger the oscilloscope to show a transient wave. The
         transient wave is then measured using the built in functions. The transient time is caluclated by
@@ -1491,76 +1310,68 @@ class RiseFallTime:
             Voltage,
             Current,
             Oscilloscope,
-        ) = Dimport.getClasses(Instrument)
+        ) = Dimport.getClasses(dict["Instrument"])
+        V_Settling_Band = dict["V_Settling_Band"]
         # Instruments Settings
-        Oscilloscope(OSC).setChannelCoupling(OSC_Channel, Channel_CouplingMode)
-        Oscilloscope(OSC).setTriggerMode(Trigger_Mode)
-        Oscilloscope(OSC).setTriggerCoupling(Trigger_CouplingMode)
-        Oscilloscope(OSC).setTriggerSweepMode(Trigger_SweepMode)
-        Oscilloscope(OSC).setTriggerSlope(Trigger_SlopeMode)
-        Oscilloscope(OSC).setTimeScale(TimeScale)
-        Oscilloscope(self.OSC).setTriggerSource(OSC_Channel)
-        Oscilloscope(OSC).setVerticalScale(VerticalScale, OSC_Channel)
-        Oscilloscope(self.OSC).setTriggerEdgeLevel(OSC_Channel)
-        Oscilloscope(self.OSC).setTriggerHFReject(1)
-        Oscilloscope(self.OSC).setTriggerNoiseReject(1)
+        Oscilloscope(dict["OSC"]).setChannelCoupling(
+            dict["OSC_Channel"], dict["Channel_CouplingMode"]
+        )
+        Oscilloscope(dict["OSC"]).setTriggerMode(dict["Trigger_Mode"])
+        Oscilloscope(dict["OSC"]).setTriggerCoupling(dict["Trigger_CouplingMode"])
+        Oscilloscope(dict["OSC"]).setTriggerSweepMode(dict["Trigger_SweepMode"])
+        Oscilloscope(dict["OSC"]).setTriggerSlope(dict["Trigger_SlopeMode"])
+        Oscilloscope(dict["OSC"]).setTimeScale(dict["TimeScale"])
+        Oscilloscope(dict["OSC"]).setTriggerSource(dict["OSC_Channel"])
+        Oscilloscope(dict["OSC"]).setVerticalScale(
+            dict["VerticalScale"], dict["OSC_Channel"]
+        )
+        Oscilloscope(dict["OSC"]).setTriggerEdgeLevel(0, dict["OSC_Channel"])
+        Oscilloscope(dict["OSC"]).setTriggerHFReject(1)
+        Oscilloscope(dict["OSC"]).setTriggerNoiseReject(1)
 
-        Display(ELoad).displayState(ELoad_Channel)
-        Function(ELoad).setMode(setMode, ELoad_Channel)
-        Voltage(PSU).setSenseMode(setVoltageSense, PSU_Channel)
-        Apply(PSU).write(PSU_Channel, V_rating, I_rating)
-        Output(PSU).setOutputState("ON")
-        Current(ELoad).setOutputCurrent(I_Step, ELoad_Channel)
-        Output(ELoad).setOutputStateC("ON", ELoad_Channel)
+        Display(dict["ELoad"]).displayState(dict["ELoad_Channel"])
+        Function(dict["ELoad"]).setMode(dict["setFunction"], dict["ELoad_Channel"])
+        Voltage(dict["PSU"]).setSenseMode(dict["VoltageSense"], dict["PSU_Channel"])
+        Apply(dict["PSU"]).write(
+            dict["PSU_Channel"], dict["V_Rating"], dict["I_Rating"]
+        )
+        Output(dict["PSU"]).setOutputState("ON")
+        Current(dict["ELoad"]).setOutputCurrent(dict["I_Step"], dict["ELoad_Channel"])
+        Output(dict["ELoad"]).setOutputStateC("ON", dict["ELoad_Channel"])
 
-        Oscilloscope(OSC).setSingleMode()
-        WAI(OSC)
+        Oscilloscope(dict["OSC"]).setSingleMode()
+        WAI(dict["OSC"])
         sleep(1)
-        Output(ELoad).setOutputStateC("OFF", ELoad_Channel)
-        WAI(self.OSC)
+        Output(dict["ELoad"]).setOutputStateC("OFF", dict["ELoad_Channel"])
+        WAI(dict["OSC"])
 
-        V_max = float(Oscilloscope(OSC).getMaximumVoltage())
-        Oscilloscope(self.OSC).setThresholdMode("Voltage")
-        Oscilloscope(self.OSC).setUpperLimit(0.99 * V_max)
-        Oscilloscope(self.OSC).setLowerLimit(0)
-        rise_time = float(Oscilloscope(OSC).getRiseTime(1))
+        V_max = float(Oscilloscope(dict["OSC"]).getMaximumVoltage())
+        Oscilloscope(dict["OSC"]).setThresholdMode("Voltage")
+        Oscilloscope(dict["OSC"]).setUpperLimit(0.99 * V_max)
+        Oscilloscope(dict["OSC"]).setLowerLimit(0)
+        rise_time = float(Oscilloscope(dict["OSC"]).getRiseTime(1))
 
-        Oscilloscope(self.OSC).setLowerLimit(V_settling_band)
-        fall_time = float(Oscilloscope(OSC).getFallTime(1))
+        Oscilloscope(dict["OSC"]).setLowerLimit(V_Settling_Band)
+
+        fall_time = float(Oscilloscope(dict["OSC"]).getFallTime(1))
 
         print(
-            f"Total Transient Time with Voltage Settling Band of 15mV, {rise_time+fall_time}s"
+            f"Total Transient Time with Voltage Settling Band of {V_Settling_Band}, {rise_time+fall_time}s"
         )
 
-        Output(self.ELoad).setOutputStateC("OFF", ELoad_Channel)
+        Output(dict["ELoad"]).setOutputStateC("OFF", dict["ELoad_Channel"])
 
-        Output(self.PSU).setOutputState("OFF")
+        Output(dict["PSU"]).setOutputState("OFF")
 
 
 class ProgrammingSpeedTest:
     def __init__():
         pass
 
-    def execute(
-        self,
-        PSU,
-        OSC,
-        PSU_Channel,
-        OSC_Channel,
-        setVoltageSense,
-        V_Lower,
-        V_Upper,
-        Trigger_Mode,
-        Trigger_CouplingMode,
-        Trigger_SweepMode,
-        Trigger_SlopeMode,
-        Upper_Bound,
-        Lower_Bound,
-        Instrument="Keysight",
-    ):
+    def execute(self, dict):
         """Test for determining the programming speed of Voltage/Current
 
-        The function first initializes and setup the instrument settings. The first voltage is
+        The function first initializes and setup the dict["Instrument"] settings. The first voltage is
         supplied by the PSU first followed by setting the oscilloscope to single mode. The oscilloscope
         will capture the rise time of the voltage from the first voltage to the final voltage. Then the
         PSU is set to the first voltage to measure the fall time, speed of voltage changing.
@@ -1604,42 +1415,49 @@ class ProgrammingSpeedTest:
             Voltage,
             Current,
             Oscilloscope,
-        ) = Dimport.getClasses(Instrument)
+        ) = Dimport.getClasses(dict["Instrument"])
         # Instrument Initialization
-        RST(OSC)
-        Oscilloscope(OSC).setVerticalScale(5, OSC_Channel)
-        Oscilloscope(OSC).setTriggerEdgeLevel(float(V_Upper) - 1, OSC_Channel)
-        Oscilloscope(OSC).setTriggerMode(Trigger_Mode)
-        Oscilloscope(OSC).setTriggerCoupling(Trigger_CouplingMode)
-        Oscilloscope(OSC).setTriggerSweepMode(Trigger_SweepMode)
-        Oscilloscope(OSC).setTriggerSlope(Trigger_SlopeMode)
-        Oscilloscope(OSC).setTriggerSource(OSC_Channel)
-        Oscilloscope(OSC).setTimeScale(10e-3)
-        Oscilloscope(OSC).setVerticalOffset(15, OSC_Channel)
-        Oscilloscope(OSC).setThresholdMode("Voltage")
-        Upper_Threshold = (float(Upper_Bound) / 100) * float(V_Upper)
-        Lower_Threshold = (1 + float(Lower_Bound) / 100) * float(V_Lower)
-        Oscilloscope(OSC).setUpperLimit(round(Upper_Threshold, 1))
-        Oscilloscope(OSC).setLowerLimit(round(Lower_Threshold, 1))
+        Lower_Bound = dict["Lower_Bound"]
+        Upper_Bound = dict["Upper_Bound"]
 
-        Voltage(PSU).setSenseMode(setVoltageSense, PSU_Channel)
-        Apply(PSU).write(PSU_Channel, V_Lower, 2)
-        Output(PSU).setOutputState("ON")
-        Oscilloscope(OSC).setSingleMode()
-        WAI(OSC)
+        RST(dict["OSC"])
+        Oscilloscope(dict["OSC"]).setVerticalScale(5, dict["OSC_Channel"])
+        Oscilloscope(dict["OSC"]).setTriggerEdgeLevel(
+            float(dict["V_Upper"]) - 1, dict["OSC_Channel"]
+        )
+        Oscilloscope(dict["OSC"]).setTriggerMode(dict["Trigger_Mode"])
+        Oscilloscope(dict["OSC"]).setTriggerCoupling(dict["Trigger_CouplingMode"])
+        Oscilloscope(dict["OSC"]).setTriggerSweepMode(dict["Trigger_SweepMode"])
+        Oscilloscope(dict["OSC"]).setTriggerSlope(dict["Trigger_SlopeMode"])
+        Oscilloscope(dict["OSC"]).setTriggerSource(dict["OSC_Channel"])
+        Oscilloscope(dict["OSC"]).setTimeScale(10e-3)
+        Oscilloscope(dict["OSC"]).setVerticalOffset(15, dict["OSC_Channel"])
+        Oscilloscope(dict["OSC"]).setThresholdMode("Voltage")
+        Upper_Threshold = (float(dict["Upper_Bound"]) / 100) * float(dict["V_Upper"])
+        Lower_Threshold = (1 + float(dict["Lower_Bound"]) / 100) * float(
+            dict["V_Lower"]
+        )
+        Oscilloscope(dict["OSC"]).setUpperLimit(round(Upper_Threshold, 1))
+        Oscilloscope(dict["OSC"]).setLowerLimit(round(Lower_Threshold, 1))
+
+        Voltage(dict["PSU"]).setSenseMode(dict["VoltageSense"], dict["PSU_Channel"])
+        Apply(dict["PSU"]).write(dict["PSU_Channel"], dict["V_Lower"], 2)
+        Output(dict["PSU"]).setOutputState("ON")
+        Oscilloscope(dict["OSC"]).setSingleMode()
+        WAI(dict["OSC"])
         sleep(1)
 
-        Apply(PSU).write(PSU_Channel, V_Upper, 2)
+        Apply(dict["PSU"]).write(dict["PSU_Channel"], dict["V_Upper"], 2)
         sleep(1)
-        Rise_Time = float(Oscilloscope(OSC).getRiseTime(OSC_Channel))
+        Rise_Time = float(Oscilloscope(dict["OSC"]).getRiseTime(dict["OSC_Channel"]))
         print(f"Rise Time from{Lower_Bound}% to {Upper_Bound}%: {Rise_Time} s")
         sleep(1)
-        Oscilloscope(OSC).setSingleMode()
+        Oscilloscope(dict["OSC"]).setSingleMode()
         sleep(1)
-        Apply(PSU).write(PSU_Channel, V_Lower, 2)
+        Apply(dict["PSU"]).write(dict["PSU_Channel"], dict["V_Lower"], 2)
         sleep(1)
-        Fall_Time = float(Oscilloscope(OSC).getFallTime(OSC_Channel))
+        Fall_Time = float(Oscilloscope(dict["OSC"]).getFallTime(dict["OSC_Channel"]))
 
         print(f"Fall Time from {Upper_Bound}% to {Lower_Bound}%: {Fall_Time} s")
-        WAI(OSC)
-        Output(PSU).setOutputState("OFF")
+        WAI(dict["OSC"])
+        Output(dict["PSU"]).setOutputState("OFF")
