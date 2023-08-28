@@ -533,7 +533,7 @@ class RiseFallTime:
         Oscilloscope(self.OSC).setTriggerSource("1")
         Oscilloscope(self.OSC).setTimeScale("10e-6")
         Oscilloscope(self.OSC).setVerticalScale(1, 1)
-        Oscilloscope(self.OSC).setTriggerEdgeLevel(1)
+        Oscilloscope(self.OSC).setTriggerEdgeLevel(1, 1)
         Oscilloscope(self.OSC).setTriggerHFReject(1)
         Oscilloscope(self.OSC).setTriggerNoiseReject(1)
         Display(self.ELoad).displayState(self.ELoad_Channel)
