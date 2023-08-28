@@ -510,34 +510,39 @@ class VoltageMeasurementDialog(QDialog):
     def executeTest(self):
         self.infoList = []
         self.dataList = []
+
+        dict = dictGenerator.input(
+            Instrument=self.DMM_Instrument,
+            Error_Gain=self.Error_Gain,
+            Error_Offset=self.Error_Offset,
+            minCurrent=self.minCurrent,
+            maxCurrent=self.maxCurrent,
+            current_step_size=self.current_step_size,
+            minVoltage=self.minVoltage,
+            maxVoltage=self.maxVoltage,
+            voltage_step_size=self.voltage_step_size,
+            PSU=self.PSU,
+            DMM=self.DMM,
+            ELoad=self.ELoad,
+            ELoad_Channel=self.ELoad_Channel,
+            PSU_Channel=self.PSU_Channel,
+            VoltageSense=self.VoltageSense,
+            VoltageRes=self.VoltageRes,
+            setFunction=self.setFunction,
+            Range=AdvancedSettingsList[0],
+            Aperture=AdvancedSettingsList[1],
+            AutoZero=AdvancedSettingsList[2],
+            InputZ=AdvancedSettingsList[3],
+            UpTime=AdvancedSettingsList[4],
+            DownTime=AdvancedSettingsList[5],
+        )
         QMessageBox.warning(
             self,
             "In Progress",
             "Measurement will start now , please do not close the main window until test is completed",
         )
 
-        for i in [
-            self.Error_Gain,
-            self.Error_Offset,
-            self.minCurrent,
-            self.maxCurrent,
-            self.current_step_size,
-            self.minVoltage,
-            self.maxVoltage,
-            self.voltage_step_size,
-            self.PSU,
-            self.DMM,
-            self.ELoad,
-            self.ELoad_Channel,
-            self.PSU_Channel,
-            self.VoltageSense,
-            self.VoltageRes,
-            self.setFunction,
-            AdvancedSettingsList[0],
-            AdvancedSettingsList[1],
-            AdvancedSettingsList[2],
-            AdvancedSettingsList[3],
-        ]:
+        for i in [dict]:
             if i == "":
                 QMessageBox.warning(
                     self, "Error", "One of the parameters are not filled in"
@@ -562,29 +567,7 @@ class VoltageMeasurementDialog(QDialog):
                         dataList,
                     ) = VoltageMeasurement.executeVoltageMeasurementA(
                         self,
-                        self.DMM_Instrument,
-                        self.Error_Gain,
-                        self.Error_Offset,
-                        self.minCurrent,
-                        self.maxCurrent,
-                        self.current_step_size,
-                        self.minVoltage,
-                        self.maxVoltage,
-                        self.voltage_step_size,
-                        self.PSU,
-                        self.DMM,
-                        self.ELoad,
-                        self.ELoad_Channel,
-                        self.PSU_Channel,
-                        self.VoltageSense,
-                        self.VoltageRes,
-                        self.setFunction,
-                        AdvancedSettingsList[0],
-                        AdvancedSettingsList[1],
-                        AdvancedSettingsList[2],
-                        AdvancedSettingsList[3],
-                        AdvancedSettingsList[4],
-                        AdvancedSettingsList[5],
+                        dict,
                     )
 
                 except Exception as e:
@@ -598,29 +581,7 @@ class VoltageMeasurementDialog(QDialog):
                         dataList,
                     ) = VoltageMeasurement.executeVoltageMeasurementB(
                         self,
-                        self.DMM_Instrument,
-                        self.Error_Gain,
-                        self.Error_Offset,
-                        self.minCurrent,
-                        self.maxCurrent,
-                        self.current_step_size,
-                        self.minVoltage,
-                        self.maxVoltage,
-                        self.voltage_step_size,
-                        self.PSU,
-                        self.DMM,
-                        self.ELoad,
-                        self.ELoad_Channel,
-                        self.PSU_Channel,
-                        self.VoltageSense,
-                        self.VoltageRes,
-                        self.setFunction,
-                        AdvancedSettingsList[0],
-                        AdvancedSettingsList[1],
-                        AdvancedSettingsList[2],
-                        AdvancedSettingsList[3],
-                        AdvancedSettingsList[4],
-                        AdvancedSettingsList[5],
+                        dict,
                     )
                 except Exception as e:
                     QMessageBox.warning(self, e)
@@ -629,29 +590,6 @@ class VoltageMeasurementDialog(QDialog):
             self.OutputBox.append("Measurement is complete !")
 
             if self.checkbox_data_Report == 2:
-                my_dict = {
-                    "Error Gain": [self.Error_Gain],
-                    "Error_Offset": [self.Error_Offset],
-                    "Minimum Current": [self.minCurrent],
-                    "Maximum Current": [self.maxCurrent],
-                    "Step Size (Current)": [self.current_step_size],
-                    "Minimum Voltage": [self.minVoltage],
-                    "Maximum Voltage": [self.maxVoltage],
-                    "Step Size (Voltage)": [self.voltage_step_size],
-                    "PSU Visa Address": [self.PSU],
-                    "DMM Visa Address": [self.DMM],
-                    "ELoad Visa Address": [self.ELoad],
-                    "ELoad Channel": [self.ELoad_Channel],
-                    "PSU Channel": [self.PSU_Channel],
-                    "Voltage Sense": [self.VoltageSense],
-                    "Voltage Resolution": [self.VoltageRes],
-                    "Voltage Range": [AdvancedSettingsList[0]],
-                    "NPLC Value": [AdvancedSettingsList[1]],
-                    "Auto Zero": [AdvancedSettingsList[2]],
-                    "Auto Input Impedance": [AdvancedSettingsList[3]],
-                    "PSU Settling Time (UP)": [AdvancedSettingsList[4]],
-                    "PSU Settling Time (DOWN)": [AdvancedSettingsList[5]],
-                }
                 instrumentData(self.PSU, self.DMM, self.ELoad)
                 datatoCSV_Accuracy(infoList, dataList)
                 datatoGraph(infoList, dataList)
@@ -660,7 +598,7 @@ class VoltageMeasurementDialog(QDialog):
                 )
                 A = xlreport()
                 A.run()
-                df = pd.DataFrame.from_dict(my_dict, orient="index")
+                df = pd.DataFrame.from_dict(dict, orient="index")
                 df.to_csv("csv/config.csv")
 
             if self.checkbox_data_Image == 2:
@@ -957,36 +895,39 @@ class CurrentMeasurementDialog(QDialog):
     def executeTest(self):
         self.infoList = []
         self.dataList = []
+        dict = []
+        dict = dictGenerator.input(
+            Instrument=self.DMM_Instrument,
+            Error_Gain=self.Error_Gain,
+            Error_Offset=self.Error_Offset,
+            minCurrent=self.minCurrent,
+            maxCurrent=self.maxCurrent,
+            current_step_size=self.current_step_size,
+            minVoltage=self.minVoltage,
+            maxVoltage=self.maxVoltage,
+            voltage_step_size=self.voltage_step_size,
+            PSU=self.PSU,
+            DMM=self.DMM,
+            ELoad=self.ELoad,
+            ELoad_Channel=self.ELoad_Channel,
+            PSU_Channel=self.PSU_Channel,
+            CurrentSense=self.CurrentSense,
+            CurrentRes=self.CurrentRes,
+            setFunction=self.setFunction,
+            Range=AdvancedSettingsList[0],
+            Aperture=AdvancedSettingsList[1],
+            AutoZero=AdvancedSettingsList[2],
+            Terminal=AdvancedSettingsList[3],
+            UpTime=AdvancedSettingsList[4],
+            DownTime=AdvancedSettingsList[5],
+        )
         QMessageBox.warning(
             self,
             "In Progress",
             "Measurement will start soon , please do not close the main window until test is completed",
         )
 
-        for i in [
-            self.Error_Gain,
-            self.Error_Offset,
-            self.minCurrent,
-            self.maxCurrent,
-            self.current_step_size,
-            self.minVoltage,
-            self.maxVoltage,
-            self.voltage_step_size,
-            self.PSU,
-            self.DMM,
-            self.ELoad,
-            self.ELoad_Channel,
-            self.PSU_Channel,
-            self.CurrentSense,
-            self.CurrentRes,
-            self.setFunction,
-            AdvancedSettingsList[0],
-            AdvancedSettingsList[1],
-            AdvancedSettingsList[2],
-            AdvancedSettingsList[3],
-            AdvancedSettingsList[4],
-            AdvancedSettingsList[5],
-        ]:
+        for i in [dict]:
             if i == "":
                 QMessageBox.warning(
                     self, "Error", "One of the parameters are not filled in"
@@ -1010,32 +951,7 @@ class CurrentMeasurementDialog(QDialog):
                     (
                         dataList,
                         infoList,
-                    ) = CurrentMeasurement.executeCurrentMeasurementA(
-                        self,
-                        self.DMM_Instrument,
-                        self.Error_Gain,
-                        self.Error_Offset,
-                        self.minCurrent,
-                        self.maxCurrent,
-                        self.current_step_size,
-                        self.minVoltage,
-                        self.maxVoltage,
-                        self.voltage_step_size,
-                        self.PSU,
-                        self.DMM,
-                        self.ELoad,
-                        self.ELoad_Channel,
-                        self.PSU_Channel,
-                        self.CurrentSense,
-                        self.CurrentRes,
-                        self.setFunction,
-                        AdvancedSettingsList[0],
-                        AdvancedSettingsList[1],
-                        AdvancedSettingsList[2],
-                        AdvancedSettingsList[3],
-                        AdvancedSettingsList[4],
-                        AdvancedSettingsList[5],
-                    )
+                    ) = CurrentMeasurement.executeCurrentMeasurementA(self, dict)
 
                 except Exception as e:
                     QMessageBox.warning(self, "Error", str(e))
@@ -1046,32 +962,7 @@ class CurrentMeasurementDialog(QDialog):
                     (
                         dataList,
                         infoList,
-                    ) = CurrentMeasurement.executeCurrentMeasurementB(
-                        self,
-                        self.DMM_Instrument,
-                        self.Error_Gain,
-                        self.Error_Offset,
-                        self.minCurrent,
-                        self.maxCurrent,
-                        self.current_step_size,
-                        self.minVoltage,
-                        self.maxVoltage,
-                        self.voltage_step_size,
-                        self.PSU,
-                        self.DMM,
-                        self.ELoad,
-                        self.ELoad_Channel,
-                        self.PSU_Channel,
-                        self.CurrentSense,
-                        self.CurrentRes,
-                        self.setFunction,
-                        AdvancedSettingsList[0],
-                        AdvancedSettingsList[1],
-                        AdvancedSettingsList[2],
-                        AdvancedSettingsList[3],
-                        AdvancedSettingsList[4],
-                        AdvancedSettingsList[5],
-                    )
+                    ) = CurrentMeasurement.executeCurrentMeasurementB(self, dict)
                 except Exception as e:
                     QMessageBox.warning(self, e)
                     exit()
@@ -1080,29 +971,6 @@ class CurrentMeasurementDialog(QDialog):
             self.OutputBox.append("Measurement is complete !")
 
             if self.checkbox_data_Report == 2:
-                my_dict = {
-                    "Error Gain": [self.Error_Gain],
-                    "Error_Offset": [self.Error_Offset],
-                    "Minimum Current": [self.minCurrent],
-                    "Maximum Current": [self.maxCurrent],
-                    "Step Size (Current)": [self.current_step_size],
-                    "Minimum Voltage": [self.minVoltage],
-                    "Maximum Voltage": [self.maxVoltage],
-                    "Step Size (Voltage)": [self.voltage_step_size],
-                    "PSU Visa Address": [self.PSU],
-                    "DMM Visa Address": [self.DMM],
-                    "ELoad Visa Address": [self.ELoad],
-                    "ELoad Channel": [self.ELoad_Channel],
-                    "PSU Channel": [self.PSU_Channel],
-                    "Current Sense": [self.CurrentSense],
-                    "Current Resolution": [self.CurrentRes],
-                    "Current Range": [AdvancedSettingsList[0]],
-                    "NPLC Value": [AdvancedSettingsList[1]],
-                    "Auto Zero": [AdvancedSettingsList[2]],
-                    "Terminal": [AdvancedSettingsList[3]],
-                    "PSU Settling Time (UP)": [AdvancedSettingsList[4]],
-                    "PSU Settling Time (DOWN)": [AdvancedSettingsList[5]],
-                }
                 instrumentData(self.PSU, self.DMM, self.ELoad)
                 datatoCSV_Accuracy(infoList, dataList)
                 datatoGraph(infoList, dataList)
@@ -1112,7 +980,7 @@ class CurrentMeasurementDialog(QDialog):
 
                 A = xlreport()
                 A.run()
-                df = pd.DataFrame.from_dict(my_dict, orient="index")
+                df = pd.DataFrame.from_dict(dict, orient="index")
                 df.to_csv("csv/config.csv")
 
             if self.checkbox_data_Image == 2:
@@ -1578,35 +1446,35 @@ class CV_LoadRegulationDialog(QDialog):
         AdvancedSettingsList[5] = value
 
     def executeTest(self):
+        dict = dictGenerator.input(
+            Instrument=self.DMM_Instrument,
+            Error_Gain=self.Error_Gain,
+            Error_Offset=self.Error_Offset,
+            V_Rating=self.Voltage_Rating,
+            I_Rating=self.Current_Rating,
+            P_Rating=self.Power_Rating,
+            PSU=self.PSU,
+            DMM=self.DMM,
+            ELoad=self.ELoad,
+            ELoad_Channel=self.ELoad_Channel,
+            PSU_Channel=self.PSU_Channel,
+            VoltageSense=self.VoltageSense,
+            VoltageRes=self.VoltageRes,
+            setFunction=self.setFunction,
+            Range=AdvancedSettingsList[0],
+            Aperture=AdvancedSettingsList[1],
+            AutoZero=AdvancedSettingsList[2],
+            InputZ=AdvancedSettingsList[3],
+            UpTime=AdvancedSettingsList[4],
+            DownTime=AdvancedSettingsList[5],
+        )
         QMessageBox.warning(
             self,
             "In Progress",
             "Measurement will start now , please do not close the main window until test is completed",
         )
 
-        for i in [
-            self,
-            self.DMM_Instrument,
-            self.Error_Gain,
-            self.Error_Offset,
-            self.Voltage_Rating,
-            self.Current_Rating,
-            self.Power_Rating,
-            self.PSU,
-            self.DMM,
-            self.ELoad,
-            self.ELoad_Channel,
-            self.PSU_Channel,
-            self.VoltageSense,
-            self.VoltageRes,
-            self.setFunction,
-            AdvancedSettingsList[0],
-            AdvancedSettingsList[1],
-            AdvancedSettingsList[2],
-            AdvancedSettingsList[3],
-            AdvancedSettingsList[4],
-            AdvancedSettingsList[5],
-        ]:
+        for i in [dict]:
             if i == "":
                 QMessageBox.warning(
                     self, "Error", "One of the parameters are not filled in"
@@ -1626,29 +1494,7 @@ class CV_LoadRegulationDialog(QDialog):
 
             if self.DMM_Instrument == "Keysight":
                 try:
-                    LoadRegulation.executeCV_LoadRegulationB(
-                        self,
-                        self.DMM_Instrument,
-                        self.Error_Gain,
-                        self.Error_Offset,
-                        self.Voltage_Rating,
-                        self.Current_Rating,
-                        self.Power_Rating,
-                        self.PSU,
-                        self.DMM,
-                        self.ELoad,
-                        self.ELoad_Channel,
-                        self.PSU_Channel,
-                        self.VoltageSense,
-                        self.VoltageRes,
-                        self.setFunction,
-                        AdvancedSettingsList[0],
-                        AdvancedSettingsList[1],
-                        AdvancedSettingsList[2],
-                        AdvancedSettingsList[3],
-                        AdvancedSettingsList[4],
-                        AdvancedSettingsList[5],
-                    )
+                    LoadRegulation.executeCV_LoadRegulationB(self, dict)
 
                 except Exception as e:
                     QMessageBox.warning(self, "Error", str(e))
@@ -1656,29 +1502,7 @@ class CV_LoadRegulationDialog(QDialog):
 
             elif self.DMM_Instrument == "Keithley":
                 try:
-                    LoadRegulation.executeCV_LoadRegulationA(
-                        self,
-                        self.DMM_Instrument,
-                        self.Error_Gain,
-                        self.Error_Offset,
-                        self.Voltage_Rating,
-                        self.Current_Rating,
-                        self.Power_Rating,
-                        self.PSU,
-                        self.DMM,
-                        self.ELoad,
-                        self.ELoad_Channel,
-                        self.PSU_Channel,
-                        self.VoltageSense,
-                        self.VoltageRes,
-                        self.setFunction,
-                        AdvancedSettingsList[0],
-                        AdvancedSettingsList[1],
-                        AdvancedSettingsList[2],
-                        AdvancedSettingsList[3],
-                        AdvancedSettingsList[4],
-                        AdvancedSettingsList[5],
-                    )
+                    LoadRegulation.executeCV_LoadRegulationA(self, dict)
 
                 except Exception as e:
                     QMessageBox.warning(self, "Error", str(e))
@@ -1896,13 +1720,13 @@ class CC_LoadRegulationDialog(QDialog):
             self.setFunction = "Resistance"
 
     def set_VoltageRes_changed(self, s):
-        self.VoltageRes = s
+        self.CurrentRes = s
 
     def set_VoltageSense_changed(self, s):
         if s == "2 Wire":
-            self.VoltageSense = "INT"
+            self.CurrentSense = "INT"
         elif s == "4 Wire":
-            self.VoltageSense = "EXT"
+            self.CurrentSense = "EXT"
 
     def setRange(self, value):
         AdvancedSettingsList[0] = value
@@ -1923,35 +1747,34 @@ class CC_LoadRegulationDialog(QDialog):
         AdvancedSettingsList[5] = value
 
     def executeTest(self):
+        dict = dictGenerator.input(
+            Instrument=self.DMM_Instrument,
+            Error_Gain=self.Error_Gain,
+            Error_Offset=self.Error_Offset,
+            V_Rating=self.Voltage_Rating,
+            I_Rating=self.Current_Rating,
+            P_Rating=self.Power_Rating,
+            PSU=self.PSU,
+            DMM=self.DMM,
+            ELoad=self.ELoad,
+            ELoad_Channel=self.ELoad_Channel,
+            PSU_Channel=self.PSU_Channel,
+            CurrentSense=self.CurrentSense,
+            setFunction=self.setFunction,
+            Range=AdvancedSettingsList[0],
+            Aperture=AdvancedSettingsList[1],
+            AutoZero=AdvancedSettingsList[2],
+            Terminal=AdvancedSettingsList[3],
+            UpTime=AdvancedSettingsList[4],
+            DownTime=AdvancedSettingsList[5],
+        )
         QMessageBox.warning(
             self,
             "In Progress",
             "Measurement will start now , please do not close the main window until test is completed",
         )
 
-        for i in [
-            self,
-            self.DMM_Instrument,
-            self.Error_Gain,
-            self.Error_Offset,
-            self.Voltage_Rating,
-            self.Current_Rating,
-            self.Power_Rating,
-            self.PSU,
-            self.DMM,
-            self.ELoad,
-            self.ELoad_Channel,
-            self.PSU_Channel,
-            self.VoltageSense,
-            self.VoltageRes,
-            self.setFunction,
-            AdvancedSettingsList[0],
-            AdvancedSettingsList[1],
-            AdvancedSettingsList[2],
-            AdvancedSettingsList[3],
-            AdvancedSettingsList[4],
-            AdvancedSettingsList[5],
-        ]:
+        for i in [self, dict]:
             if i == "":
                 QMessageBox.warning(
                     self, "Error", "One of the parameters are not filled in"
@@ -1971,29 +1794,7 @@ class CC_LoadRegulationDialog(QDialog):
 
             if self.DMM_Instrument == "Keysight":
                 try:
-                    LoadRegulation.executeCC_LoadRegulationB(
-                        self,
-                        self.DMM_Instrument,
-                        self.Error_Gain,
-                        self.Error_Offset,
-                        self.Voltage_Rating,
-                        self.Current_Rating,
-                        self.Power_Rating,
-                        self.PSU,
-                        self.DMM,
-                        self.ELoad,
-                        self.ELoad_Channel,
-                        self.PSU_Channel,
-                        self.VoltageSense,
-                        self.VoltageRes,
-                        self.setFunction,
-                        AdvancedSettingsList[0],
-                        AdvancedSettingsList[1],
-                        AdvancedSettingsList[2],
-                        AdvancedSettingsList[3],
-                        AdvancedSettingsList[4],
-                        AdvancedSettingsList[5],
-                    )
+                    LoadRegulation.executeCC_LoadRegulationB(self, dict)
 
                 except Exception as e:
                     QMessageBox.warning(self, "Error", str(e))
@@ -2001,29 +1802,7 @@ class CC_LoadRegulationDialog(QDialog):
 
             elif self.DMM_Instrument == "Keithley":
                 try:
-                    LoadRegulation.executeCC_LoadRegulationA(
-                        self,
-                        self.DMM_Instrument,
-                        self.Error_Gain,
-                        self.Error_Offset,
-                        self.Voltage_Rating,
-                        self.Current_Rating,
-                        self.Power_Rating,
-                        self.PSU,
-                        self.DMM,
-                        self.ELoad,
-                        self.ELoad_Channel,
-                        self.PSU_Channel,
-                        self.VoltageSense,
-                        self.VoltageRes,
-                        self.setFunction,
-                        AdvancedSettingsList[0],
-                        AdvancedSettingsList[1],
-                        AdvancedSettingsList[2],
-                        AdvancedSettingsList[3],
-                        AdvancedSettingsList[4],
-                        AdvancedSettingsList[5],
-                    )
+                    LoadRegulation.executeCC_LoadRegulationA(self, dict)
 
                 except Exception as e:
                     QMessageBox.warning(self, "Error", str(e))
@@ -2244,34 +2023,35 @@ class TransientRecoveryTime(QDialog):
         self.V_Settling_Band = s
 
     def executeTest(self):
+        dict = dictGenerator.input(
+            Instrument="Keysight",
+            PSU=self.PSU,
+            OSC=self.OSC,
+            ELoad=self.ELoad,
+            V_Rating=self.Voltage_Rating,
+            I_Rating=self.Current_Rating,
+            ELoad_Channel=self.ELoad_Channel,
+            PSU_Channel=self.PSU_Channel,
+            OSC_Channel=self.OSC_Channel,
+            VoltageSense=self.VoltageSense,
+            setFunction=self.setFunction,
+            Channel_CouplingMode=self.Channel_CouplingMode,
+            Trigger_Mode=self.Trigger_Mode,
+            Trigger_CouplingMode=self.Trigger_CouplingMode,
+            Trigger_SweepMode=self.Trigger_SweepMode,
+            Trigger_SlopeMode=self.Trigger_SlopeMode,
+            TimeScale=self.TimeScale,
+            VerticalScale=self.VerticalScale,
+            I_Step=self.I_Step,
+            V_Settling_Band=self.V_Settling_Band,
+        )
         QMessageBox.warning(
             self,
             "In Progress",
             "Measurement will start now , please do not close the main window until test is completed",
         )
 
-        for i in [
-            self,
-            self.PSU,
-            self.OSC,
-            self.ELoad,
-            self.Voltage_Rating,
-            self.Current_Rating,
-            self.PSU_Channel,
-            self.OSC_Channel,
-            self.ELoad_Channel,
-            self.VoltageSense,
-            self.setFunction,
-            self.Channel_CouplingMode,
-            self.Trigger_CouplingMode,
-            self.Trigger_Mode,
-            self.Trigger_SweepMode,
-            self.Trigger_SlopeMode,
-            self.TimeScale,
-            self.VerticalScale,
-            self.I_Step,
-            self.V_Settling_Band,
-        ]:
+        for i in [dict]:
             if i == "":
                 QMessageBox.warning(
                     self, "Error", "One of the parameters are not filled in"
@@ -2291,28 +2071,7 @@ class TransientRecoveryTime(QDialog):
                 exit()
 
             try:
-                RiseFallTime.execute(
-                    self,
-                    self.ELoad,
-                    self.PSU,
-                    self.OSC,
-                    self.ELoad_Channel,
-                    self.PSU_Channel,
-                    self.OSC_Channel,
-                    self.setFunction,
-                    self.VoltageSense,
-                    self.Voltage_Rating,
-                    self.Current_Rating,
-                    self.Channel_CouplingMode,
-                    self.Trigger_Mode,
-                    self.Trigger_CouplingMode,
-                    self.Trigger_SweepMode,
-                    self.Trigger_SlopeMode,
-                    self.TimeScale,
-                    self.VerticalScale,
-                    self.I_Step,
-                    self.V_Settling_Band,
-                )
+                RiseFallTime.execute(self, dict)
 
             except Exception as e:
                 print(e)
@@ -2541,28 +2300,29 @@ class ProgrammingSpeed(QDialog):
         QPushButton_Widget.clicked.connect(self.executeTest)
 
     def executeTest(self):
+        dict = dictGenerator.input(
+            Instrument="Keysight",
+            PSU=self.PSU,
+            OSC=self.OSC,
+            PSU_Channel=self.PSU_Channel,
+            OSC_Channel=self.OSC_Channel,
+            VoltageSense=self.VoltageSense,
+            Trigger_Mode=self.Trigger_Mode,
+            Trigger_CouplingMode=self.Trigger_CouplingMode,
+            Trigger_SweepMode=self.Trigger_SweepMode,
+            Trigger_SlopeMode=self.Trigger_SlopeMode,
+            Upper_Bound=self.Upper_Bound,
+            Lower_Bound=self.Lower_Bound,
+            V_Upper=self.V_Upper,
+            V_Lower=self.V_Lower,
+        )
         QMessageBox.warning(
             self,
             "In Progress",
             "Measurement will start now , please do not close the main window until test is completed",
         )
 
-        for i in [
-            self,
-            self.PSU,
-            self.OSC,
-            self.PSU_Channel,
-            self.OSC_Channel,
-            self.VoltageSense,
-            self.Trigger_CouplingMode,
-            self.Trigger_Mode,
-            self.Trigger_SweepMode,
-            self.Trigger_SlopeMode,
-            self.V_Upper,
-            self.V_Lower,
-            self.Upper_Bound,
-            self.Lower_Bound,
-        ]:
+        for i in [dict]:
             print(i)
             if i == "":
                 QMessageBox.warning(
@@ -2583,30 +2343,15 @@ class ProgrammingSpeed(QDialog):
                 exit()
 
             try:
-                ProgrammingSpeedTest.execute(
-                    self,
-                    self.PSU,
-                    self.OSC,
-                    self.PSU_Channel,
-                    self.OSC_Channel,
-                    self.VoltageSense,
-                    self.V_Lower,
-                    self.V_Upper,
-                    self.Trigger_Mode,
-                    self.Trigger_CouplingMode,
-                    self.Trigger_SweepMode,
-                    self.Trigger_SlopeMode,
-                    self.Upper_Bound,
-                    self.Lower_Bound,
-                )
+                ProgrammingSpeedTest.execute(self, dict)
 
             except Exception as e:
                 print(e)
                 QMessageBox.warning(self, "Error", str(e))
                 exit()
 
-            self.OutputBox.append(my_result.getvalue())
-            self.OutputBox.append("Measurement is complete !")
+        self.OutputBox.append(my_result.getvalue())
+        self.OutputBox.append("Measurement is complete !")
 
     def V_Upper_changed(self, s):
         self.V_Upper = s
