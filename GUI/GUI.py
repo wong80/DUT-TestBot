@@ -1,3 +1,5 @@
+"""Main Module that runs the Graphical User Interface (GUI) that is the main point of interaction between user and the program"""
+
 import sys
 from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget
 from PyQt5.QtGui import QFont, QPixmap
@@ -46,6 +48,8 @@ AdvancedSettingsList = []
 
 
 class tab(QTabWidget):
+    """Class containing all the tabs which displays the available types of DUT Tests available"""
+
     def __init__(self, parent=None):
         super(tab, self).__init__(parent)
         self.tab_VoltageAccuracy = QWidget()
@@ -225,7 +229,21 @@ class Window(QMainWindow):
 
 
 class VoltageMeasurementDialog(QDialog):
+    """Class for configuring the voltage measurement DUT Tests Dialog.
+    A widget is declared for each parameter that can be customized by the user. These widgets can come in
+    the form of QLineEdit, or QComboBox where user can select their preferred parameters. When the widgets
+    detect changes, a signal will be transmitted to a designated slot which is a method in this class
+    (e.g. [paramter_name]_changed). The parameter values will then be updated. At runtime execution of the
+    DUT Test, the program will compile all the parameters into a dictionary which will be passed as an argument
+    into the test methods and execute the DUT Tests accordingly.
+
+    For more details regarding the arguements, please refer to DUT_Test.py
+
+
+    """
+
     def __init__(self):
+        """Method where Widgets, Signals and Slots are defined in the GUI for Voltage Measurement"""
         super().__init__()
 
         self.setWindowTitle("Voltage Measurement")
@@ -508,6 +526,15 @@ class VoltageMeasurementDialog(QDialog):
         dlg.exec()
 
     def executeTest(self):
+        """The method begins by compiling all the parameters in a dictionary for ease of storage and calling,
+        then the parameters are looped through to check if any of them are empty or return NULL, a warning dialogue
+        will appear if the statement is true, and the users have to troubleshoot the issue. After so, the tests will
+        begin right after another warning dialogue prompting the user that the tests will begin very soon. When test
+        begins, the VISA_Addresses of the Instruments are passed through the VISA Resource Manager to make sure there
+        are connected. Then the actual DUT Tests will commence. Depending on the users selection, the method can
+        optionally export all the details into a CSV file or display a graph after the test is completed.
+
+        """
         self.infoList = []
         self.dataList = []
 
@@ -565,10 +592,7 @@ class VoltageMeasurementDialog(QDialog):
                     (
                         infoList,
                         dataList,
-                    ) = VoltageMeasurement.executeVoltageMeasurementA(
-                        self,
-                        dict,
-                    )
+                    ) = VoltageMeasurement.executeVoltageMeasurementA(self, dict)
 
                 except Exception as e:
                     QMessageBox.warning(self, "Error", str(e))
@@ -579,10 +603,7 @@ class VoltageMeasurementDialog(QDialog):
                     (
                         infoList,
                         dataList,
-                    ) = VoltageMeasurement.executeVoltageMeasurementB(
-                        self,
-                        dict,
-                    )
+                    ) = VoltageMeasurement.executeVoltageMeasurementB(self, dict)
                 except Exception as e:
                     QMessageBox.warning(self, e)
                     exit()
@@ -607,7 +628,20 @@ class VoltageMeasurementDialog(QDialog):
 
 
 class CurrentMeasurementDialog(QDialog):
+    """Class for configuring the current measurement DUT Tests Dialog.
+    A widget is declared for each parameter that can be customized by the user. These widgets can come in
+    the form of QLineEdit, or QComboBox where user can select their preferred parameters. When the widgets
+    detect changes, a signal will be transmitted to a designated slot which is a method in this class
+    (e.g. [paramter_name]_changed). The parameter values will then be updated. At runtime execution of the
+    DUT Test, the program will compile all the parameters into a dictionary which will be passed as an argument
+    into the test methods and execute the DUT Tests accordingly.
+
+    For more details regarding the arguements, please refer to DUT_Test.py
+    """
+
     def __init__(self):
+        """Method where widgets, signals and slots for Current Measurement is defined."""
+
         super().__init__()
 
         self.setWindowTitle("Current Measurement")
@@ -893,6 +927,15 @@ class CurrentMeasurementDialog(QDialog):
         AdvancedSettingsList[5] = value
 
     def executeTest(self):
+        """The method begins by compiling all the parameters in a dictionary for ease of storage and calling,
+        then the parameters are looped through to check if any of them are empty or return NULL, a warning dialogue
+        will appear if the statement is true, and the users have to troubleshoot the issue. After so, the tests will
+        begin right after another warning dialogue prompting the user that the tests will begin very soon. When test
+        begins, the VISA_Addresses of the Instruments are passed through the VISA Resource Manager to make sure there
+        are connected. Then the actual DUT Tests will commence. Depending on the users selection, the method can
+        optionally export all the details into a CSV file or display a graph after the test is completed.
+
+        """
         self.infoList = []
         self.dataList = []
         dict = []
@@ -989,7 +1032,13 @@ class CurrentMeasurementDialog(QDialog):
 
 
 class AdvancedSetting_Voltage(QDialog):
+    """This class is to configure the Advanced Settings when conducting voltage measurements,
+    It prompts a secondary dialogue for users to customize more advanced parametes such as
+    aperture, range, AutoZero, input impedance etc.
+    """
+
     def __init__(self):
+        """Method defining the signals, slots and widgets for Advaced Settings of Voltage Measurements"""
         super().__init__()
         self.setWindowTitle("Advanced Window (Voltage)")
         QPushButton_Widget = QPushButton()
@@ -1084,7 +1133,13 @@ class AdvancedSetting_Voltage(QDialog):
 
 
 class AdvancedSetting_Current(QDialog):
+    """This class is to configure the Advanced Settings when conducting current measurements,
+    It prompts a secondary dialogue for users to customize more advanced parametes such as
+    aperture, range, AutoZero, input impedance etc.
+    """
+
     def __init__(self):
+        """Method defining the signals, slots and widgets for Advaced Settings of Voltage Measurements"""
         super().__init__()
         self.setWindowTitle("Advanced Window (Current)")
         QPushButton_Widget = QPushButton()
@@ -1185,6 +1240,8 @@ class AdvancedSetting_Current(QDialog):
 
 
 class image_Window(QDialog):
+    """Class to display graph of DUT Test results"""
+
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Image")
@@ -1198,7 +1255,21 @@ class image_Window(QDialog):
 
 
 class CV_LoadRegulationDialog(QDialog):
+    """Class for configuring the Load Regulation under CV Mode DUT Tests Dialog.
+    A widget is declared for each parameter that can be customized by the user. These widgets can come in
+    the form of QLineEdit, or QComboBox where user can select their preferred parameters. When the widgets
+    detect changes, a signal will be transmitted to a designated slot which is a method in this class
+    (e.g. [paramter_name]_changed). The parameter values will then be updated. At runtime execution of the
+    DUT Test, the program will compile all the parameters into a dictionary which will be passed as an argument
+    into the test methods and execute the DUT Tests accordingly.
+
+    For more details regarding the arguements, please refer to DUT_Test.py
+
+
+    """
+
     def __init__(self):
+        """ "Method declaring the Widgets, Signals & Slots for Load Regulation under CV Mode."""
         super().__init__()
 
         self.setWindowTitle("Load Regulation (CV)")
@@ -1446,6 +1517,15 @@ class CV_LoadRegulationDialog(QDialog):
         AdvancedSettingsList[5] = value
 
     def executeTest(self):
+        """The method begins by compiling all the parameters in a dictionary for ease of storage and calling,
+        then the parameters are looped through to check if any of them are empty or return NULL, a warning dialogue
+        will appear if the statement is true, and the users have to troubleshoot the issue. After so, the tests will
+        begin right after another warning dialogue prompting the user that the tests will begin very soon. When test
+        begins, the VISA_Addresses of the Instruments are passed through the VISA Resource Manager to make sure there
+        are connected. Then the actual DUT Tests will commence. Depending on the users selection, the method can
+        optionally export all the details into a CSV file or display a graph after the test is completed.
+
+        """
         dict = dictGenerator.input(
             Instrument=self.DMM_Instrument,
             Error_Gain=self.Error_Gain,
@@ -1517,7 +1597,20 @@ class CV_LoadRegulationDialog(QDialog):
 
 
 class CC_LoadRegulationDialog(QDialog):
+    """Class for configuring the  Load Regulation under CC Mode DUT Tests Dialog.
+    A widget is declared for each parameter that can be customized by the user. These widgets can come in
+    the form of QLineEdit, or QComboBox where user can select their preferred parameters. When the widgets
+    detect changes, a signal will be transmitted to a designated slot which is a method in this class
+    (e.g. [paramter_name]_changed). The parameter values will then be updated. At runtime execution of the
+    DUT Test, the program will compile all the parameters into a dictionary which will be passed as an argument
+    into the test methods and execute the DUT Tests accordingly.
+
+    For more details regarding the arguements, please refer to DUT_Test.py
+
+    """
+
     def __init__(self):
+        """ "Method declaring the Widgets, Signals & Slots for Load Regulation under CV Mode."""
         super().__init__()
 
         self.setWindowTitle("Load Regulation (CC)")
@@ -1747,6 +1840,15 @@ class CC_LoadRegulationDialog(QDialog):
         AdvancedSettingsList[5] = value
 
     def executeTest(self):
+        """The method begins by compiling all the parameters in a dictionary for ease of storage and calling,
+        then the parameters are looped through to check if any of them are empty or return NULL, a warning dialogue
+        will appear if the statement is true, and the users have to troubleshoot the issue. After so, the tests will
+        begin right after another warning dialogue prompting the user that the tests will begin very soon. When test
+        begins, the VISA_Addresses of the Instruments are passed through the VISA Resource Manager to make sure there
+        are connected. Then the actual DUT Tests will commence. Depending on the users selection, the method can
+        optionally export all the details into a CSV file or display a graph after the test is completed.
+
+        """
         dict = dictGenerator.input(
             Instrument=self.DMM_Instrument,
             Error_Gain=self.Error_Gain,
@@ -1817,7 +1919,20 @@ class CC_LoadRegulationDialog(QDialog):
 
 
 class TransientRecoveryTime(QDialog):
+    """Class for configuring the Transient Recovery Time DUT Tests Dialog.
+    A widget is declared for each parameter that can be customized by the user. These widgets can come in
+    the form of QLineEdit, or QComboBox where user can select their preferred parameters. When the widgets
+    detect changes, a signal will be transmitted to a designated slot which is a method in this class
+    (e.g. [paramter_name]_changed). The parameter values will then be updated. At runtime execution of the
+    DUT Test, the program will compile all the parameters into a dictionary which will be passed as an argument
+    into the test methods and execute the DUT Tests accordingly.
+
+    For more details regarding the arguements, please refer to DUT_Test.py
+
+    """
+
     def __init__(self):
+        """ "Method declaring the Widgets, Signals & Slots for Transient Recovery Time."""
         super().__init__()
 
         self.setWindowTitle("Transient Recovery Time")
@@ -2023,6 +2138,15 @@ class TransientRecoveryTime(QDialog):
         self.V_Settling_Band = s
 
     def executeTest(self):
+        """The method begins by compiling all the parameters in a dictionary for ease of storage and calling,
+        then the parameters are looped through to check if any of them are empty or return NULL, a warning dialogue
+        will appear if the statement is true, and the users have to troubleshoot the issue. After so, the tests will
+        begin right after another warning dialogue prompting the user that the tests will begin very soon. When test
+        begins, the VISA_Addresses of the Instruments are passed through the VISA Resource Manager to make sure there
+        are connected. Then the actual DUT Tests will commence. Depending on the users selection, the method can
+        optionally export all the details into a CSV file or display a graph after the test is completed.
+
+        """
         dict = dictGenerator.input(
             Instrument="Keysight",
             PSU=self.PSU,
@@ -2147,7 +2271,20 @@ class TransientRecoveryTime(QDialog):
 
 
 class ProgrammingSpeed(QDialog):
+    """Class for configuring the Programming Speed DUT Tests Dialog.
+    A widget is declared for each parameter that can be customized by the user. These widgets can come in
+    the form of QLineEdit, or QComboBox where user can select their preferred parameters. When the widgets
+    detect changes, a signal will be transmitted to a designated slot which is a method in this class
+    (e.g. [paramter_name]_changed). The parameter values will then be updated. At runtime execution of the
+    DUT Test, the program will compile all the parameters into a dictionary which will be passed as an argument
+    into the test methods and execute the DUT Tests accordingly.
+
+    For more details regarding the arguements, please refer to DUT_Test.py
+
+    """
+
     def __init__(self):
+        """ "Method declaring the Widgets, Signals & Slots for Programming Speed."""
         super().__init__()
 
         self.setWindowTitle("Programming Speed")
@@ -2300,6 +2437,15 @@ class ProgrammingSpeed(QDialog):
         QPushButton_Widget.clicked.connect(self.executeTest)
 
     def executeTest(self):
+        """The method begins by compiling all the parameters in a dictionary for ease of storage and calling,
+        then the parameters are looped through to check if any of them are empty or return NULL, a warning dialogue
+        will appear if the statement is true, and the users have to troubleshoot the issue. After so, the tests will
+        begin right after another warning dialogue prompting the user that the tests will begin very soon. When test
+        begins, the VISA_Addresses of the Instruments are passed through the VISA Resource Manager to make sure there
+        are connected. Then the actual DUT Tests will commence. Depending on the users selection, the method can
+        optionally export all the details into a CSV file or display a graph after the test is completed.
+
+        """
         dict = dictGenerator.input(
             Instrument="Keysight",
             PSU=self.PSU,
@@ -2323,7 +2469,6 @@ class ProgrammingSpeed(QDialog):
         )
 
         for i in [dict]:
-            print(i)
             if i == "":
                 QMessageBox.warning(
                     self, "Error", "One of the parameters are not filled in"
