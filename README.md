@@ -22,7 +22,15 @@ Copy the line of code below into git bash to download the repository.
 gh repo clone wong80/DUT-TestBot
 ```
 ## Supported Models 
-This lists contains the list of Instrument Models/Series that are compatible with this program.
+This lists contains the list of Instrument Models/Series that are compatible with this program. Models included in these tables have been tested. 
+| Types of Instrument      | Supported Models (Commmand Set)           |
+| ------------- |:-------------:| 
+| Digital Multimeter (DMM)  | 34405 Digital Multimeters <br> 3446x Series Digital Multimeters <br> Keithley Model 2100|
+| Power Supply Unit (PSU)   | E36731A     |
+| Electronic Load (ELoad)   | N6700 Power Supplies      |
+| Oscilloscopes             | InfiniiVision 6000 Series Oscilloscopes |
+
+
 ##
 
 ## User Guide
@@ -55,3 +63,6 @@ When the tests is complete, the textbox at the bottom of your test window will p
 
 ![alt_text](https://github.com/wong80/DUT-TestBot/blob/main/images/ReadME/TextBox.PNG)
 ## To-Do List
+- [ ] Adding more Supported Models for this application
+- [ ] Additional DUT Tests (Ex. Line Regulation, Output Voltage Ripple etc.)
+- [ ] Optimize Sub Optimal Programming Practices
